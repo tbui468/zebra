@@ -34,48 +34,39 @@ namespace zebra {
 
 
     enum class TokenType {
-        NUMBER,
-        FLOAT,
-        INT,
-        STRING,
-        STAR,
-        SLASH,
-        PLUS,
-        MINUS,
-        DOT,
-        SEMICOLON,
-        LEFT_PAREN,
-        RIGHT_PAREN,
-        IDENTIFIER,
-        EQUAL,
-        EQUAL_EQUAL,
-        LESS,
-        GREATER,
-        LESS_EQUAL,
-        GREATER_EQUAL,
-        BANG_EQUAL,
-        BANG,
+        //single char tokens
+        PLUS, MINUS, STAR, SLASH,
+        DOT, SEMICOLON,
+        LEFT_PAREN, RIGHT_PAREN,
+        LEFT_BRACE, RIGHT_BRACE,
+        MOD,
+        //double or single char tokens
+        EQUAL, EQUAL_EQUAL,
+        LESS, LESS_EQUAL,
+        GREATER, GREATER_EQUAL,
+        BANG,BANG_EQUAL,
+        //literals
+        INT, FLOAT, STRING, IDENTIFIER,
+        //keywords
+        PRINT, IF, ELSE
+        TRUE, FALSE,
+        /*
         RIGHT_ARROW,
-        COLON,
-        ELSE, //new from here (except print and if)  This should be part of hash table
-        PRINT,
-        IF,
+        COLON
         FUN,
         RETURN,
-        INT_TYPE,
-        STRING_TYPE,
-        FLOAT_TYPE,
-        BOOL_TYPE,
+        INT_TYPE, ??
+        STRING_TYPE, ??
+        FLOAT_TYPE, ??
+        BOOL_TYPE,  ??
         FOR,
         WHILE,
-        TRUE,
-        FALSE,
         AND,
         OR,
         NIL,
         ELIF, //new stuff
         BREAK,
-        CONTINUE,
+        CONTINUE,*/
         EOFILE
     };
 
