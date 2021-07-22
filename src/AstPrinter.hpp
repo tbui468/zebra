@@ -18,6 +18,8 @@ namespace zebra {
             virtual std::string visit(Group& expr) override;
             virtual std::string visit(Literal& expr) override;
             virtual std::string visit(Print& stmt) override;
+            virtual std::string visit(If& stmt) override;
+            virtual std::string visit(Block& stmt) override;
     };
 
 

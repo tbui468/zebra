@@ -43,6 +43,8 @@ namespace zebra {
 
             Stmt* statement() {
                 if (match(TokenType::PRINT)) return print_statement();
+                if (match(TokenType::IF)) return if_statement();
+                if (peek(TokenType::LEFT_BRACE)) return block_statement();
                 
                 throw ParseError(previous(), "Invalid token");
             }
@@ -52,6 +54,24 @@ namespace zebra {
                 Stmt* ret = new Print(value);
                 consume(TokenType::SEMICOLON, "Expect semicolon after expression.");
                 return ret;
+            }
+
+            Stmt* if_statement() {
+                consume(TokenType::LEFT_PAREN, "Expect '(' after keyword 'if'.");
+                Expr* condition = expression();
+                consume(TokenType::RIGHT_PAREN, "Expect ')' after condition.");
+                Stmt* body = block_statement();
+                return new If(condition, body);
+            }
+
+            Stmt* block_statement() {
+                consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
+                std::vector<Stmt*> statements;
+                while (!match(TokenType::RIGHT_BRACE)) {
+                    statements.push_back(statement());
+                }
+
+                return new Block(statements);
             }
 
             Expr* expression() {
@@ -138,6 +158,10 @@ namespace zebra {
                     return true;
                 }
                 return false;
+            }
+
+            bool peek(TokenType type) {
+                return m_tokens.at(m_current).m_type == type;
             }
 
             const Token& previous() {

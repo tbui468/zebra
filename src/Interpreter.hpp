@@ -59,6 +59,21 @@ namespace zebra {
                 delete value;
             }
 
+            void visit(If& stmt) {
+                Object* condition = evaluate(*(stmt.m_condition));
+                if(condition->is_truthy()) {
+                    execute(*(stmt.m_body));                    
+                }
+
+                delete condition;
+            }
+
+            void visit(Block& stmt) {
+                for(Stmt* s: stmt.m_statements) {
+                    execute(*s);  
+                }    
+            }
+
             Object* evaluate(Expr& expr) {
                 return expr.accept(*this);
             }

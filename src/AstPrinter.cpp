@@ -24,5 +24,14 @@ namespace zebra {
     std::string AstPrinter::visit(Print& stmt) {
         return "( Print " + stmt.m_value->accept(*this) + " )";
     }
+    std::string AstPrinter::visit(If& stmt) {
+        return "If";
+       // return "( If " + stmt.m_value->accept(*this) + " )";
+    }
+    std::string AstPrinter::visit(Block& stmt) {
+        return "Block";
+        //return "( Block " + stmt.m_value->accept(*this) + " )";
+    }
+
 
 }

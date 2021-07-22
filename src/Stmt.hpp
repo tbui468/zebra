@@ -1,17 +1,24 @@
 #ifndef ZEBRA_STMT_H
 #define ZEBRA_STMT_H
 
+#include <vector>
 #include "Expr.hpp"
 
 namespace zebra {
 
     struct Print;
+    struct If;
+    struct Block;
 
     struct StmtStringVisitor {
         virtual std::string visit(Print& stmt) = 0;
+        virtual std::string visit(If& stmt) = 0;
+        virtual std::string visit(Block& stmt) = 0;
     };
     struct StmtVoidVisitor {
         virtual void visit(Print& stmt) = 0;
+        virtual void visit(If& stmt) = 0;
+        virtual void visit(Block& stmt) = 0;
     };
 
 
@@ -30,6 +37,34 @@ namespace zebra {
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(*this); }
         public:
             Expr* m_value;
+    };
+
+    struct If: public Stmt {
+        public:
+            If(Expr* condition, Stmt* body): m_condition(condition), m_body(body) {}
+            ~If() {
+                delete m_condition;
+                delete m_body;
+            }
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(*this); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(*this); }
+        public:
+            Expr* m_condition;
+            Stmt* m_body;
+    };
+
+    struct Block: public Stmt {
+        public:
+            Block(std::vector<Stmt*> statements): m_statements(statements) {}
+            ~Block() {
+                for(Stmt* s: m_statements) {
+                    delete s;
+                }
+            }
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(*this); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(*this); }
+        public:
+            std::vector<Stmt*> m_statements;
     };
 
 
