@@ -14,7 +14,7 @@ namespace zebra {
         public:
             TokenArray();
             ~TokenArray();
-            Token at(int index) const;
+            const Token& at(int index) const;
             int size() const;
             void add(const Token& token);
             void print();

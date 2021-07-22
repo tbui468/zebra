@@ -45,7 +45,6 @@ namespace zebra {
             //other
             case TokenType::EOFILE: printf("EOFILE"); break;
         }
-        printf("\n");
     }
 
 }

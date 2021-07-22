@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 #include "TokenArray.hpp"
 
 namespace zebra {
@@ -9,7 +10,7 @@ namespace zebra {
     TokenArray::~TokenArray() {
         delete[] m_tokens;
     }
-    Token TokenArray::at(int index) const {
+    const Token& TokenArray::at(int index) const {
         assert(index < m_size);
         return m_tokens[index];
     }
@@ -27,6 +28,7 @@ namespace zebra {
     void TokenArray::print() {
         for (int i = 0; i < m_size; i++) {
             m_tokens[i].print();
+            printf("\n");
         } 
     }
     void TokenArray::init() {
