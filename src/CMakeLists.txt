@@ -1,27 +1,23 @@
 set(Sources
     Main.cpp
-    #Stmt.hpp
-    #Expr.hpp
+    Stmt.hpp
+    Expr.hpp
     Token.cpp
-    #TokenArray.cpp
-    #StmtList.cpp
     #Object.hpp
     Lexer.cpp
-    #Parser.cpp
+    Parser.cpp
     #Interpreter.cpp
-    #AstPrinter.cpp
+    AstPrinter.cpp
     )
 
 set(Headers
     TokenType.hpp
     Token.hpp
-    #TokenArray.hpp
-    #StmtList.hpp
     #Object.cpp
     Lexer.hpp
-    #Parser.hpp
+    Parser.hpp
     #Interpreter.hpp
-    #AstPrinter.hpp
+    AstPrinter.hpp
     )
 
 add_executable(

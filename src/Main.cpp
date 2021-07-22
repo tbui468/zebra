@@ -3,8 +3,9 @@
 #include "TokenType.hpp"
 #include "Token.hpp"
 #include "Lexer.hpp"
-//#include "Parser.hpp"
-//#include "AstPrinter.hpp"
+#include "Parser.hpp"
+#include "Stmt.hpp"
+#include "AstPrinter.hpp"
 
 
 //TODO: 
@@ -46,14 +47,13 @@ int main(int argc, char** argv) {
         for (zebra::Token t: tokens) {
             std::cout << t.to_string() << std::endl;
         }
-       /* 
-        zebra::Parser parser(t);
-        zebra::StmtList* sl = parser.parse();
-        if(sl) {
-            for(int i = 0; i < sl->size(); i++) {
-                zebra::Parser::print(sl->at(i));
-            }
-        }*/
+       
+        zebra::Parser parser(tokens);
+        std::vector<zebra::Stmt*> sl = parser.parse();
+        zebra::AstPrinter printer;        
+        for(int i = 0; i < int(sl.size()); i++) {
+            printer.print(*(sl.at(i)));
+        }
 
     }
     return 0;

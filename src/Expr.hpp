@@ -1,6 +1,7 @@
 #ifndef ZEBRA_EXPR_H
 #define ZEBRA_EXPR_H
 
+#include <string>
 #include "Token.hpp"
 
 namespace zebra {
@@ -11,17 +12,17 @@ namespace zebra {
     struct Literal;
 
     struct ExprStringVisitor {
-        virtual const char* visit(Unary& expr) = 0;
-        virtual const char* visit(Binary& expr) = 0;
-        virtual const char* visit(Group& expr) = 0;
-        virtual const char* visit(Literal& expr) = 0;
+        virtual std::string visit(Unary& expr) = 0;
+        virtual std::string visit(Binary& expr) = 0;
+        virtual std::string visit(Group& expr) = 0;
+        virtual std::string visit(Literal& expr) = 0;
     };
 
     //Expressions
     struct Expr {
         public:
             virtual ~Expr() {}
-            virtual const char* accept(ExprStringVisitor& visitor) = 0;
+            virtual std::string accept(ExprStringVisitor& visitor) = 0;
     };
 
 
@@ -29,7 +30,7 @@ namespace zebra {
         public:
             Unary(Token op, Expr* right): m_op(op), m_right(right) {}
             ~Unary() { delete m_right; }
-            const char* accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
         public:
             Token m_op;
             Expr* m_right;
@@ -42,7 +43,7 @@ namespace zebra {
                 delete m_left;
                 delete m_right;
             }
-            const char* accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
         public:
             Token m_op;
             Expr* m_left;
@@ -54,7 +55,7 @@ namespace zebra {
         public:
             Group(Token name, Expr* expr): m_name(name), m_expr(expr) {}
             ~Group() { delete m_expr; }
-            const char* accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
         public:
             Token m_name;
             Expr* m_expr;
@@ -64,7 +65,7 @@ namespace zebra {
         public:
             Literal(Token token): m_token(token) {}
             ~Literal() {}
-            const char* accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
         public:
             Token m_token;
     };

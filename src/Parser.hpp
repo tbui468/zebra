@@ -1,79 +1,40 @@
 #ifndef ZEBRA_PARSER_H
 #define ZEBRA_PARSER_H
 
-#include <stdio.h>
+#include <vector>
+#include <iostream>
 #include "Token.hpp"
-#include "TokenArray.hpp"
 #include "Expr.hpp"
 #include "Stmt.hpp"
-#include "StmtList.hpp"
 
 namespace zebra {
 
 
     class Parser {
         private:
-            TokenArray* m_tokens;
+            std::vector<Token> m_tokens;
             int m_current;
             class ParseError {
                 private:
                     Token m_token;
-                    const char* m_message;
+                    std::string m_message;
                 public:
-                    ParseError(Token token, const char* message): m_token(token), m_message(message){}
+                    ParseError(Token token, const std::string& message): m_token(token), m_message(message){}
                     ~ParseError() {}
                     void print() {
-                        printf("[Line %d] Error: %s", m_token.m_line, m_message);
+                        std::cout << "[Line " << m_token.m_line << "] Error: " << m_message << std::endl;
                     }
             };
         public:
-
-            static void print(Stmt* node) {
-                if(dynamic_cast<Print*>(node)) {
-                    printf("( Print ");
-                    print(dynamic_cast<Print*>(node)->m_value);
-                    printf(" )");
-                } else {
-                } 
-            }
-            static void print(Expr* node) {
-                if(dynamic_cast<Literal*>(node)) {
-                    dynamic_cast<Literal*>(node)->m_token.print();
-                } else if (dynamic_cast<Binary*>(node)) {
-                    Binary* binary = dynamic_cast<Binary*>(node);
-                    printf("( ");
-                    binary->m_op.print();
-                    printf(" ");
-                    print(binary->m_left);
-                    printf(" ");
-                    print(binary->m_right);
-                    printf(" )");
-                } else if (dynamic_cast<Unary*>(node)) {
-                    Unary* unary = dynamic_cast<Unary*>(node);
-                    printf("( ");
-                    unary->m_op.print();
-                    printf(" ");
-                    print(unary->m_right);
-                    printf(" )");
-                }else if(dynamic_cast<Group*>(node)) {
-                    printf("( Group ");
-                    print(dynamic_cast<Group*>(node)->m_expr);
-                    printf(" )");
-                }
-            }
-
-        public:
-            Parser(TokenArray* token_array): m_tokens(token_array), m_current(0) {}
-            StmtList* parse() {
-                StmtList* sl = new StmtList();
+            Parser(const std::vector<Token>& tokens): m_tokens(tokens), m_current(0) {}
+            std::vector<Stmt*> parse() {
+                std::vector<Stmt*> sl;
                 try {
                     while(!match(TokenType::EOFILE)) {
-                        sl->add(statement());
+                        sl.push_back(statement());
                     }
                 } catch (ParseError& error) {
                     error.print();
-                    delete sl;
-                    return nullptr;
                 }
 
                 return sl;
@@ -166,7 +127,7 @@ namespace zebra {
             }
 
             bool match(TokenType type) {
-                if(m_tokens->at(m_current).m_type == type) {
+                if(m_tokens.at(m_current).m_type == type) {
                     m_current++;
                     return true;
                 }
@@ -174,10 +135,10 @@ namespace zebra {
             }
 
             const Token& previous() {
-                return m_tokens->at(m_current - 1);
+                return m_tokens.at(m_current - 1);
             }
 
-            void consume(TokenType type, const char* message) {
+            void consume(TokenType type, const std::string& message) {
                 if (!match(type)) {
                     Token t = previous();
                     throw ParseError(t, message);

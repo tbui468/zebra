@@ -1,28 +1,28 @@
-#include <stdio.h>
+#include <iostream>
 #include "AstPrinter.hpp"
 
 
 namespace zebra {
 
-/*
+
     void AstPrinter::print(Stmt& stmt) {
-        printf("%s", stmt.accept(*this)); 
+        std::cout << stmt.accept(*this) << std::endl;
     }
 
-    const char* AstPrinter::visit(Unary& expr) {
+    std::string AstPrinter::visit(Unary& expr) {
         return "( " + expr.m_op.to_string() + " " + expr.m_right->accept(*this);
     }
-    const char* AstPrinter::visit(Binary& expr) {
+    std::string AstPrinter::visit(Binary& expr) {
         return "( " + expr.m_op.to_string() + " " + expr.m_left->accept(*this) + " " + expr.m_right->accept(*this) + " )";
     }
-    const char* AstPrinter::visit(Group& expr) {
+    std::string AstPrinter::visit(Group& expr) {
         return "( " + expr.m_expr->accept(*this) + " )";
     }
-    const char* AstPrinter::visit(Literal& expr) {
+    std::string AstPrinter::visit(Literal& expr) {
         return expr.m_token.to_string();
     }
-    const char* AstPrinter::visit(Print& stmt) {
+    std::string AstPrinter::visit(Print& stmt) {
         return "( Print " + stmt.m_value->accept(*this) + " )";
-    }*/
+    }
 
 }
