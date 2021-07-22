@@ -4,11 +4,21 @@
 #include <assert.h>
 #include <stdlib.h>
 
+const int MAX_LEXEME_SIZE = 256;
+
 
 //TODO: 
-//  implement hash map - look at Crafting Interpreters guide
-//  how to keep char* arrays alive?  Can I call new?  
-//  get read number working.  No leading or trailing decimals for now.
+//  Implement match for keywords
+//  remove NUMBER TokenType and replace with INT and FLOAT types
+//  implement remaining tokens (up to optional ones)
+//  numbers
+//      double peek ahead for decimals to allow numbers with leading decimals
+//      change to allow trailing decimals too
+//  ParseError shouldn't need a be used in Lexer (also get rid of NONE TokenType)
+//      Just get the tokens necessary and throw errors in the Parsing stage if the tokens don't match
+//  Create a SyntaxError that only shows the line and 
+//  Parser - get basic expression or print working first
+//  Think about const char* a bit more. Try on godbolt 
 //  split into multiple files
 //  Get basic arithmetic calculator working using basic C++ (essentially C with classes)
 //  Use any C++ libraries if necessary, but replace them when possible
@@ -24,31 +34,63 @@ namespace zebra {
 
 
     enum class TokenType {
-        NONE,
         NUMBER,
+        FLOAT,
+        INT,
         STRING,
         STAR,
         SLASH,
         PLUS,
         MINUS,
         DOT,
-        PRINT,
         SEMICOLON,
         LEFT_PAREN,
         RIGHT_PAREN,
         IDENTIFIER,
-        IF
+        EQUAL,
+        EQUAL_EQUAL,
+        LESS,
+        GREATER,
+        LESS_EQUAL,
+        GREATER_EQUAL,
+        BANG_EQUAL,
+        BANG,
+        RIGHT_ARROW,
+        COLON,
+        ELSE, //new from here (except print and if)  This should be part of hash table
+        PRINT,
+        IF,
+        FUN,
+        RETURN,
+        INT_TYPE,
+        STRING_TYPE,
+        FLOAT_TYPE,
+        BOOL_TYPE,
+        FOR,
+        WHILE,
+        TRUE,
+        FALSE,
+        AND,
+        OR,
+        NIL,
+        ELIF, //new stuff
+        BREAK,
+        CONTINUE,
+        EOFILE
     };
+
 
     struct Token {
         public:
             TokenType m_type;
-            const char* m_literal;
-            const char* m_lexeme;
+            int m_length;
+            char m_lexeme[MAX_LEXEME_SIZE] = {0};
             int m_line;
         public:
-            Token(): m_type(TokenType::NONE), m_literal(""), m_lexeme(""), m_line(0) {}
-            Token(TokenType type, const char* literal, const char* lexeme, int line): m_type(type), m_literal(literal), m_lexeme(lexeme), m_line(line) {}
+            Token(): Token(TokenType::STRING, nullptr, 0, 0) {}
+            Token(TokenType type, const char* start, int len, int line): m_type(type), m_line(line) {
+                if(start) strncpy(m_lexeme, start, len);
+            }
             ~Token() {}
     };
 
@@ -62,6 +104,17 @@ namespace zebra {
             ~ParseError() {}
             void print() {
                 printf("[Line %d] Error: %s", m_token.m_line, m_message);
+            }
+    };
+    class SyntaxError {
+        private:
+            int m_line;
+            const char* m_message;
+        public:
+            SyntaxError(int line, const char* message): m_line(line), m_message(message){}
+            ~SyntaxError() {}
+            void print() {
+                printf("[Line %d] Syntax Error: %s", m_line, m_message);
             }
     };
 
@@ -98,9 +151,8 @@ namespace zebra {
             void print() {
                 for (int i = 0; i < m_size; i++) {
                     switch(m_tokens[i].m_type) {
-                        case TokenType::NONE:           printf("NONE\n");                               break;
-                        case TokenType::NUMBER:         printf("NUMBER [%f]\n", atof(m_tokens[i].m_literal)); break;
-                        case TokenType::STRING:         printf("STRING [\"%s\"]\n", m_tokens[i].m_literal); break;
+                        case TokenType::NUMBER:         printf("NUMBER [%s]\n", m_tokens[i].m_lexeme); break;
+                        case TokenType::STRING:         printf("STRING [\"%s\"]\n", m_tokens[i].m_lexeme); break;
                         case TokenType::STAR:           printf("STAR\n");                               break;
                         case TokenType::SLASH:          printf("SLASH\n");                              break;
                         case TokenType::PLUS:           printf("PLUS\n");                               break;
@@ -112,6 +164,17 @@ namespace zebra {
                         case TokenType::RIGHT_PAREN:    printf("RIGHT_PAREN\n");                        break;
                         case TokenType::IDENTIFIER:     printf("IDENTIFIER [%s]\n", m_tokens[i].m_lexeme);                         break;
                         case TokenType::IF:             printf("IF\n");                        break;
+                        case TokenType::EQUAL:printf("EQUAL\n");                                break;
+                        case TokenType::EQUAL_EQUAL:printf("EQUAL_EQUAL\n");                                break;
+                        case TokenType::LESS:printf("LESS\n");                                break;
+                        case TokenType::GREATER:printf("GREATER\n");                                break;
+                        case TokenType::LESS_EQUAL:printf("LESS_EQUAL\n");                                break;
+                        case TokenType::GREATER_EQUAL:printf("GREATER_EQUAL\n");                                break;
+                        case TokenType::BANG_EQUAL:printf("BANG_EQUAL\n");                                break;
+                        case TokenType::BANG:printf("BANG\n");                                break;
+                        case TokenType::RIGHT_ARROW:printf("RIGHT_ARROW\n");                                break;
+                        case TokenType::COLON:printf("COLON\n");                                break;
+                        case TokenType::EOFILE:printf("EOFILE\n");                                break;
                     }
                 } 
             }
@@ -147,7 +210,7 @@ namespace zebra {
             void scan() {
                 try {
                     scan_source();
-                }catch(ParseError& e) {
+                }catch(SyntaxError& e) {
                     e.print();
                 }
             }
@@ -158,30 +221,57 @@ namespace zebra {
 
                     switch(c) {
                         case '+': add_token(TokenType::PLUS); break;
-                        case '-': add_token(TokenType::MINUS); break;
+                        case '-': 
+                            if (match('>')) add_token(TokenType::RIGHT_ARROW);
+                            else add_token(TokenType::MINUS);
+                            break;
                         case '/': add_token(TokenType::SLASH); break;
                         case '*': add_token(TokenType::STAR); break;
                         case ';': add_token(TokenType::SEMICOLON); break;
                         case '(': add_token(TokenType::LEFT_PAREN); break;
                         case ')': add_token(TokenType::RIGHT_PAREN); break;
                         case '.': add_token(TokenType::DOT); break;
+                        case '=':
+                            if (match('=')) add_token(TokenType::EQUAL_EQUAL);
+                            else            add_token(TokenType::EQUAL);
+                            break;
+                        case '<':
+                            if (match('=')) add_token(TokenType::LESS_EQUAL);
+                            else            add_token(TokenType::LESS);
+                            break;
+                        case '>':
+                            if (match('=')) add_token(TokenType::GREATER_EQUAL);
+                            else            add_token(TokenType::GREATER);
+                            break;
+                        case '!':
+                            if (match('=')) add_token(TokenType::BANG_EQUAL);
+                            else            add_token(TokenType::BANG);
+                            break;
                         case '"': read_string(); break;
                         case '\n': m_line++;
                         case '\r':
-                        case '\0':
                         case ' ':
                             break;
                         default:
                             if (is_numeric(c)) {
                                 read_number();
                             } else if (is_alpha(c)) {
-                                read_keywords();
+                                //read_keywords();
                             } else {
-                                throw ParseError(Token(TokenType::NONE, "", "", m_line), "Invalid token.");
+                                throw SyntaxError(m_line, "Invalid character.\n");
                             }
                             break;
                     }
                 }
+                add_token(TokenType::EOFILE);
+            }
+
+            bool match(char c) {
+                if(peek() == c) {
+                    next();
+                    return true;
+                }
+                return false;
             }
 
             char next() {
@@ -208,17 +298,13 @@ namespace zebra {
                     next();
                 }
 
-                if (peek() != '"') throw ParseError(Token(TokenType::NONE, "", "", m_line), "Unclosed double quotes.");
+                if (peek() != '"') throw SyntaxError(m_line, "Unclosed double quotes.\n");
 
                 next();
 
-                int size = m_current - start - 1;
-                char* word = new char[size];
-                for (int i = 0; i < size; i++) {
-                    word[i] = m_source[start + i];
-                }
-                word[size] = '\0';
-                add_token(TokenType::STRING, word, "");
+                int len = m_current - start - 1; //removing two quotes, but adding on extra space for null terminater
+                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
+                add_token(TokenType::STRING, &m_source[start], len);
             }
 
             void read_keywords() {
@@ -226,20 +312,21 @@ namespace zebra {
                 while(!is_at_end() && is_alpha(peek())) {
                     next();
                 }
-                int size = m_current - start;
-                char* word = new char[size + 1];
-                for (int i = 0; i < size; i++) {
-                    word[i] = m_source[start + i];
-                }
-                word[size] = '\0';
+
+                int len = m_current - start;
+                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
 
                 if (strcmp(word, "print") == 0) {
-                    add_token(TokenType::PRINT, "", "");
+                    add_token(TokenType::PRINT);
                 } else if (strcmp(word, "if") == 0) {
-                    add_token(TokenType::IF, "", "");
+                    add_token(TokenType::IF);
                 } else {
-                    add_token(TokenType::IDENTIFIER, "", word);
+                    add_token(TokenType::IDENTIFIER, &m_source[start], len);
                 }
+            }
+
+            bool match_chars(const char* other) {
+
             }
 
 
@@ -249,24 +336,20 @@ namespace zebra {
                     next();
                 }
 
-                //if decimal is next, continuing reading 
+                //allows trailing decimals - find a way to get rid of this
                 if (!is_at_end() && peek() == '.') {
                     next();               
                     if(!is_at_end() && !is_numeric(peek())) {
-                        throw ParseError(Token(TokenType::NONE, "", "", m_line), "Numbers can't end with a trailing decimal.");
+                        throw SyntaxError(m_line, "Numbers can't end with a trailing decimal.\n");
                     }
                     while(!is_at_end() && is_numeric(peek())) {
                         next();
                     }
                 }
 
-                int size = m_current - start;
-                char* num = new char[size + 1];
-                for (int i = 0; i < size; i++) {
-                    num[i] = m_source[start + i];
-                }
-                num[size] = '\0';
-                add_token(TokenType::NUMBER, num, "");
+                int len = m_current - start;
+                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
+                add_token(TokenType::NUMBER, &m_source[start], len);
             }
 
             bool is_at_end() {
@@ -278,12 +361,11 @@ namespace zebra {
             }
 
             void add_token(TokenType type) {
-                m_tokens.add(Token(type, "", "", m_line));
+                m_tokens.add(Token(type, nullptr, 0, m_line));
             }
-            void add_token(TokenType type, const char* literal, const char* lexeme) {
-                m_tokens.add(Token(type, literal, lexeme, m_line));
+            void add_token(TokenType type, const char* start, int len) {
+                m_tokens.add(Token(type, start, len, m_line));
             }
-
 
             TokenArray* get_tokens() {
                 return &m_tokens; 
