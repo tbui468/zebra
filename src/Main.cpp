@@ -8,9 +8,7 @@ const int MAX_LEXEME_SIZE = 256;
 
 
 //TODO: 
-//  Implement match for keywords
-//  remove NUMBER TokenType and replace with INT and FLOAT types
-//  implement remaining tokens (up to optional ones)
+//  Implement match for keywords, otherwise it's an identifier
 //  numbers
 //      double peek ahead for decimals to allow numbers with leading decimals
 //      change to allow trailing decimals too
@@ -48,7 +46,7 @@ namespace zebra {
         //literals
         INT, FLOAT, STRING, IDENTIFIER,
         //keywords
-        PRINT, IF, ELSE
+        PRINT, IF, ELSE,
         TRUE, FALSE,
         /*
         RIGHT_ARROW,
@@ -74,7 +72,7 @@ namespace zebra {
     struct Token {
         public:
             TokenType m_type;
-            int m_length;
+            //int m_length;
             char m_lexeme[MAX_LEXEME_SIZE] = {0};
             int m_line;
         public:
@@ -83,6 +81,45 @@ namespace zebra {
                 if(start) strncpy(m_lexeme, start, len);
             }
             ~Token() {}
+            void print() {
+                switch(m_type) {
+                    //single char tokens
+                    case TokenType::PLUS: printf("PLUS"); break;
+                    case TokenType::MINUS: printf("MINUS"); break;
+                    case TokenType::STAR: printf("STAR"); break;
+                    case TokenType::SLASH: printf("SLASH"); break;
+                    case TokenType::DOT: printf("DOT"); break;
+                    case TokenType::SEMICOLON: printf("SEMICOLON"); break;
+                    case TokenType::LEFT_PAREN: printf("LEFT_PAREN"); break;
+                    case TokenType::RIGHT_PAREN: printf("RIGHT_PAREN"); break;
+                    case TokenType::LEFT_BRACE: printf("LEFT_BRACE"); break;
+                    case TokenType::RIGHT_BRACE: printf("RIGHT_BRACE"); break;
+                    case TokenType::MOD: printf("MOD"); break;
+                    //double or single char tokens
+                    case TokenType::EQUAL: printf("EQUAL"); break;
+                    case TokenType::EQUAL_EQUAL: printf("EQUAL_EQUAL"); break;
+                    case TokenType::LESS: printf("LESS"); break;
+                    case TokenType::LESS_EQUAL: printf("LESS_EQUAL"); break;
+                    case TokenType::GREATER: printf("GREATER"); break;
+                    case TokenType::GREATER_EQUAL: printf("GREATER_EQUAL"); break;
+                    case TokenType::BANG: printf("BANG"); break;
+                    case TokenType::BANG_EQUAL: printf("BANG_EQUAL"); break;
+                    //literals
+                    case TokenType::INT: printf("INT [%s]", m_lexeme); break;
+                    case TokenType::FLOAT: printf("FLOAT [%s]", m_lexeme); break;
+                    case TokenType::STRING: printf("STRING [%s]", m_lexeme); break;
+                    case TokenType::IDENTIFIER: printf("IDENTIFIER [%s]", m_lexeme); break;
+                    //keywords
+                    case TokenType::PRINT: printf("PRINT"); break;
+                    case TokenType::IF: printf("IF"); break;
+                    case TokenType::ELSE: printf("ELSE"); break;
+                    case TokenType::TRUE: printf("TRUE"); break;
+                    case TokenType::FALSE: printf("FALSE"); break;
+                    //other
+                    case TokenType::EOFILE: printf("EOFILE"); break;
+                }
+                printf("\n");
+            }
     };
 
 
@@ -141,32 +178,7 @@ namespace zebra {
 
             void print() {
                 for (int i = 0; i < m_size; i++) {
-                    switch(m_tokens[i].m_type) {
-                        case TokenType::NUMBER:         printf("NUMBER [%s]\n", m_tokens[i].m_lexeme); break;
-                        case TokenType::STRING:         printf("STRING [\"%s\"]\n", m_tokens[i].m_lexeme); break;
-                        case TokenType::STAR:           printf("STAR\n");                               break;
-                        case TokenType::SLASH:          printf("SLASH\n");                              break;
-                        case TokenType::PLUS:           printf("PLUS\n");                               break;
-                        case TokenType::MINUS:          printf("MINUS\n");                              break;
-                        case TokenType::DOT:            printf("DOT\n");                                break;
-                        case TokenType::PRINT:          printf("PRINT\n");                              break;
-                        case TokenType::SEMICOLON:      printf("SEMICOLON\n");                          break;
-                        case TokenType::LEFT_PAREN:     printf("LEFT_PAREN\n");                         break;
-                        case TokenType::RIGHT_PAREN:    printf("RIGHT_PAREN\n");                        break;
-                        case TokenType::IDENTIFIER:     printf("IDENTIFIER [%s]\n", m_tokens[i].m_lexeme);                         break;
-                        case TokenType::IF:             printf("IF\n");                        break;
-                        case TokenType::EQUAL:printf("EQUAL\n");                                break;
-                        case TokenType::EQUAL_EQUAL:printf("EQUAL_EQUAL\n");                                break;
-                        case TokenType::LESS:printf("LESS\n");                                break;
-                        case TokenType::GREATER:printf("GREATER\n");                                break;
-                        case TokenType::LESS_EQUAL:printf("LESS_EQUAL\n");                                break;
-                        case TokenType::GREATER_EQUAL:printf("GREATER_EQUAL\n");                                break;
-                        case TokenType::BANG_EQUAL:printf("BANG_EQUAL\n");                                break;
-                        case TokenType::BANG:printf("BANG\n");                                break;
-                        case TokenType::RIGHT_ARROW:printf("RIGHT_ARROW\n");                                break;
-                        case TokenType::COLON:printf("COLON\n");                                break;
-                        case TokenType::EOFILE:printf("EOFILE\n");                                break;
-                    }
+                    m_tokens[i].print();
                 } 
             }
         private:
@@ -209,19 +221,23 @@ namespace zebra {
             void scan_source() {
                 while (!is_at_end()) {
                     char c = next();
-
                     switch(c) {
+                        //single char tokens
                         case '+': add_token(TokenType::PLUS); break;
-                        case '-': 
-                            if (match('>')) add_token(TokenType::RIGHT_ARROW);
-                            else add_token(TokenType::MINUS);
-                            break;
+                        case '-': add_token(TokenType::MINUS); break;
                         case '/': add_token(TokenType::SLASH); break;
                         case '*': add_token(TokenType::STAR); break;
                         case ';': add_token(TokenType::SEMICOLON); break;
                         case '(': add_token(TokenType::LEFT_PAREN); break;
                         case ')': add_token(TokenType::RIGHT_PAREN); break;
-                        case '.': add_token(TokenType::DOT); break;
+                        case '{': add_token(TokenType::LEFT_BRACE); break;
+                        case '}': add_token(TokenType::RIGHT_BRACE); break;
+                        case '%': add_token(TokenType::MOD); break;
+                        case '.': 
+                            if(is_numeric(peek()))   read_float_with_leading();
+                            else                     add_token(TokenType::DOT); 
+                            break;
+                        //double or single char tokens
                         case '=':
                             if (match('=')) add_token(TokenType::EQUAL_EQUAL);
                             else            add_token(TokenType::EQUAL);
@@ -238,16 +254,32 @@ namespace zebra {
                             if (match('=')) add_token(TokenType::BANG_EQUAL);
                             else            add_token(TokenType::BANG);
                             break;
+                        //literals, keywords, and eofile
                         case '"': read_string(); break;
                         case '\n': m_line++;
                         case '\r':
                         case ' ':
                             break;
+                        case 'p':
+                            if (match("rint")) add_token(TokenType::PRINT);
+                            break;
+                        case 'i':
+                            if (match("f")) add_token(TokenType::IF);
+                            break;
+                        case 'e':
+                            if (match("lse")) add_token(TokenType::ELSE);
+                            break;
+                        case 't':
+                            if (match("rue")) add_token(TokenType::TRUE);
+                            break;
+                        case 'f':
+                            if (match("alse")) add_token(TokenType::FALSE);
+                            break;
                         default:
                             if (is_numeric(c)) {
                                 read_number();
                             } else if (is_alpha(c)) {
-                                //read_keywords();
+                                read_identifier();
                             } else {
                                 throw SyntaxError(m_line, "Invalid character.\n");
                             }
@@ -255,6 +287,86 @@ namespace zebra {
                     }
                 }
                 add_token(TokenType::EOFILE);
+            }
+
+
+            void read_string() {
+                int start = m_current; //not including quote
+                while(!is_at_end() && peek() != '"') {
+                    next();
+                }
+
+                if (peek() != '"') throw SyntaxError(m_line, "Unclosed double quotes.\n");
+
+                next();
+
+                int len = m_current - start - 1; //removing two quotes, but adding on extra space for null terminater
+                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
+                add_token(TokenType::STRING, &m_source[start], len);
+            }
+            
+
+            void read_identifier() {
+                int start = m_current - 1;
+                while(!is_at_end() && is_alpha(peek())) {
+                    next();
+                }
+
+                int len = m_current - start;
+                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
+
+                add_token(TokenType::IDENTIFIER, &m_source[start], len);
+            }
+
+            bool match(const char* s) {
+                int len = strlen(s);
+
+                //check m_current and compare to s
+                for (int i = 0; i < len; i++) {
+                    if ((m_current + i) >= (m_length - 1)) return false;
+                    if (s[i] != m_source[m_current + i]) return false;
+                }
+
+                for (int i = 0; i < len; i++) next();
+
+                return true;
+            }
+
+            void read_float_with_leading() {
+                int start = m_current - 1;
+                while(!is_at_end() && is_numeric(peek())) {
+                    next();
+                }
+                int len = m_current - start;
+                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
+                add_token(TokenType::FLOAT, &m_source[start], len);
+            }
+
+            void read_number() {
+                int start = m_current - 1;
+                while(!is_at_end() && is_numeric(peek())) {
+                    next();
+                }
+
+                //integer
+                if (!is_at_end() && peek() != '.') {
+                    int len = m_current - start;
+                    if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
+                    add_token(TokenType::INT, &m_source[start], len);
+                    return;
+                }
+
+                //allows trailing decimals - find a way to get rid of this
+                if (!is_at_end() && peek() == '.') {
+                    next();               
+                    while(!is_at_end() && is_numeric(peek())) {
+                        next();
+                    }
+                }
+
+                int len = m_current - start;
+                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
+                add_token(TokenType::FLOAT, &m_source[start], len);
             }
 
             bool match(char c) {
@@ -281,66 +393,6 @@ namespace zebra {
 
             bool is_alpha_numeric(char c) {
                 return (is_alpha(c) || is_numeric(c));
-            }
-
-            void read_string() {
-                int start = m_current; //not including quote
-                while(!is_at_end() && peek() != '"') {
-                    next();
-                }
-
-                if (peek() != '"') throw SyntaxError(m_line, "Unclosed double quotes.\n");
-
-                next();
-
-                int len = m_current - start - 1; //removing two quotes, but adding on extra space for null terminater
-                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
-                add_token(TokenType::STRING, &m_source[start], len);
-            }
-
-            void read_keywords() {
-                int start = m_current - 1;
-                while(!is_at_end() && is_alpha(peek())) {
-                    next();
-                }
-
-                int len = m_current - start;
-                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
-
-                if (strcmp(word, "print") == 0) {
-                    add_token(TokenType::PRINT);
-                } else if (strcmp(word, "if") == 0) {
-                    add_token(TokenType::IF);
-                } else {
-                    add_token(TokenType::IDENTIFIER, &m_source[start], len);
-                }
-            }
-
-            bool match_chars(const char* other) {
-
-            }
-
-
-            void read_number() {
-                int start = m_current - 1;
-                while(!is_at_end() && is_numeric(peek())) {
-                    next();
-                }
-
-                //allows trailing decimals - find a way to get rid of this
-                if (!is_at_end() && peek() == '.') {
-                    next();               
-                    if(!is_at_end() && !is_numeric(peek())) {
-                        throw SyntaxError(m_line, "Numbers can't end with a trailing decimal.\n");
-                    }
-                    while(!is_at_end() && is_numeric(peek())) {
-                        next();
-                    }
-                }
-
-                int len = m_current - start;
-                if (len >= MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
-                add_token(TokenType::NUMBER, &m_source[start], len);
             }
 
             bool is_at_end() {
