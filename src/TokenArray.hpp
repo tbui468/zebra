@@ -17,7 +17,7 @@ namespace zebra {
             const Token& at(int index) const;
             int size() const;
             void add(const Token& token);
-            void print();
+//            void print();
         private:
             void init();
             void double_size();

@@ -5,45 +5,43 @@
 
 namespace zebra {
 
-    Token::Token(TokenType type, const char* start, int len, int line): m_type(type), m_line(line) {
-        if(start) strncpy_s(m_lexeme, Token::MAX_LEXEME_SIZE, start, len);
-    }
-    void Token::print() {
+    Token::Token(TokenType type, const std::string& lexeme, int line): m_type(type), m_lexeme(lexeme), m_line(line) {}
+    std::string Token::to_string() {
         switch(m_type) {
             //single char tokens
-            case TokenType::PLUS: printf("PLUS"); break;
-            case TokenType::MINUS: printf("MINUS"); break;
-            case TokenType::STAR: printf("STAR"); break;
-            case TokenType::SLASH: printf("SLASH"); break;
-            case TokenType::DOT: printf("DOT"); break;
-            case TokenType::SEMICOLON: printf("SEMICOLON"); break;
-            case TokenType::LEFT_PAREN: printf("LEFT_PAREN"); break;
-            case TokenType::RIGHT_PAREN: printf("RIGHT_PAREN"); break;
-            case TokenType::LEFT_BRACE: printf("LEFT_BRACE"); break;
-            case TokenType::RIGHT_BRACE: printf("RIGHT_BRACE"); break;
-            case TokenType::MOD: printf("MOD"); break;
+            case TokenType::PLUS: return "PLUS"; break;
+            case TokenType::MINUS: return "MINUS"; break;
+            case TokenType::STAR: return "STAR"; break;
+            case TokenType::SLASH: return "SLASH"; break;
+            case TokenType::DOT: return "DOT"; break;
+            case TokenType::SEMICOLON: return "SEMICOLON"; break;
+            case TokenType::LEFT_PAREN: return "LEFT_PAREN"; break;
+            case TokenType::RIGHT_PAREN: return "RIGHT_PAREN"; break;
+            case TokenType::LEFT_BRACE: return "LEFT_BRACE"; break;
+            case TokenType::RIGHT_BRACE: return "RIGHT_BRACE"; break;
+            case TokenType::MOD: return "MOD"; break;
             //double or single char tokens
-            case TokenType::EQUAL: printf("EQUAL"); break;
-            case TokenType::EQUAL_EQUAL: printf("EQUAL_EQUAL"); break;
-            case TokenType::LESS: printf("LESS"); break;
-            case TokenType::LESS_EQUAL: printf("LESS_EQUAL"); break;
-            case TokenType::GREATER: printf("GREATER"); break;
-            case TokenType::GREATER_EQUAL: printf("GREATER_EQUAL"); break;
-            case TokenType::BANG: printf("BANG"); break;
-            case TokenType::BANG_EQUAL: printf("BANG_EQUAL"); break;
+            case TokenType::EQUAL: return "EQUAL"; break;
+            case TokenType::EQUAL_EQUAL: return "EQUAL_EQUAL"; break;
+            case TokenType::LESS: return "LESS"; break;
+            case TokenType::LESS_EQUAL: return "LESS_EQUAL"; break;
+            case TokenType::GREATER: return "GREATER"; break;
+            case TokenType::GREATER_EQUAL: return "GREATER_EQUAL"; break;
+            case TokenType::BANG: return "BANG"; break;
+            case TokenType::BANG_EQUAL: return "BANG_EQUAL"; break;
             //literals
-            case TokenType::INT: printf("INT [%s]", m_lexeme); break;
-            case TokenType::FLOAT: printf("FLOAT [%s]", m_lexeme); break;
-            case TokenType::STRING: printf("STRING [%s]", m_lexeme); break;
-            case TokenType::IDENTIFIER: printf("IDENTIFIER [%s]", m_lexeme); break;
+            case TokenType::INT: return "INT [" + m_lexeme + "]"; break;
+            case TokenType::FLOAT: return "FLOAT [" + m_lexeme + "]"; break;
+            case TokenType::STRING: return "STRING [" + m_lexeme + "]"; break;
+            case TokenType::IDENTIFIER: return "IDENTIFIER [" + m_lexeme + "]"; break;
             //keywords
-            case TokenType::PRINT: printf("PRINT"); break;
-            case TokenType::IF: printf("IF"); break;
-            case TokenType::ELSE: printf("ELSE"); break;
-            case TokenType::TRUE: printf("TRUE"); break;
-            case TokenType::FALSE: printf("FALSE"); break;
+            case TokenType::PRINT: return "PRINT"; break;
+            case TokenType::IF: return "IF"; break;
+            case TokenType::ELSE: return "ELSE"; break;
+            case TokenType::TRUE: return "TRUE"; break;
+            case TokenType::FALSE: return "FALSE"; break;
             //other
-            case TokenType::EOFILE: printf("EOFILE"); break;
+            case TokenType::EOFILE: return "EOFILE"; break;
         }
     }
 

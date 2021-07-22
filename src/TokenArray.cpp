@@ -24,13 +24,14 @@ namespace zebra {
         m_tokens[m_size] = token;
         m_size++;
     }
-
+/*
     void TokenArray::print() {
         for (int i = 0; i < m_size; i++) {
             m_tokens[i].print();
             printf("\n");
         } 
-    }
+    }*/
+
     void TokenArray::init() {
         m_tokens = new Token[m_capacity];
     }

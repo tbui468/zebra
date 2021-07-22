@@ -1,39 +1,41 @@
 #ifndef ZEBRA_LEXER_H
 #define ZEBRA_LEXER_H
 
-#include <stdio.h>
-#include "TokenArray.hpp"
+#include <string>
+#include <vector>
+#include <iostream>
+
+#include "Token.hpp"
 
 namespace zebra {
 
     class Lexer {
         private:
-            static const int MAX_LEXEME_SIZE = 256;
-            char* m_source;
-            TokenArray m_tokens;
-            int m_length;
+            std::string m_source = "";
+            std::vector<Token> m_tokens;
             int m_current = 0;
             int m_line = 1;
             class SyntaxError {
                 private:
                     int m_line;
-                    const char* m_message;
+                    std::string m_message;
                 public:
-                    SyntaxError(int line, const char* message): m_line(line), m_message(message){}
+                    SyntaxError(int line, const std::string& message): m_line(line), m_message(message){}
                     ~SyntaxError() {}
                     void print() {
-                        printf("[Line %d] Syntax Error: %s", m_line, m_message);
+                        std::cout << "[Line " << m_line << "] Syntax Error: " << m_message << std::endl;
                     }
             };
         public:
             Lexer(const char* file_path);
             ~Lexer();
-            TokenArray* scan();
+            std::vector<Token> scan();
+            void print_source() const;
         private:
             void scan_source();
             void read_string();
             void read_identifier();
-            bool match(const char* s);
+            bool match(const std::string& s);
             void read_float_with_leading();
             void read_number();
             bool match(char c);
@@ -44,8 +46,7 @@ namespace zebra {
             bool is_at_end();
             bool is_numeric(char c);
             void add_token(TokenType type);
-            void add_token(TokenType type, const char* start, int len);
-            void print_source() const;
+            void add_token(TokenType type, const std::string& lexeme);
             void read_source(const char* file_path);
 
     };

@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS //to silence fopen warning
 #include <assert.h>
-#include <string.h>
+#include <fstream>
 #include "Lexer.hpp"
 
 namespace zebra {
@@ -8,17 +8,15 @@ namespace zebra {
     Lexer::Lexer(const char* file_path) {
         read_source(file_path);
     }
-    Lexer::~Lexer() {
-        delete[] m_source;
-    }
+    Lexer::~Lexer() {}
 
-    TokenArray* Lexer::scan() {
+    std::vector<Token> Lexer::scan() {
         try {
             scan_source();
         }catch(SyntaxError& e) {
             e.print();
         }
-        return &m_tokens;
+        return m_tokens;
     }
 
     void Lexer::scan_source() {
@@ -104,8 +102,7 @@ namespace zebra {
         next();
 
         int len = m_current - start - 1; //removing two quotes, but adding on extra space for null terminater
-        if (len >= Lexer::MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
-        add_token(TokenType::STRING, &m_source[start], len);
+        add_token(TokenType::STRING, m_source.substr(start, len));
     }
     
 
@@ -116,21 +113,16 @@ namespace zebra {
         }
 
         int len = m_current - start;
-        if (len >= Lexer::MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
-
-        add_token(TokenType::IDENTIFIER, &m_source[start], len);
+        add_token(TokenType::IDENTIFIER, m_source.substr(start, len));
     }
 
-    bool Lexer::match(const char* s) {
-        int len = strlen(s);
+    bool Lexer::match(const std::string& s) {
 
-        //check m_current and compare to s
-        for (int i = 0; i < len; i++) {
-            if ((m_current + i) >= (m_length - 1)) return false;
-            if (s[i] != m_source[m_current + i]) return false;
+        if (s != m_source.substr(m_current, s.length())) {
+            return false;
         }
 
-        for (int i = 0; i < len; i++) next();
+        for (int i = 0; i < (int)(s.length()); i++) next();
 
         return true;
     }
@@ -141,8 +133,7 @@ namespace zebra {
             next();
         }
         int len = m_current - start;
-        if (len >= Lexer::MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
-        add_token(TokenType::FLOAT, &m_source[start], len);
+        add_token(TokenType::FLOAT, m_source.substr(start, len));
     }
 
     void Lexer::read_number() {
@@ -154,8 +145,7 @@ namespace zebra {
         //integer
         if (!is_at_end() && peek() != '.') {
             int len = m_current - start;
-            if (len >= Lexer::MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
-            add_token(TokenType::INT, &m_source[start], len);
+            add_token(TokenType::INT, m_source.substr(start, len));
             return;
         }
 
@@ -168,8 +158,7 @@ namespace zebra {
         }
 
         int len = m_current - start;
-        if (len >= Lexer::MAX_LEXEME_SIZE) throw SyntaxError(m_line, "Max identifier or number length is 256 characters.\n");
-        add_token(TokenType::FLOAT, &m_source[start], len);
+        add_token(TokenType::FLOAT, m_source.substr(start, len));
     }
 
     bool Lexer::match(char c) {
@@ -186,7 +175,7 @@ namespace zebra {
     }
 
     char Lexer::peek() {
-        assert(m_current < m_length);
+        assert(m_current < int(m_source.length()));
         return m_source[m_current];
     }
 
@@ -199,7 +188,7 @@ namespace zebra {
     }
 
     bool Lexer::is_at_end() {
-        return m_current >= m_length - 1;
+        return m_current >= int(m_source.length() - 1);
     }
 
     bool Lexer::is_numeric(char c) {
@@ -207,27 +196,27 @@ namespace zebra {
     }
 
     void Lexer::add_token(TokenType type) {
-        m_tokens.add(Token(type, nullptr, 0, m_line));
+        m_tokens.emplace_back(Token(type, "", m_line));
     }
-    void Lexer::add_token(TokenType type, const char* start, int len) {
-        m_tokens.add(Token(type, start, len, m_line));
+    void Lexer::add_token(TokenType type, const std::string& lexeme) {
+        m_tokens.emplace_back(Token(type, lexeme, m_line));
     }
 
     void Lexer::print_source() const {
-        printf("%s", m_source);
+        std::cout << m_source;
     }
 
     void Lexer::read_source(const char* file_path) {
-        FILE* f = fopen(file_path, "rb");
-        if (f) {
-            fseek(f, 0, SEEK_END);
-            m_length = ftell(f) + 1;
-            fseek(f, 0, SEEK_SET); // == rewind(f)
-            m_source = new char[m_length];
-            fread(m_source, 1, m_length - 1, f);
-            m_source[m_length - 1] = '\0';
-            fclose(f);
+        std::string line;
+        std::ifstream my_file(file_path);
+
+        if(my_file.is_open()) {
+            while (getline(my_file, line)) {
+              m_source += line + "\n";
+            }
+            my_file.close();
         }
+
     }
 
 }

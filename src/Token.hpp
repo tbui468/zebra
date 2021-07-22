@@ -1,24 +1,21 @@
 #ifndef ZEBRA_TOKEN_H
 #define ZEBRA_TOKEN_H
 
+#include <string>
 #include "TokenType.hpp"
 
 
 namespace zebra {
 
     struct Token {
-        private:
-            static const int MAX_LEXEME_SIZE = 256;
         public:
             TokenType m_type;
-            //int m_length;
-            char m_lexeme[MAX_LEXEME_SIZE] = {0};
+            std::string m_lexeme;
             int m_line;
         public:
-            Token(): Token(TokenType::STRING, nullptr, 0, 0) {}
-            Token(TokenType type, const char* start, int len, int line);
+            Token(TokenType type, const std::string& lexeme, int line);
             ~Token() {}
-            void print();
+            std::string to_string();
     };
 
 }

@@ -27,6 +27,7 @@ namespace zebra {
                     }
             };
         public:
+
             static void print(Stmt* node) {
                 if(dynamic_cast<Print*>(node)) {
                     printf("( Print ");
@@ -60,6 +61,7 @@ namespace zebra {
                     printf(" )");
                 }
             }
+
         public:
             Parser(TokenArray* token_array): m_tokens(token_array), m_current(0) {}
             StmtList* parse() {

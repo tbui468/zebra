@@ -1,17 +1,28 @@
+
+#include <vector>
 #include "TokenType.hpp"
 #include "Token.hpp"
 #include "Lexer.hpp"
-#include "Parser.hpp"
+//#include "Parser.hpp"
+//#include "AstPrinter.hpp"
 
 
 //TODO: 
+//  Interpreter
+//      use std::string for easier string management - it'll make things so much easier
+//          Change Parser and supporting code to std::string
+//      use vector for Tokens and Stmts
+//      use raw pointers for now
+//      Implement visitor pattern and create AstPrinter class that extends the visitor interface for both Expr and Stmt
+//          once that works, use the interfaces on Interpreter
+//      Take in AST as input and execute statements and evaluate expressions
+//      Dynamically type stuff for now - make object class
+//      Put off type-checking for now
 //  Parser - get basic expression or print working first
 //      Need a StmtList with variable length to hold statements
 //      fill out recursive descent for expressions (binary, unary at least)
 //      move Printing AST into own class using visitor pattern
 //      move Parser body into cpp file
-//  Interpreter
-//      Take in AST as input and execute statements and evaluate expressions
 //  Get basic arithmetic calculator working using basic C++ (essentially C with classes)
 //  Use any C++ libraries if necessary, but replace them when possible
 //   Lexer
@@ -30,16 +41,19 @@ int main(int argc, char** argv) {
         printf("Usage: zebra <script>");
     } else {
         zebra::Lexer lexer(argv[1]); 
-        zebra::TokenArray* t = lexer.scan();
-        t->print();
-        
+        std::vector<zebra::Token> tokens = lexer.scan();
+        lexer.print_source();
+        for (zebra::Token t: tokens) {
+            std::cout << t.to_string() << std::endl;
+        }
+       /* 
         zebra::Parser parser(t);
         zebra::StmtList* sl = parser.parse();
         if(sl) {
             for(int i = 0; i < sl->size(); i++) {
                 zebra::Parser::print(sl->at(i));
             }
-        }
+        }*/
 
     }
     return 0;
