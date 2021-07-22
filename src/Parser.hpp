@@ -40,7 +40,6 @@ namespace zebra {
                 return sl;
             }
 
-
             Stmt* statement() {
                 if (match(TokenType::PRINT)) return print_statement();
                 if (match(TokenType::IF)) return if_statement();
@@ -60,8 +59,13 @@ namespace zebra {
                 consume(TokenType::LEFT_PAREN, "Expect '(' after keyword 'if'.");
                 Expr* condition = expression();
                 consume(TokenType::RIGHT_PAREN, "Expect ')' after condition.");
-                Stmt* body = block_statement();
-                return new If(condition, body);
+                Stmt* then_branch = block_statement();
+
+                Stmt* else_branch = nullptr;
+                if(match(TokenType::ELSE)) {
+                    else_branch = block_statement();
+                }
+                return new If(condition, then_branch, else_branch);
             }
 
             Stmt* block_statement() {

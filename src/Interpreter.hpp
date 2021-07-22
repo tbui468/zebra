@@ -62,7 +62,9 @@ namespace zebra {
             void visit(If& stmt) {
                 Object* condition = evaluate(*(stmt.m_condition));
                 if(condition->is_truthy()) {
-                    execute(*(stmt.m_body));                    
+                    execute(*(stmt.m_then_branch));                    
+                }else if(stmt.m_else_branch) {
+                    execute(*(stmt.m_else_branch));
                 }
 
                 delete condition;

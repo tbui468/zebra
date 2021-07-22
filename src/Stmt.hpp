@@ -41,16 +41,19 @@ namespace zebra {
 
     struct If: public Stmt {
         public:
-            If(Expr* condition, Stmt* body): m_condition(condition), m_body(body) {}
+            If(Expr* condition, Stmt* then_branch, Stmt* else_branch): 
+                m_condition(condition), m_then_branch(then_branch), m_else_branch(else_branch) {}
             ~If() {
                 delete m_condition;
-                delete m_body;
+                delete m_then_branch;
+                delete m_else_branch;
             }
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(*this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(*this); }
         public:
             Expr* m_condition;
-            Stmt* m_body;
+            Stmt* m_then_branch;
+            Stmt* m_else_branch;
     };
 
     struct Block: public Stmt {
