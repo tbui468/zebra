@@ -122,6 +122,12 @@ namespace zebra {
                     return new Literal(previous());
                 }else if(match(TokenType::STRING)) {
                     return new Literal(previous());
+                }else if(match(TokenType::TRUE)) {
+                    return new Literal(previous());
+                }else if(match(TokenType::FALSE)) {
+                    return new Literal(previous());
+                }else if(match(TokenType::NIL)) {
+                    return new Literal(previous());
                 }
                 throw ParseError(previous(), "Expecting an expression.");
             }

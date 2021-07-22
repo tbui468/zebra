@@ -3,6 +3,7 @@
 
 #include <string>
 #include "Token.hpp"
+#include "Object.hpp"
 
 namespace zebra {
 
@@ -18,11 +19,19 @@ namespace zebra {
         virtual std::string visit(Literal& expr) = 0;
     };
 
+    struct ExprObjectVisitor {
+        virtual Object* visit(Unary& expr) = 0;
+        virtual Object* visit(Binary& expr) = 0;
+        virtual Object* visit(Group& expr) = 0;
+        virtual Object* visit(Literal& expr) = 0;
+    };
+
     //Expressions
     struct Expr {
         public:
             virtual ~Expr() {}
             virtual std::string accept(ExprStringVisitor& visitor) = 0;
+            virtual Object* accept(ExprObjectVisitor& visitor) = 0;
     };
 
 
@@ -31,6 +40,7 @@ namespace zebra {
             Unary(Token op, Expr* right): m_op(op), m_right(right) {}
             ~Unary() { delete m_right; }
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
+            Object* accept(ExprObjectVisitor& visitor) { return visitor.visit(*this); }
         public:
             Token m_op;
             Expr* m_right;
@@ -44,6 +54,7 @@ namespace zebra {
                 delete m_right;
             }
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
+            Object* accept(ExprObjectVisitor& visitor) { return visitor.visit(*this); }
         public:
             Token m_op;
             Expr* m_left;
@@ -56,6 +67,7 @@ namespace zebra {
             Group(Token name, Expr* expr): m_name(name), m_expr(expr) {}
             ~Group() { delete m_expr; }
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
+            Object* accept(ExprObjectVisitor& visitor) { return visitor.visit(*this); }
         public:
             Token m_name;
             Expr* m_expr;
@@ -66,6 +78,7 @@ namespace zebra {
             Literal(Token token): m_token(token) {}
             ~Literal() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
+            Object* accept(ExprObjectVisitor& visitor) { return visitor.visit(*this); }
         public:
             Token m_token;
     };

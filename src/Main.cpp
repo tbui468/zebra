@@ -6,14 +6,19 @@
 #include "Parser.hpp"
 #include "Stmt.hpp"
 #include "AstPrinter.hpp"
+#include "Interpreter.hpp"
 
 
 //TODO: 
 //  Interpreter
-//      use std::string for easier string management - it'll make things so much easier
-//          Change Parser and supporting code to std::string
-//      use vector for Tokens and Stmts
-//      use raw pointers for now
+//      get if / else statements (and blocks and scopes) working
+        //or
+        //and
+        //equal !equal
+        //four inequalities
+//      use raw pointers for now - issue with interpeter
+//          we need Objects to live a long time (for putting functions and variables into lookup table)
+//          but then who frees the memory for Objects that don't need to go into the table???
 //      Implement visitor pattern and create AstPrinter class that extends the visitor interface for both Expr and Stmt
 //          once that works, use the interfaces on Interpreter
 //      Take in AST as input and execute statements and evaluate expressions
@@ -43,17 +48,22 @@ int main(int argc, char** argv) {
     } else {
         zebra::Lexer lexer(argv[1]); 
         std::vector<zebra::Token> tokens = lexer.scan();
+        /*
         lexer.print_source();
         for (zebra::Token t: tokens) {
             std::cout << t.to_string() << std::endl;
-        }
+        }*/
        
         zebra::Parser parser(tokens);
         std::vector<zebra::Stmt*> sl = parser.parse();
+        /*
         zebra::AstPrinter printer;        
         for(int i = 0; i < int(sl.size()); i++) {
             printer.print(*(sl.at(i)));
-        }
+        }*/
+
+        zebra::Interpreter interp(sl);
+        interp.run();
 
     }
     return 0;

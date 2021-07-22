@@ -1,38 +1,43 @@
 #ifndef ZEBRA_OBJECT_H
 #define ZEBRA_OBJECT_H
 
+#include <string>
 
 namespace zebra {
 
   class Object {
     public:
-      Object(const char* s);
-      Object(double number);
+      Object(const std::string& s);
+      Object(float f);
+      Object(int i);
       Object(bool value);
       Object(); //of type nil
       virtual ~Object() {}
       
       bool is_bool() const;
-      bool is_true() const;
+      bool is_truthy() const;
       bool is_nil() const;
-      bool is_number() const;
+      bool is_int() const;
+      bool is_float() const;
       bool is_string() const;
-      double get_number() const;
+      float get_float() const;
+      std::string get_string() const;
+      int get_int() const;
       bool get_bool() const;
-      void set_number(double n);
-      const char* get_string() const;
+//      void set_number(double n);
     private:
-      static const int MAX_STRING_SIZE = 256;
       enum class Type{
         True,
         False,
         Nil,
-        Number,
+        Int,
+        Float,
         String
       };
       Type m_type; 
-      char m_string[MAX_STRING_SIZE] = {0};
-      double m_number;
+      std::string m_string;
+      float m_float;
+      int m_int;
   };
 }
 

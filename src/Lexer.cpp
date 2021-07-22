@@ -76,6 +76,9 @@ namespace zebra {
                 case 'f':
                     if (match("alse")) add_token(TokenType::FALSE);
                     break;
+                case 'n':
+                    if (match("il")) add_token(TokenType::NIL);
+                    break;
                 default:
                     if (is_numeric(c)) {
                         read_number();

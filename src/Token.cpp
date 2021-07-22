@@ -41,6 +41,7 @@ namespace zebra {
             case TokenType::TRUE: return "TRUE"; break;
             case TokenType::FALSE: return "FALSE"; break;
             //other
+            case TokenType::NIL: return "NIL"; break;
             case TokenType::EOFILE: return "EOFILE"; break;
         }
     }
