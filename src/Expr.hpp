@@ -14,6 +14,8 @@ namespace zebra {
     struct Group;
     struct Literal;
     struct Logic;
+    struct AssignExpr;
+    struct Variable;
 
     struct ExprStringVisitor {
         virtual std::string visit(std::shared_ptr<Unary> expr) = 0;
@@ -21,6 +23,8 @@ namespace zebra {
         virtual std::string visit(std::shared_ptr<Group> expr) = 0;
         virtual std::string visit(std::shared_ptr<Literal> expr) = 0;
         virtual std::string visit(std::shared_ptr<Logic> expr) = 0;
+        virtual std::string visit(std::shared_ptr<AssignExpr> expr) = 0;
+        virtual std::string visit(std::shared_ptr<Variable> expr) = 0;
     };
 
     struct ExprObjectVisitor {
@@ -29,6 +33,8 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(std::shared_ptr<Group> expr) = 0;
         virtual std::shared_ptr<Object> visit(std::shared_ptr<Literal> expr) = 0;
         virtual std::shared_ptr<Object> visit(std::shared_ptr<Logic> expr) = 0;
+        virtual std::shared_ptr<Object> visit(std::shared_ptr<AssignExpr> expr) = 0;
+        virtual std::shared_ptr<Object> visit(std::shared_ptr<Variable> expr) = 0;
     };
 
     struct ExprDataTypeVisitor {
@@ -37,6 +43,8 @@ namespace zebra {
         virtual DataType visit(std::shared_ptr<Group> expr) = 0;
         virtual DataType visit(std::shared_ptr<Literal> expr) = 0;
         virtual DataType visit(std::shared_ptr<Logic> expr) = 0;
+        virtual DataType visit(std::shared_ptr<AssignExpr> expr) = 0;
+        virtual DataType visit(std::shared_ptr<Variable> expr) = 0;
     };
 
     //Expressions
@@ -110,6 +118,30 @@ namespace zebra {
             Token m_op;
             std::shared_ptr<Expr> m_left;
             std::shared_ptr<Expr> m_right;
+    };
+
+
+    struct AssignExpr: public Expr, public std::enable_shared_from_this<AssignExpr> {
+        public:
+            AssignExpr(Token name, std::shared_ptr<Expr> value): m_name(name), m_value(value) {}
+            ~AssignExpr() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            DataType accept(ExprDataTypeVisitor& visitor) { return visitor.visit(shared_from_this()); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_value;
+    };
+
+    struct Variable: public Expr, public std::enable_shared_from_this<Variable> {
+        public:
+            Variable(Token name): m_name(name) {}
+            ~Variable() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            DataType accept(ExprDataTypeVisitor& visitor) { return visitor.visit(shared_from_this()); }
+        public:
+            Token m_name;
     };
 
 }

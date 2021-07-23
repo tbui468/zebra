@@ -96,7 +96,7 @@ namespace zebra {
                     else read_identifier();
                     break;
                 case 's':
-                    if (match("ring")) add_token(TokenType::STRING_TYPE);
+                    if (match("tring")) add_token(TokenType::STRING_TYPE);
                     else read_identifier();
                     break;
                 case 't':

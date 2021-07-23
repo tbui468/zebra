@@ -10,16 +10,22 @@ namespace zebra {
     struct Print;
     struct If;
     struct Block;
+    struct AssignStmt;
+    struct VarDecl;
 
     struct StmtStringVisitor {
         virtual std::string visit(std::shared_ptr<Print> stmt) = 0;
         virtual std::string visit(std::shared_ptr<If> stmt) = 0;
         virtual std::string visit(std::shared_ptr<Block> stmt) = 0;
+        virtual std::string visit(std::shared_ptr<AssignStmt> stmt) = 0;
+        virtual std::string visit(std::shared_ptr<VarDecl> stmt) = 0;
     };
     struct StmtVoidVisitor {
         virtual void visit(std::shared_ptr<Print> stmt) = 0;
         virtual void visit(std::shared_ptr<If> stmt) = 0;
         virtual void visit(std::shared_ptr<Block> stmt) = 0;
+        virtual void visit(std::shared_ptr<AssignStmt> stmt) = 0;
+        virtual void visit(std::shared_ptr<VarDecl> stmt) = 0;
     };
 
 
@@ -62,6 +68,32 @@ namespace zebra {
         public:
             std::vector<std::shared_ptr<Stmt>> m_statements;
     };
+
+
+    struct VarDecl: public Stmt, public std::enable_shared_from_this<VarDecl> {
+        public:
+            VarDecl(Token name, Token type, std::shared_ptr<Expr> value): m_name(name), m_type(type), m_value(value) {}
+            ~VarDecl() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(shared_from_this()); }
+        public:
+        Token m_name;
+        Token m_type;
+        std::shared_ptr<Expr> m_value;
+    };
+
+
+    struct AssignStmt: public Stmt, public std::enable_shared_from_this<AssignStmt> {
+        public:
+            AssignStmt(Token name, std::shared_ptr<Expr> value): m_name(name), m_value(value) {}
+            ~AssignStmt() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(shared_from_this()); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_value;
+    };
+
 
 
 }

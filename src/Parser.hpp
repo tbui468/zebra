@@ -43,7 +43,8 @@ namespace zebra {
             std::shared_ptr<Stmt> statement() {
                 if (match(TokenType::PRINT)) return print_statement();
                 if (match(TokenType::IF)) return if_statement();
-                if (peek(TokenType::LEFT_BRACE)) return block_statement();
+                if (peek_one(TokenType::LEFT_BRACE)) return block_statement();
+                if (match(TokenType::IDENTIFIER)) return variable_statement();
                 
                 throw ParseError(previous(), "Invalid token");
             }
@@ -78,11 +79,55 @@ namespace zebra {
                 return std::make_shared<Block>(statements);
             }
 
-            std::shared_ptr<Expr> expression() {
-                return logic_or();
+            std::shared_ptr<Stmt> variable_statement() {
+                Token identifier = previous();
+                if(match(TokenType::COLON)) {
+                    return decl_statement(identifier);
+                }else if(match(TokenType::EQUAL)){
+                    return assign_statement(identifier);
+                }
+
+                throw ParseError(identifier, "Identifier must be followed by a type declaration or assignment.");
             }
 
-            //assignment
+            std::shared_ptr<Stmt> decl_statement(Token identifier) {
+                match(TokenType::BOOL_TYPE);
+                match(TokenType::INT_TYPE);
+                match(TokenType::FLOAT_TYPE);
+                match(TokenType::STRING_TYPE);
+                Token type = previous();
+
+                std::shared_ptr<Expr> value = nullptr;
+                if(match(TokenType::EQUAL)) {
+                    value = expression();
+                }
+                
+                consume(TokenType::SEMICOLON, "Expect ';' at the end of a statement."); 
+
+                return  std::make_shared<VarDecl>(identifier, type, value);
+            }
+
+            std::shared_ptr<Stmt> assign_statement(Token identifier) {
+                std::shared_ptr<Stmt> assignment = std::make_shared<AssignStmt>(identifier, expression());
+                consume(TokenType::SEMICOLON, "Expect ';' at the end of a statement");
+                return assignment;
+            }
+
+            std::shared_ptr<Expr> expression() {
+                return assign();
+            }
+
+            std::shared_ptr<Expr> assign() {
+                if(peek_one(TokenType::IDENTIFIER) && peek_two(TokenType::EQUAL)) {
+                    match(TokenType::IDENTIFIER);
+                    Token name = previous();
+                    match(TokenType::EQUAL);
+                    std::shared_ptr<Expr> value = assign();
+                    return std::make_shared<AssignExpr>(name, value);
+                }
+
+                return logic_or();
+            }
 
             std::shared_ptr<Expr> logic_or() {
                 std::shared_ptr<Expr> left = logic_and();
@@ -156,26 +201,12 @@ namespace zebra {
                 return left;             
             }
 
+            //right associative
             std::shared_ptr<Expr> unary() {
-                std::shared_ptr<Expr> right = nullptr;
-                while(match(TokenType::MINUS) || match(TokenType::BANG)) {
+                if(match(TokenType::MINUS) || match(TokenType::BANG)) {
                     Token op = previous();
-                    right = std::make_shared<Unary>(op, unary());
-                }
-
-                if(right) {
-                    return right;
-                } else {
-                    return group();
-                }
-            }
-
-            std::shared_ptr<Expr> group() {
-                if(match(TokenType::LEFT_PAREN)) {
-                    Token t = previous();
-                    std::shared_ptr<Expr> expr = expression();
-                    consume(TokenType::RIGHT_PAREN, "Expect closing parenthesis");
-                    return std::make_shared<Group>(t, expr);
+                    std::shared_ptr<Expr> right = unary();
+                    return std::make_shared<Unary>(op, right);
                 }
 
                 return primary();
@@ -192,6 +223,13 @@ namespace zebra {
                     return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::FALSE)) {
                     return std::make_shared<Literal>(previous());
+                }else if(match(TokenType::IDENTIFIER)) {
+                    return std::make_shared<Variable>(previous());
+                }else if(match(TokenType::LEFT_PAREN)) {
+                    Token t = previous();
+                    std::shared_ptr<Expr> expr = expression();
+                    consume(TokenType::RIGHT_PAREN, "Expect closing parenthesis");
+                    return std::make_shared<Group>(t, expr);
                 }
                 throw ParseError(previous(), "Expecting an expression.");
             }
@@ -204,8 +242,11 @@ namespace zebra {
                 return false;
             }
 
-            bool peek(TokenType type) {
+            bool peek_one(TokenType type) {
                 return m_tokens.at(m_current).m_type == type;
+            }
+            bool peek_two(TokenType type) {
+                return m_tokens.at(m_current + 1).m_type == type;
             }
 
             const Token& previous() {

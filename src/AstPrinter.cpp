@@ -9,6 +9,9 @@ namespace zebra {
         std::cout << stmt->accept(*this) << std::endl;
     }
 
+    /*
+     * Expressions
+     */
     std::string AstPrinter::visit(std::shared_ptr<Unary> expr) {
         return "( " + expr->m_op.to_string() + " " + expr->m_right->accept(*this);
     }
@@ -24,6 +27,16 @@ namespace zebra {
     std::string AstPrinter::visit(std::shared_ptr<Logic> expr) {
         return "( " + expr->m_op.to_string() + " " + expr->m_left->accept(*this) + " " + expr->m_right->accept(*this) + " )";
     }
+    std::string AstPrinter::visit(std::shared_ptr<AssignExpr> expr) {
+        return "AssignExpr";
+    }
+    std::string AstPrinter::visit(std::shared_ptr<Variable> expr) {
+        return "( " + expr->m_name.to_string() + " )";
+    }
+
+    /*
+     * Statements
+     */
     std::string AstPrinter::visit(std::shared_ptr<Print> stmt) {
         return "( Print " + stmt->m_value->accept(*this) + " )";
     }
@@ -41,6 +54,12 @@ namespace zebra {
             ret += s->accept(*this) + ", ";
         }
         return ret + " )";
+    }
+    std::string AstPrinter::visit(std::shared_ptr<AssignStmt> expr) {
+        return "AssignStmt";
+    }
+    std::string AstPrinter::visit(std::shared_ptr<VarDecl> stmt) {
+        return "VarDecl";
     }
 
 
