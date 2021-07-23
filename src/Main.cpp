@@ -19,38 +19,9 @@
     //no nulls or nils or nullptrs, using undefined variables will throw an error
 
 //TODO: 
-//Assume all variables are defined when used for nor
-//create two tables, one with <variable name, type> and <variable name, value>, both in env.
-//What was the point of the resolver? One was to know which scope to find the variable value
-//also need to check if variable is defined before using it
-//
-//a: int = 1;
-//{
-//  print a; //1
-//  a: int = 2;
-//  print a; //2
-//}
-//
-//assignment with types in front (int, float, string, bool)
-//  Declaration: public Stmt { //put into hash table in environment
-//      Token m_name; //the type and lexeme is saved in here - just need to check 
-//      std::shared_ptr<Expr> m_value; //need to know if variable is defined before we use it (need the resolver here?)
-//  }
-//
-//  only update the hash table in environment if data type in m_name is same as data type in m_value 
-//  Assign: public Stmt { //update hash table in environment - make sure that m_name.m_type == the type of the expression
-//      Token m_name;
-//      std::shared_ptr<Expr> m_value; //may be nullptr if type is followed by 
-//  }
-//
-//  Variable: public Expr { //look up in values hash table in environment - how to know
-//      Token m_name;
-//  }
-//
-//  a: int = 1 + 2;
-//  b: int = a + 4;
-//  c: int;
-//  c = 10 - b;
+//must declare and define all variables at the same time
+//create two tables, one with <variable name, type> and <variable name, value> for the Environment class (for scopes)
+//for TypeChecker, create a <variable name, type> table to check if the type is valid when assigning or other stuff
 //  
 //scopes for variables
 //while loops
@@ -81,10 +52,10 @@ int main(int argc, char** argv) {
         for(int i = 0; i < int(ast.size()); i++) {
             printer.print(ast.at(i));
         }
-/*
+
         zebra::TypeChecker checker;
         bool passed = checker.check(ast);
-
+/*
         if(passed) {
             zebra::Interpreter interp(ast);
             interp.run();

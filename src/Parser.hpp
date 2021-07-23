@@ -97,11 +97,8 @@ namespace zebra {
                 match(TokenType::STRING_TYPE);
                 Token type = previous();
 
-                std::shared_ptr<Expr> value = nullptr;
-                if(match(TokenType::EQUAL)) {
-                    value = expression();
-                }
-                
+                consume(TokenType::EQUAL, "Variables must be defined at declaration.");
+                std::shared_ptr<Expr> value = expression();
                 consume(TokenType::SEMICOLON, "Expect ';' at the end of a statement."); 
 
                 return  std::make_shared<VarDecl>(identifier, type, value);
