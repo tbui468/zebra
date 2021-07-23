@@ -8,7 +8,7 @@ namespace zebra {
         DOT, SEMICOLON,
         LEFT_PAREN, RIGHT_PAREN,
         LEFT_BRACE, RIGHT_BRACE,
-        MOD,
+        MOD, COLON,
         //double or single char tokens
         EQUAL, EQUAL_EQUAL,
         LESS, LESS_EQUAL,
@@ -20,9 +20,9 @@ namespace zebra {
         PRINT, IF, ELSE,
         TRUE, FALSE,
         AND, OR,
+        INT_TYPE, FLOAT_TYPE, STRING_TYPE, BOOL_TYPE,
         /*
         RIGHT_ARROW,
-        COLON
         FUN,
         RETURN,
         INT_TYPE, ??

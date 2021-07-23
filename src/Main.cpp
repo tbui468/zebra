@@ -18,8 +18,8 @@
     //if(true) { print "dog"; } OK if(true) print "dog"; X
 
 //TODO: 
-//add line comments
 //assignment with types in front (int, float, string, bool)
+//
 //  a: int = 1;
 //  b: string = "Dog";
 //  c: float;
@@ -39,21 +39,21 @@ int main(int argc, char** argv) {
         zebra::Lexer lexer(argv[1]); 
         std::vector<zebra::Token> tokens = lexer.scan();
         
-        //lexer.print_source();
+        lexer.print_source();
         
         for (zebra::Token t: tokens) {
             std::cout << t.to_string() << std::endl;
         }
 
-
+/*
         zebra::Parser parser(tokens);
         std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
-    /* 
+    
         zebra::AstPrinter printer;        
         for(int i = 0; i < int(sl.size()); i++) {
             printer.print(sl.at(i));
         }*/
-
+/*
         zebra::TypeChecker checker;
         bool passed = checker.check(ast);
 
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
             interp.run();
         } else {
             std::cout << "Type errors found.  Can not run code." << std::endl;
-        }
+        }*/
 
     }
     return 0;

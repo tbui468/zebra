@@ -37,6 +37,7 @@ namespace zebra {
                 case '{': add_token(TokenType::LEFT_BRACE); break;
                 case '}': add_token(TokenType::RIGHT_BRACE); break;
                 case '%': add_token(TokenType::MOD); break;
+                case ':': add_token(TokenType::COLON); break;
                 case '.': 
                     if(is_numeric(peek()))   read_float_with_leading();
                     else                     add_token(TokenType::DOT); 
@@ -66,24 +67,41 @@ namespace zebra {
                     break;
                 case 'a':
                     if (match("nd")) add_token(TokenType::AND);
+                    else read_identifier();
                     break;
-                case 'o':
-                    if (match("r")) add_token(TokenType::OR);
-                    break;
-                case 'p':
-                    if (match("rint")) add_token(TokenType::PRINT);
-                    break;
-                case 'i':
-                    if (match("f")) add_token(TokenType::IF);
+                case 'b':
+                    if (match("ool")) add_token(TokenType::BOOL_TYPE);
+                    else read_identifier();
                     break;
                 case 'e':
                     if (match("lse")) add_token(TokenType::ELSE);
-                    break;
-                case 't':
-                    if (match("rue")) add_token(TokenType::TRUE);
+                    else read_identifier();
                     break;
                 case 'f':
                     if (match("alse")) add_token(TokenType::FALSE);
+                    else if(match("loat")) add_token(TokenType::FLOAT_TYPE);
+                    else read_identifier();
+                    break;
+                case 'i':
+                    if (match("f")) add_token(TokenType::IF);
+                    else if(match("nt")) add_token(TokenType::INT_TYPE);
+                    else read_identifier();
+                    break;
+                case 'o':
+                    if (match("r")) add_token(TokenType::OR);
+                    else read_identifier();
+                    break;
+                case 'p':
+                    if (match("rint")) add_token(TokenType::PRINT);
+                    else read_identifier();
+                    break;
+                case 's':
+                    if (match("ring")) add_token(TokenType::STRING_TYPE);
+                    else read_identifier();
+                    break;
+                case 't':
+                    if (match("rue")) add_token(TokenType::TRUE);
+                    else read_identifier();
                     break;
                 default:
                     if (is_numeric(c)) {

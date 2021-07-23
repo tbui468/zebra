@@ -19,7 +19,8 @@ namespace zebra {
             case TokenType::RIGHT_PAREN: return "RIGHT_PAREN"; break;
             case TokenType::LEFT_BRACE: return "LEFT_BRACE"; break;
             case TokenType::RIGHT_BRACE: return "RIGHT_BRACE"; break;
-            case TokenType::MOD: return "MOD"; break;
+            case TokenType::MOD: return "MOD";
+            case TokenType::COLON: return "COLON";
             //double or single char tokens
             case TokenType::EQUAL: return "EQUAL"; break;
             case TokenType::EQUAL_EQUAL: return "EQUAL_EQUAL"; break;
@@ -42,6 +43,10 @@ namespace zebra {
             case TokenType::FALSE: return "FALSE"; break;
             case TokenType::OR: return "OR"; break;
             case TokenType::AND: return "AND";
+            case TokenType::INT_TYPE: return "INT_TYPE";
+            case TokenType::FLOAT_TYPE: return "FLOAT_TYPE";
+            case TokenType::STRING_TYPE: return "STRING_TYPE";
+            case TokenType::BOOL_TYPE: return "BOOL_TYPE";
             //other
             case TokenType::SLASH_SLASH: return "SLASH_SLASH";
             case TokenType::EOFILE: return "EOFILE";
