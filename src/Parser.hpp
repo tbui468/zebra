@@ -22,7 +22,7 @@ namespace zebra {
                     ParseError(Token token, const std::string& message): m_token(token), m_message(message){}
                     ~ParseError() {}
                     void print() {
-                        std::cout << "[Line " << m_token.m_line << "] Error: " << m_message << std::endl;
+                        std::cout << "[Line " << m_token.m_line << "] Parsing Error: " << m_message << std::endl;
                     }
             };
         public:

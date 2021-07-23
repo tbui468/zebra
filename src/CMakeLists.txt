@@ -8,16 +8,19 @@ set(Sources
     Parser.cpp
     Interpreter.cpp
     AstPrinter.cpp
+    TypeChecker.cpp
     )
 
 set(Headers
     TokenType.hpp
+    DataType.hpp
     Token.hpp
     Object.cpp
     Lexer.hpp
     Parser.hpp
     Interpreter.hpp
     AstPrinter.hpp
+    TypeChecker.hpp
     )
 
 add_executable(

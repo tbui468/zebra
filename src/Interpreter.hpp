@@ -129,7 +129,7 @@ namespace zebra {
                     throw RuntimeError(expr->m_op, "That operation can't be performed on strings.");
                 }
 
-                throw RuntimeError(expr->m_op, "Types in expression must match.");
+                throw RuntimeError(expr->m_op, "Types in expression must match should.");
             }
             std::shared_ptr<Object> visit(std::shared_ptr<Group> expr) {
                 return expr->m_expr->accept(*this);

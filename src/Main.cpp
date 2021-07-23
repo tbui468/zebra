@@ -1,5 +1,6 @@
 
 #include <vector>
+#include <unordered_map>
 #include "TokenType.hpp"
 #include "Token.hpp"
 #include "Lexer.hpp"
@@ -7,7 +8,8 @@
 #include "Stmt.hpp"
 #include "AstPrinter.hpp"
 #include "Interpreter.hpp"
-
+#include "TypeChecker.hpp"
+#include "DataType.hpp"
 
 //TODO: 
 //TypeChecker
@@ -20,6 +22,9 @@
 //assignment with types in front (int, float, string, bool)
 //  eg, 'Int a;' 'Int a = 23;'
 //scopes
+//Resolver - variables and functions too
+//How should errors propagate?  Parsing, Type checking and Runtime errors
+//  should the entire program abort if there's a problem?  YES
 
 
 int main(int argc, char** argv) {
@@ -35,14 +40,17 @@ int main(int argc, char** argv) {
         }*/
       
         zebra::Parser parser(tokens);
-        std::vector<std::shared_ptr<zebra::Stmt>> sl = parser.parse();
+        std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
     /* 
         zebra::AstPrinter printer;        
         for(int i = 0; i < int(sl.size()); i++) {
             printer.print(sl.at(i));
         }*/
 
-        zebra::Interpreter interp(sl);
+        zebra::TypeChecker checker;
+        std::unordered_map<std::shared_ptr<zebra::Expr>, zebra::DataType> types = checker.check(ast);
+
+        zebra::Interpreter interp(ast);
         interp.run();
 
     }
