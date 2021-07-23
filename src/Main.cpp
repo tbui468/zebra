@@ -11,12 +11,22 @@
 #include "TypeChecker.hpp"
 #include "DataType.hpp"
 
-//TITLE: Zebra scripting language - types must match, brackets and parentheses are required, and no ambiguity.  Keeping it black and white.
+//TITLE: Zebra scripting language - 
+    //types must match, brackets, semicolons and parentheses are required.  No ambiguity, no shades of gray.  Keeping it black and white.
+    //conditions must evaluate to a boolean.  
+    //if(4 < 5) OK!  if("dog") X
+    //if(true) { print "dog"; } OK if(true) print "dog"; X
 
 //TODO: 
+//add line comments
 //assignment with types in front (int, float, string, bool)
-//  eg, 'Int a;' 'Int a = 23;'
-//scopes
+//  a: int = 1;
+//  b: string = "Dog";
+//  c: float;
+//  d: bool = false;
+//scopes for variables
+//while loops
+//for loops
 //Resolver - variables and functions too
 //How should errors propagate?  Parsing, Type checking and Runtime errors
 //  should the entire program abort if there's a problem?  YES
@@ -28,12 +38,14 @@ int main(int argc, char** argv) {
     } else {
         zebra::Lexer lexer(argv[1]); 
         std::vector<zebra::Token> tokens = lexer.scan();
-       /* 
-        lexer.print_source();
+        
+        //lexer.print_source();
+        
         for (zebra::Token t: tokens) {
             std::cout << t.to_string() << std::endl;
-        }*/
-      
+        }
+
+
         zebra::Parser parser(tokens);
         std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
     /* 
