@@ -26,7 +26,10 @@ namespace zebra {
                 //single char tokens
                 case '+': add_token(TokenType::PLUS); break;
                 case '-': add_token(TokenType::MINUS); break;
-                case '/': add_token(TokenType::SLASH); break;
+                case '/': 
+                    if(match('/'))  advance_to_next_line();
+                    else            add_token(TokenType::SLASH);
+                    break;
                 case '*': add_token(TokenType::STAR); break;
                 case ';': add_token(TokenType::SEMICOLON); break;
                 case '(': add_token(TokenType::LEFT_PAREN); break;
@@ -94,6 +97,12 @@ namespace zebra {
             }
         }
         add_token(TokenType::EOFILE);
+    }
+
+    void Lexer::advance_to_next_line() {
+        while(!is_at_end() && peek() != '\n') {
+            next();
+        }
     }
 
 

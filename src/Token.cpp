@@ -41,9 +41,10 @@ namespace zebra {
             case TokenType::TRUE: return "TRUE"; break;
             case TokenType::FALSE: return "FALSE"; break;
             case TokenType::OR: return "OR"; break;
-            case TokenType::AND: return "AND"; break;
+            case TokenType::AND: return "AND";
             //other
-            case TokenType::EOFILE: return "EOFILE"; break;
+            case TokenType::SLASH_SLASH: return "SLASH_SLASH";
+            case TokenType::EOFILE: return "EOFILE";
         }
     }
 

@@ -35,6 +35,7 @@ namespace zebra {
         ELIF, //new stuff
         BREAK,
         CONTINUE,*/
+        SLASH_SLASH,
         EOFILE
     };
 

@@ -32,6 +32,7 @@ namespace zebra {
             std::vector<Token> scan();
             void print_source() const;
         private:
+            void advance_to_next_line();
             void scan_source();
             void read_string();
             void read_identifier();
