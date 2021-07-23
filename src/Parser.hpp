@@ -192,8 +192,6 @@ namespace zebra {
                     return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::FALSE)) {
                     return std::make_shared<Literal>(previous());
-                }else if(match(TokenType::NIL)) {
-                    return std::make_shared<Literal>(previous());
                 }
                 throw ParseError(previous(), "Expecting an expression.");
             }

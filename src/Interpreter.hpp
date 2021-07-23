@@ -146,8 +146,6 @@ namespace zebra {
                         return std::make_shared<Object>(true);
                     case TokenType::FALSE:
                         return std::make_shared<Object>(false);
-                    case TokenType::NIL:
-                        return std::make_shared<Object>();
                 }
             }
 

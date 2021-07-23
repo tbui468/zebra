@@ -11,10 +11,13 @@
 #include "TypeChecker.hpp"
 #include "DataType.hpp"
 
+//TITLE: Zebra scripting language - types must match, brackets and parentheses are required, and no ambiguity.  Keeping it black and white.
+
 //TODO: 
 //TypeChecker
-//  implement different visitor interfaces for Expr (bool, int, float, string)
 //  get rid of nil since this just causes problems
+//  does interpreter have to keep using Object as return type of expressions???
+//      since we can't use same interface with only different return types
 //or (Parser and Interpreter)
 //and (Parser and Interpreter)
 //equal !equal
@@ -48,10 +51,14 @@ int main(int argc, char** argv) {
         }*/
 
         zebra::TypeChecker checker;
-        std::unordered_map<std::shared_ptr<zebra::Expr>, zebra::DataType> types = checker.check(ast);
+        bool passed = checker.check(ast);
 
-        zebra::Interpreter interp(ast);
-        interp.run();
+        if(passed) {
+            zebra::Interpreter interp(ast);
+            interp.run();
+        } else {
+            std::cout << "Type errors found.  Can not run code." << std::endl;
+        }
 
     }
     return 0;

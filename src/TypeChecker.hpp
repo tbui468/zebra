@@ -33,16 +33,17 @@ namespace zebra {
             void execute(std::shared_ptr<Stmt> stmt) {
                 stmt->accept(*this);
             }
-            std::unordered_map<std::shared_ptr<Expr>, DataType> check(const std::vector<std::shared_ptr<Stmt>>& ast) {
+            bool check(const std::vector<std::shared_ptr<Stmt>>& ast) {
                 try {
                     for(std::shared_ptr<Stmt> s: ast) {
                         execute(s);
                     }
                 } catch (TypeError& e) {
                     e.print();
+                    return false;
                 }
 
-                return m_types;
+                return true;
             }
         private:
 
@@ -56,13 +57,11 @@ namespace zebra {
 
             void visit(std::shared_ptr<Print> stmt) {
                 DataType type = evaluate(stmt->m_value);                
-                m_types[stmt->m_value] = type;
             }
             void visit(std::shared_ptr<If> stmt) {
                 DataType type = evaluate(stmt->m_condition);
-                m_types[stmt->m_condition] = type;
                 execute(stmt->m_then_branch);
-                execute(stmt->m_else_branch);
+                if(stmt->m_else_branch) execute(stmt->m_else_branch);
             }
             void visit(std::shared_ptr<Block> stmt) {
                 for(std::shared_ptr<Stmt> s: stmt->m_statements) {
@@ -120,12 +119,11 @@ namespace zebra {
                 throw TypeError(expr->m_token, expr->m_token.to_string() + " token not valid.");
             }
 
-            //checking both sub expressions, but all data types can be used in logical operator
-            //since all values have a 'truthiness'
             DataType visit(std::shared_ptr<Logic> expr) {
                 DataType left = evaluate(expr->m_left);
                 DataType right = evaluate(expr->m_right);
-                return DataType::BOOL;
+                if(left == right) return left;
+                throw TypeError(expr->m_op, "Inputs to logical operator must be boolean types.");
             }
     };
 }
