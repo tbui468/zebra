@@ -79,22 +79,60 @@ namespace zebra {
             }
 
             std::shared_ptr<Expr> expression() {
-                return term();
+                return logic_or();
             }
 
             //assignment
 
             std::shared_ptr<Expr> logic_or() {
-
+                std::shared_ptr<Expr> left = logic_and();
+                while(match(TokenType::OR)) {
+                    Token op = previous();
+                    std::shared_ptr<Expr> right = logic_and();
+                    left = std::make_shared<Logic>(op, left, right);
+                }
+            
+                return left;             
             }
 
             std::shared_ptr<Expr> logic_and() {
-
-            }
+                std::shared_ptr<Expr> left = equality();
+                while(match(TokenType::AND)) {
+                    Token op = previous();
+                    std::shared_ptr<Expr> right = equality();
+                    left = std::make_shared<Logic>(op, left, right);
+                }
             
-            //equal !equal
+                return left;             
+            }
 
-            //four inequalities
+            
+            //== and !=
+            std::shared_ptr<Expr> equality() {
+                std::shared_ptr<Expr> left = inequality();
+                while(match(TokenType::EQUAL_EQUAL) || match(TokenType::BANG_EQUAL)) {
+                    Token op = previous();
+                    std::shared_ptr<Expr> right = inequality();
+                    left = std::make_shared<Logic>(op, left, right);
+                }
+            
+                return left;             
+            }            
+
+            //<, <=, >, >=
+            std::shared_ptr<Expr> inequality() {
+                std::shared_ptr<Expr> left = term();
+                while(match(TokenType::LESS) || 
+                      match(TokenType::LESS_EQUAL) ||
+                      match(TokenType::GREATER) ||
+                      match(TokenType::GREATER_EQUAL)) {
+                    Token op = previous();
+                    std::shared_ptr<Expr> right = term();
+                    left = std::make_shared<Logic>(op, left, right);
+                }
+            
+                return left;             
+            }
 
             std::shared_ptr<Expr> term() {
                 std::shared_ptr<Expr> left = factor();

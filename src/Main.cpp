@@ -10,7 +10,9 @@
 
 
 //TODO: 
-//If I'm using C++, then use smart pointers to go faster and prevent problems with exceptions and memory not being deleted
+//TypeChecker
+//  implement different visitor interfaces for Expr (bool, int, float, string)
+//  get rid of nil since this just causes problems
 //or (Parser and Interpreter)
 //and (Parser and Interpreter)
 //equal !equal

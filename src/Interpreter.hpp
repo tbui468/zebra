@@ -151,6 +151,36 @@ namespace zebra {
                 }
             }
 
+            std::shared_ptr<Object> visit(std::shared_ptr<Logic> expr) {
+                std::shared_ptr<Object> left = expr->m_left->accept(*this);
+                std::shared_ptr<Object> right = expr->m_right->accept(*this);
+
+                switch(expr->m_op.m_type) {
+                    case TokenType::OR:
+                        if(left->is_truthy()) return std::make_shared<Object>(true);
+                        return std::make_shared<Object>(right->is_truthy());
+                    case TokenType::AND:
+                        if(!left->is_truthy()) return std::make_shared<Object>(false);
+                        return std::make_shared<Object>(right->is_truthy());
+                        /*
+                    case TokenType::EQUAL_EQUAL:
+                        return std::make_shared<Object>(Object::is_equal(left, right));
+                    case TokenType::BANG_EQUAL:
+                        return std::make_shared<Object>(!Object::is_equal(left, right));
+                    case TokenType::LESS:
+                        return std::make_shared<Object>(Object::less_than(left, right));
+                    case TokenType::LESS_EQUAL:
+                        return std::make_shared<Object>(Object::less_equal(left, right));
+                    case TokenType::GREATER:
+                        return std::make_shared<Object>(Object::greater_than(left, right));
+                    case TokenType::GREATER_EQUAL:
+                        return std::make_shared<Object>(Object::greater_equal(left, right));*/
+                }
+
+                throw RuntimeError(expr->m_op, "Invalid logical operator.  Equality and inequalities not implemented");
+
+            }
+
 
     };
 

@@ -12,12 +12,14 @@ namespace zebra {
     struct Binary;
     struct Group;
     struct Literal;
+    struct Logic;
 
     struct ExprStringVisitor {
         virtual std::string visit(std::shared_ptr<Unary> expr) = 0;
         virtual std::string visit(std::shared_ptr<Binary> expr) = 0;
         virtual std::string visit(std::shared_ptr<Group> expr) = 0;
         virtual std::string visit(std::shared_ptr<Literal> expr) = 0;
+        virtual std::string visit(std::shared_ptr<Logic> expr) = 0;
     };
 
     struct ExprObjectVisitor {
@@ -25,6 +27,7 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(std::shared_ptr<Binary> expr) = 0;
         virtual std::shared_ptr<Object> visit(std::shared_ptr<Group> expr) = 0;
         virtual std::shared_ptr<Object> visit(std::shared_ptr<Literal> expr) = 0;
+        virtual std::shared_ptr<Object> visit(std::shared_ptr<Logic> expr) = 0;
     };
 
     //Expressions
@@ -79,6 +82,19 @@ namespace zebra {
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(shared_from_this()); }
         public:
             Token m_token;
+    };
+
+
+    struct Logic: public Expr, public std::enable_shared_from_this<Logic> {
+        public:
+            Logic(Token op, std::shared_ptr<Expr> left, std::shared_ptr<Expr> right): m_op(op), m_left(left), m_right(right) {}
+            ~Logic() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(shared_from_this()); }
+        public:
+            Token m_op;
+            std::shared_ptr<Expr> m_left;
+            std::shared_ptr<Expr> m_right;
     };
 
 }

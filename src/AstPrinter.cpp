@@ -21,6 +21,9 @@ namespace zebra {
     std::string AstPrinter::visit(std::shared_ptr<Literal> expr) {
         return "( " + expr->m_token.to_string() + " )";
     }
+    std::string AstPrinter::visit(std::shared_ptr<Logic> expr) {
+        return "( " + expr->m_op.to_string() + " " + expr->m_left->accept(*this) + " " + expr->m_right->accept(*this) + " )";
+    }
     std::string AstPrinter::visit(std::shared_ptr<Print> stmt) {
         return "( Print " + stmt->m_value->accept(*this) + " )";
     }
