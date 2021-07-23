@@ -122,8 +122,23 @@ namespace zebra {
             DataType visit(std::shared_ptr<Logic> expr) {
                 DataType left = evaluate(expr->m_left);
                 DataType right = evaluate(expr->m_right);
-                if(left == right) return left;
-                throw TypeError(expr->m_op, "Inputs to logical operator must be boolean types.");
+
+                bool inequality = expr->m_op.m_type == TokenType::LESS ||
+                                   expr->m_op.m_type == TokenType::LESS_EQUAL ||
+                                   expr->m_op.m_type == TokenType::GREATER ||
+                                   expr->m_op.m_type == TokenType::GREATER_EQUAL;
+
+                if ((left == DataType::BOOL || right == DataType::BOOL) && inequality) {
+                    throw TypeError(expr->m_op, "Can't use booleans with inequalities.");
+                }
+
+                if ((left == DataType::STRING || right == DataType::STRING) && inequality) {
+                    throw TypeError(expr->m_op, "Can't use booleans with inequalities.");
+                }
+                   
+                if(left == right) return DataType::BOOL;
+
+                throw TypeError(expr->m_op, "Inputs to logical operator must be of same type.");
             }
     };
 }

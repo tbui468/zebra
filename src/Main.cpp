@@ -14,14 +14,6 @@
 //TITLE: Zebra scripting language - types must match, brackets and parentheses are required, and no ambiguity.  Keeping it black and white.
 
 //TODO: 
-//TypeChecker
-//  get rid of nil since this just causes problems
-//  does interpreter have to keep using Object as return type of expressions???
-//      since we can't use same interface with only different return types
-//or (Parser and Interpreter)
-//and (Parser and Interpreter)
-//equal !equal
-//four inequalities
 //assignment with types in front (int, float, string, bool)
 //  eg, 'Int a;' 'Int a = 23;'
 //scopes

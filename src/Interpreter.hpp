@@ -155,24 +155,40 @@ namespace zebra {
 
                 switch(expr->m_op.m_type) {
                     case TokenType::OR:
-                        if(left->is_truthy()) return std::make_shared<Object>(true);
-                        return std::make_shared<Object>(right->is_truthy());
+                        return std::make_shared<Object>(left->get_bool() || left->get_bool());
                     case TokenType::AND:
-                        if(!left->is_truthy()) return std::make_shared<Object>(false);
-                        return std::make_shared<Object>(right->is_truthy());
-                        /*
-                    case TokenType::EQUAL_EQUAL:
-                        return std::make_shared<Object>(Object::is_equal(left, right));
+                        return std::make_shared<Object>(left->get_bool() && left->get_bool());
+                    case TokenType::EQUAL_EQUAL: //type checker will not allow interpreting if types aren't the same
+                        if(left->is_int())      return std::make_shared<Object>(left->get_int() == right->get_int());
+                        if(left->is_float())    return std::make_shared<Object>(abs(left->get_float() - right->get_float()) < 0.01f);
+                        if(left->is_string())   return std::make_shared<Object>(left->get_string() == right->get_string());
+                        if(left->is_bool())     return std::make_shared<Object>(left->get_bool() == right->get_bool());
+                        break;
                     case TokenType::BANG_EQUAL:
-                        return std::make_shared<Object>(!Object::is_equal(left, right));
+                        if(left->is_int())      return std::make_shared<Object>(left->get_int() != right->get_int());
+                        if(left->is_float())    return std::make_shared<Object>(abs(left->get_float() - right->get_float()) >= 0.01f);
+                        if(left->is_string())   return std::make_shared<Object>(left->get_string() != right->get_string());
+                        if(left->is_bool())     return std::make_shared<Object>(left->get_bool() != right->get_bool());
+                        break;
                     case TokenType::LESS:
-                        return std::make_shared<Object>(Object::less_than(left, right));
+                        if(left->is_int())      return std::make_shared<Object>(left->get_int() < right->get_int());
+                        if(left->is_float())    return std::make_shared<Object>(left->get_float() < right->get_float());
+                        break;
                     case TokenType::LESS_EQUAL:
-                        return std::make_shared<Object>(Object::less_equal(left, right));
+                        if(left->is_int())      return std::make_shared<Object>(left->get_int() <= right->get_int());
+                        if(left->is_float())    return std::make_shared<Object>(
+                                                                        left->get_float() < right->get_float() ||
+                                                                        abs(left->get_float() - right->get_float()) < 0.01f);
+                        break;
                     case TokenType::GREATER:
-                        return std::make_shared<Object>(Object::greater_than(left, right));
+                        if(left->is_int())      return std::make_shared<Object>(left->get_int() > right->get_int());
+                        if(left->is_float())    return std::make_shared<Object>(left->get_float() > right->get_float());
                     case TokenType::GREATER_EQUAL:
-                        return std::make_shared<Object>(Object::greater_equal(left, right));*/
+                        if(left->is_int())      return std::make_shared<Object>(left->get_int() >= right->get_int());
+                        if(left->is_float())    return std::make_shared<Object>(
+                                                                        left->get_float() > right->get_float() ||
+                                                                        abs(left->get_float() - right->get_float()) < 0.01f);
+                        break;
                 }
 
                 throw RuntimeError(expr->m_op, "Invalid logical operator.  Equality and inequalities not implemented");
