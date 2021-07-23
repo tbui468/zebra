@@ -27,8 +27,8 @@ namespace zebra {
             };
         public:
             Parser(const std::vector<Token>& tokens): m_tokens(tokens), m_current(0) {}
-            std::vector<Stmt*> parse() {
-                std::vector<Stmt*> sl;
+            std::vector<std::shared_ptr<Stmt>> parse() {
+                std::vector<std::shared_ptr<Stmt>> sl;
                 try {
                     while(!match(TokenType::EOFILE)) {
                         sl.push_back(statement());
@@ -40,7 +40,7 @@ namespace zebra {
                 return sl;
             }
 
-            Stmt* statement() {
+            std::shared_ptr<Stmt> statement() {
                 if (match(TokenType::PRINT)) return print_statement();
                 if (match(TokenType::IF)) return if_statement();
                 if (peek(TokenType::LEFT_BRACE)) return block_statement();
@@ -48,77 +48,81 @@ namespace zebra {
                 throw ParseError(previous(), "Invalid token");
             }
 
-            Stmt* print_statement() {
-                Expr* value = expression(); //this needs to go through recursive descent
-                Stmt* ret = new Print(value);
+            std::shared_ptr<Stmt> print_statement() {
+                std::shared_ptr<Expr> value = expression(); //this needs to go through recursive descent
+                std::shared_ptr<Stmt> ret = std::make_shared<Print>(value);
                 consume(TokenType::SEMICOLON, "Expect semicolon after expression.");
                 return ret;
             }
 
-            Stmt* if_statement() {
+            std::shared_ptr<Stmt> if_statement() {
                 consume(TokenType::LEFT_PAREN, "Expect '(' after keyword 'if'.");
-                Expr* condition = expression();
+                std::shared_ptr<Expr> condition = expression();
                 consume(TokenType::RIGHT_PAREN, "Expect ')' after condition.");
-                Stmt* then_branch = block_statement();
+                std::shared_ptr<Stmt> then_branch = block_statement();
 
-                Stmt* else_branch = nullptr;
+                std::shared_ptr<Stmt> else_branch = nullptr;
                 if(match(TokenType::ELSE)) {
                     else_branch = block_statement();
                 }
-                return new If(condition, then_branch, else_branch);
+                return std::make_shared<If>(condition, then_branch, else_branch);
             }
 
-            Stmt* block_statement() {
+            std::shared_ptr<Stmt> block_statement() {
                 consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
-                std::vector<Stmt*> statements;
+                std::vector<std::shared_ptr<Stmt>> statements;
                 while (!match(TokenType::RIGHT_BRACE)) {
                     statements.push_back(statement());
                 }
 
-                return new Block(statements);
+                return std::make_shared<Block>(statements);
             }
 
-            Expr* expression() {
+            std::shared_ptr<Expr> expression() {
                 return term();
             }
 
             //assignment
 
-            //or
+            std::shared_ptr<Expr> logic_or() {
 
-            //and
+            }
+
+            std::shared_ptr<Expr> logic_and() {
+
+            }
             
             //equal !equal
 
             //four inequalities
 
-            Expr* term() {
-                Expr* left = factor();
+            std::shared_ptr<Expr> term() {
+                std::shared_ptr<Expr> left = factor();
                 while(match(TokenType::PLUS) || match(TokenType::MINUS)) {
                     Token op = previous();
-                    Expr* right = factor();
-                    left = new Binary(op, left, right);
+                    std::shared_ptr<Expr> right = factor();
+                    left = std::make_shared<Binary>(op, left, right);
                 }
             
                 return left;             
             }
 
-            Expr* factor() {
-                Expr* left = unary();
+            std::shared_ptr<Expr> factor() {
+                std::shared_ptr<Expr> left = unary();
                 while(match(TokenType::STAR) || match(TokenType::SLASH) || match(TokenType::MOD)) {
                     Token op = previous();
-                    Expr* right = unary();
-                    left = new Binary(op, left, right);
+                    std::shared_ptr<Expr> right = unary();
+                    left = std::make_shared<Binary>(op, left, right);
                 }
             
                 return left;             
             }
 
-            Expr* unary() {
-                Expr* right = nullptr;
+            std::shared_ptr<Expr> unary() {
+                std::shared_ptr<Expr> right = nullptr;
                 while(match(TokenType::MINUS) || match(TokenType::BANG)) {
                     Token op = previous();
-                    right = new Unary(op, unary());
+                    right = std::make_shared<Unary>(op, unary());
                 }
 
                 if(right) {
@@ -128,30 +132,30 @@ namespace zebra {
                 }
             }
 
-            Expr* group() {
+            std::shared_ptr<Expr> group() {
                 if(match(TokenType::LEFT_PAREN)) {
                     Token t = previous();
-                    Expr* expr = expression();
+                    std::shared_ptr<Expr> expr = expression();
                     consume(TokenType::RIGHT_PAREN, "Expect closing parenthesis");
-                    return new Group(t, expr);
+                    return std::make_shared<Group>(t, expr);
                 }
 
                 return primary();
             }
 
-            Expr* primary() {
+            std::shared_ptr<Expr> primary() {
                 if (match(TokenType::FLOAT)) {
-                    return new Literal(previous());
+                    return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::INT)) {
-                    return new Literal(previous());
+                    return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::STRING)) {
-                    return new Literal(previous());
+                    return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::TRUE)) {
-                    return new Literal(previous());
+                    return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::FALSE)) {
-                    return new Literal(previous());
+                    return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::NIL)) {
-                    return new Literal(previous());
+                    return std::make_shared<Literal>(previous());
                 }
                 throw ParseError(previous(), "Expecting an expression.");
             }

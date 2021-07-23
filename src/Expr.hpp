@@ -2,6 +2,7 @@
 #define ZEBRA_EXPR_H
 
 #include <string>
+#include <memory>
 #include "Token.hpp"
 #include "Object.hpp"
 
@@ -13,17 +14,17 @@ namespace zebra {
     struct Literal;
 
     struct ExprStringVisitor {
-        virtual std::string visit(Unary& expr) = 0;
-        virtual std::string visit(Binary& expr) = 0;
-        virtual std::string visit(Group& expr) = 0;
-        virtual std::string visit(Literal& expr) = 0;
+        virtual std::string visit(std::shared_ptr<Unary> expr) = 0;
+        virtual std::string visit(std::shared_ptr<Binary> expr) = 0;
+        virtual std::string visit(std::shared_ptr<Group> expr) = 0;
+        virtual std::string visit(std::shared_ptr<Literal> expr) = 0;
     };
 
     struct ExprObjectVisitor {
-        virtual Object* visit(Unary& expr) = 0;
-        virtual Object* visit(Binary& expr) = 0;
-        virtual Object* visit(Group& expr) = 0;
-        virtual Object* visit(Literal& expr) = 0;
+        virtual std::shared_ptr<Object> visit(std::shared_ptr<Unary> expr) = 0;
+        virtual std::shared_ptr<Object> visit(std::shared_ptr<Binary> expr) = 0;
+        virtual std::shared_ptr<Object> visit(std::shared_ptr<Group> expr) = 0;
+        virtual std::shared_ptr<Object> visit(std::shared_ptr<Literal> expr) = 0;
     };
 
     //Expressions
@@ -31,54 +32,51 @@ namespace zebra {
         public:
             virtual ~Expr() {}
             virtual std::string accept(ExprStringVisitor& visitor) = 0;
-            virtual Object* accept(ExprObjectVisitor& visitor) = 0;
+            virtual std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) = 0;
     };
 
 
-    struct Unary: public Expr {
+    struct Unary: public Expr, public std::enable_shared_from_this<Unary> {
         public:
-            Unary(Token op, Expr* right): m_op(op), m_right(right) {}
-            ~Unary() { delete m_right; }
-            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
-            Object* accept(ExprObjectVisitor& visitor) { return visitor.visit(*this); }
+            Unary(Token op, std::shared_ptr<Expr> right): m_op(op), m_right(right) {}
+            ~Unary() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(shared_from_this()); }
         public:
             Token m_op;
-            Expr* m_right;
+            std::shared_ptr<Expr> m_right;
     };
 
-    struct Binary: public Expr {
+    struct Binary: public Expr, public std::enable_shared_from_this<Binary> {
         public:
-            Binary(Token op, Expr* left, Expr* right): m_op(op), m_left(left), m_right(right) {}
-            ~Binary() {
-                delete m_left;
-                delete m_right;
-            }
-            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
-            Object* accept(ExprObjectVisitor& visitor) { return visitor.visit(*this); }
+            Binary(Token op, std::shared_ptr<Expr> left, std::shared_ptr<Expr> right): m_op(op), m_left(left), m_right(right) {}
+            ~Binary() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(shared_from_this()); }
         public:
             Token m_op;
-            Expr* m_left;
-            Expr* m_right;
+            std::shared_ptr<Expr> m_left;
+            std::shared_ptr<Expr> m_right;
     };
 
 
-    struct Group: public Expr {
+    struct Group: public Expr, public std::enable_shared_from_this<Group> {
         public:
-            Group(Token name, Expr* expr): m_name(name), m_expr(expr) {}
-            ~Group() { delete m_expr; }
-            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
-            Object* accept(ExprObjectVisitor& visitor) { return visitor.visit(*this); }
+            Group(Token name, std::shared_ptr<Expr> expr): m_name(name), m_expr(expr) {}
+            ~Group() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(shared_from_this()); }
         public:
             Token m_name;
-            Expr* m_expr;
+            std::shared_ptr<Expr> m_expr;
     };
 
-    struct Literal: public Expr {
+    struct Literal: public Expr, public std::enable_shared_from_this<Literal> {
         public:
             Literal(Token token): m_token(token) {}
             ~Literal() {}
-            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(*this); }
-            Object* accept(ExprObjectVisitor& visitor) { return visitor.visit(*this); }
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(shared_from_this()); }
         public:
             Token m_token;
     };

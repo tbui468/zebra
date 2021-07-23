@@ -3,12 +3,6 @@
 
 namespace zebra {
 
-/*
-      Type m_type; 
-      std::string m_string;
-      float m_float;
-      int m_int;*/
-
   Object::Object(const std::string& s):
     m_type(Type::String),
     m_string(s),

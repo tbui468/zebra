@@ -2,6 +2,7 @@
 #define ZEBRA_STMT_H
 
 #include <vector>
+#include <memory>
 #include "Expr.hpp"
 
 namespace zebra {
@@ -11,14 +12,14 @@ namespace zebra {
     struct Block;
 
     struct StmtStringVisitor {
-        virtual std::string visit(Print& stmt) = 0;
-        virtual std::string visit(If& stmt) = 0;
-        virtual std::string visit(Block& stmt) = 0;
+        virtual std::string visit(std::shared_ptr<Print> stmt) = 0;
+        virtual std::string visit(std::shared_ptr<If> stmt) = 0;
+        virtual std::string visit(std::shared_ptr<Block> stmt) = 0;
     };
     struct StmtVoidVisitor {
-        virtual void visit(Print& stmt) = 0;
-        virtual void visit(If& stmt) = 0;
-        virtual void visit(Block& stmt) = 0;
+        virtual void visit(std::shared_ptr<Print> stmt) = 0;
+        virtual void visit(std::shared_ptr<If> stmt) = 0;
+        virtual void visit(std::shared_ptr<Block> stmt) = 0;
     };
 
 
@@ -29,45 +30,37 @@ namespace zebra {
         virtual void accept(StmtVoidVisitor& visitor) = 0;
     };
 
-    struct Print: public Stmt {
+    struct Print: public Stmt, public std::enable_shared_from_this<Print> {
         public:
-            Print(Expr* value): m_value(value) {}
-            ~Print() { delete m_value; }
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(*this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(*this); }
+            Print(std::shared_ptr<Expr> value): m_value(value) {}
+            ~Print() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(shared_from_this()); }
         public:
-            Expr* m_value;
+            std::shared_ptr<Expr> m_value;
     };
 
-    struct If: public Stmt {
+    struct If: public Stmt, public std::enable_shared_from_this<If> {
         public:
-            If(Expr* condition, Stmt* then_branch, Stmt* else_branch): 
+            If(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> then_branch, std::shared_ptr<Stmt> else_branch): 
                 m_condition(condition), m_then_branch(then_branch), m_else_branch(else_branch) {}
-            ~If() {
-                delete m_condition;
-                delete m_then_branch;
-                delete m_else_branch;
-            }
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(*this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(*this); }
+            ~If() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(shared_from_this()); }
         public:
-            Expr* m_condition;
-            Stmt* m_then_branch;
-            Stmt* m_else_branch;
+            std::shared_ptr<Expr> m_condition;
+            std::shared_ptr<Stmt> m_then_branch;
+            std::shared_ptr<Stmt> m_else_branch;
     };
 
-    struct Block: public Stmt {
+    struct Block: public Stmt, public std::enable_shared_from_this<Block> {
         public:
-            Block(std::vector<Stmt*> statements): m_statements(statements) {}
-            ~Block() {
-                for(Stmt* s: m_statements) {
-                    delete s;
-                }
-            }
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(*this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(*this); }
+            Block(std::vector<std::shared_ptr<Stmt>> statements): m_statements(statements) {}
+            ~Block() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(shared_from_this()); }
         public:
-            std::vector<Stmt*> m_statements;
+            std::vector<std::shared_ptr<Stmt>> m_statements;
     };
 
 

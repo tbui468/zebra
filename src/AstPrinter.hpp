@@ -11,15 +11,15 @@ namespace zebra {
         public:
             AstPrinter() {}
             ~AstPrinter() {}
-            void print(Stmt& stmt);
+            void print(std::shared_ptr<Stmt> stmt);
         private:
-            virtual std::string visit(Unary& expr) override;
-            virtual std::string visit(Binary& expr) override;
-            virtual std::string visit(Group& expr) override;
-            virtual std::string visit(Literal& expr) override;
-            virtual std::string visit(Print& stmt) override;
-            virtual std::string visit(If& stmt) override;
-            virtual std::string visit(Block& stmt) override;
+            virtual std::string visit(std::shared_ptr<Unary> expr) override;
+            virtual std::string visit(std::shared_ptr<Binary> expr) override;
+            virtual std::string visit(std::shared_ptr<Group> expr) override;
+            virtual std::string visit(std::shared_ptr<Literal> expr) override;
+            virtual std::string visit(std::shared_ptr<Print> stmt) override;
+            virtual std::string visit(std::shared_ptr<If> stmt) override;
+            virtual std::string visit(std::shared_ptr<Block> stmt) override;
     };
 
 

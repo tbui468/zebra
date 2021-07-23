@@ -19,6 +19,7 @@ namespace zebra {
         //keywords
         PRINT, IF, ELSE,
         TRUE, FALSE,
+        AND, OR,
         /*
         RIGHT_ARROW,
         COLON
@@ -30,8 +31,6 @@ namespace zebra {
         BOOL_TYPE,  ??
         FOR,
         WHILE,
-        AND,
-        OR,
         NIL,
         ELIF, //new stuff
         BREAK,

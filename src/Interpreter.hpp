@@ -11,7 +11,7 @@ namespace zebra {
 
     class Interpreter: public StmtVoidVisitor, public ExprObjectVisitor {
         private:
-            std::vector<Stmt*> m_statements;
+            std::vector<std::shared_ptr<Stmt>> m_statements;
             class RuntimeError {
                 private:
                     Token m_token;
@@ -24,11 +24,11 @@ namespace zebra {
                     }
             };
         public:
-            Interpreter(const std::vector<Stmt*> statements): m_statements(statements) {}
+            Interpreter(const std::vector<std::shared_ptr<Stmt>> statements): m_statements(statements) {}
             ~Interpreter() {}
             void run() {
                 try {
-                    for(Stmt* s: m_statements) {
+                    for(std::shared_ptr<Stmt> s: m_statements) {
                         execute(*s);
                     }
                 } catch(RuntimeError& e) {
@@ -39,8 +39,8 @@ namespace zebra {
                 stmt.accept(*this);
             }
 
-            void visit(Print& stmt) {
-                Object* value = stmt.m_value->accept(*this);
+            void visit(std::shared_ptr<Print> stmt) {
+                std::shared_ptr<Object> value = stmt->m_value->accept(*this);
                 if(value->is_string()) {
                     std::cout << value->get_string() << std::endl;
                 }else if(value->is_float()) {
@@ -56,116 +56,98 @@ namespace zebra {
                 }else if(value->is_nil()) {
                     std::cout << "nil" << std::endl;
                 }
-                delete value;
             }
 
-            void visit(If& stmt) {
-                Object* condition = evaluate(*(stmt.m_condition));
+            void visit(std::shared_ptr<If> stmt) {
+                std::shared_ptr<Object> condition = evaluate(stmt->m_condition);
                 if(condition->is_truthy()) {
-                    execute(*(stmt.m_then_branch));                    
-                }else if(stmt.m_else_branch) {
-                    execute(*(stmt.m_else_branch));
+                    execute(*(stmt->m_then_branch));                    
+                }else if(stmt->m_else_branch) {
+                    execute(*(stmt->m_else_branch));
                 }
-
-                delete condition;
             }
 
-            void visit(Block& stmt) {
-                for(Stmt* s: stmt.m_statements) {
+            void visit(std::shared_ptr<Block> stmt) {
+                for(std::shared_ptr<Stmt> s: stmt->m_statements) {
                     execute(*s);  
                 }    
             }
 
-            Object* evaluate(Expr& expr) {
-                return expr.accept(*this);
+            std::shared_ptr<Object> evaluate(std::shared_ptr<Expr> expr) {
+                return expr->accept(*this);
             }
 
-            Object* visit(Unary& expr) {
-                Object* right = expr.m_right->accept(*this);
+            std::shared_ptr<Object> visit(std::shared_ptr<Unary> expr) {
+                std::shared_ptr<Object> right = expr->m_right->accept(*this);
 
-                if(expr.m_op.m_type == TokenType::MINUS) {
+                if(expr->m_op.m_type == TokenType::MINUS) {
                     if(right->is_float()) {
-                        float a = right->get_float();
-                        delete right;
-                        return new Object(-a);
+                        return std::make_shared<Object>(-right->get_float());
                     }else if(right->is_int()) {
-                        int a = right->get_int();
-                        delete right;
-                        return new Object(-a);
+                        return std::make_shared<Object>(-right->get_int());
                     }
-                }else if(expr.m_op.m_type == TokenType::BANG) {
-                    bool b = false;
-                    if(right->is_truthy()) {
-                       b = true; 
-                    }
-                    delete right;
-                    return new Object(!b);
+                }else if(expr->m_op.m_type == TokenType::BANG) {
+                    return std::make_shared<Object>(!right->is_truthy());
                 }
 
-                throw RuntimeError(expr.m_op, "That invalid unary operator.");
+                throw RuntimeError(expr->m_op, "That invalid unary operator.");
             }
 
-            Object* visit(Binary& expr) {
+            std::shared_ptr<Object> visit(std::shared_ptr<Binary> expr) {
                 //if left and right aren't of the same type (string, float or int), throw error
-                Object* left = expr.m_left->accept(*this);
-                Object* right = expr.m_right->accept(*this);
+                std::shared_ptr<Object> left = expr->m_left->accept(*this);
+                std::shared_ptr<Object> right = expr->m_right->accept(*this);
                 if(left->is_int() && right->is_int()) {
                     int a = left->get_int();
                     int b = right->get_int();
-                    delete left;
-                    delete right;
-                    switch(expr.m_op.m_type) {
-                        case TokenType::PLUS: return new Object(a + b);
-                        case TokenType::MINUS: return new Object(a - b);
-                        case TokenType::STAR: return new Object(a * b);
-                        case TokenType::SLASH: return new Object(a / b);
-                        case TokenType::MOD: return new Object(a % b);
+                    switch(expr->m_op.m_type) {
+                        case TokenType::PLUS: return std::make_shared<Object>(a + b);
+                        case TokenType::MINUS: return std::make_shared<Object>(a - b);
+                        case TokenType::STAR: return std::make_shared<Object>(a * b);
+                        case TokenType::SLASH: return std::make_shared<Object>(a / b);
+                        case TokenType::MOD: return std::make_shared<Object>(a % b);
                     }
-                    throw RuntimeError(expr.m_op, "That operation can't be performed on ints.");
+                    throw RuntimeError(expr->m_op, "That operation can't be performed on ints.");
                 }
                 if(left->is_float() && right->is_float()) {
                     float a = left->get_float();
                     float b = right->get_float();
-                    delete left;
-                    delete right;
-                    switch(expr.m_op.m_type) {
-                        case TokenType::PLUS: return new Object(a + b);
-                        case TokenType::MINUS: return new Object(a - b);
-                        case TokenType::STAR: return new Object(a * b);
-                        case TokenType::SLASH: return new Object(a / b);
+                    switch(expr->m_op.m_type) {
+                        case TokenType::PLUS: return std::make_shared<Object>(a + b);
+                        case TokenType::MINUS: return std::make_shared<Object>(a - b);
+                        case TokenType::STAR: return std::make_shared<Object>(a * b);
+                        case TokenType::SLASH: return std::make_shared<Object>(a / b);
                     }
-                    throw RuntimeError(expr.m_op, "That operation can't be performed on floats.");
+                    throw RuntimeError(expr->m_op, "That operation can't be performed on floats.");
                 }
                 if(left->is_string() && right->is_string()) {
                     std::string a = left->get_string();
                     std::string b = right->get_string();
-                    delete left;
-                    delete right;
-                    switch(expr.m_op.m_type) {
-                        case TokenType::PLUS: return new Object(a + b);
+                    switch(expr->m_op.m_type) {
+                        case TokenType::PLUS: return std::make_shared<Object>(a + b);
                     }
-                    throw RuntimeError(expr.m_op, "That operation can't be performed on strings.");
+                    throw RuntimeError(expr->m_op, "That operation can't be performed on strings.");
                 }
 
-                throw RuntimeError(expr.m_op, "Types in expression must match.");
+                throw RuntimeError(expr->m_op, "Types in expression must match.");
             }
-            Object* visit(Group& expr) {
-                return expr.m_expr->accept(*this);
+            std::shared_ptr<Object> visit(std::shared_ptr<Group> expr) {
+                return expr->m_expr->accept(*this);
             }
-            Object* visit(Literal& expr) {
-                switch(expr.m_token.m_type) {
+            std::shared_ptr<Object> visit(std::shared_ptr<Literal> expr) {
+                switch(expr->m_token.m_type) {
                     case TokenType::FLOAT:
-                        return new Object(stof(expr.m_token.m_lexeme));
+                        return std::make_shared<Object>(stof(expr->m_token.m_lexeme));
                     case TokenType::INT:
-                        return new Object(stoi(expr.m_token.m_lexeme));
+                        return std::make_shared<Object>(stoi(expr->m_token.m_lexeme));
                     case TokenType::STRING:
-                        return new Object(expr.m_token.m_lexeme);
+                        return std::make_shared<Object>(expr->m_token.m_lexeme);
                     case TokenType::TRUE:
-                        return new Object(true);
+                        return std::make_shared<Object>(true);
                     case TokenType::FALSE:
-                        return new Object(false);
+                        return std::make_shared<Object>(false);
                     case TokenType::NIL:
-                        return new Object();
+                        return std::make_shared<Object>();
                 }
             }
 

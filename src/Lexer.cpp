@@ -61,6 +61,12 @@ namespace zebra {
                 case '\r':
                 case ' ':
                     break;
+                case 'a':
+                    if (match("nd")) add_token(TokenType::AND);
+                    break;
+                case 'o':
+                    if (match("r")) add_token(TokenType::OR);
+                    break;
                 case 'p':
                     if (match("rint")) add_token(TokenType::PRINT);
                     break;
