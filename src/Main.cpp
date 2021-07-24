@@ -19,12 +19,12 @@
     //no nulls or nils or nullptrs, using undefined variables will throw an error
 
 //TODO: 
-//while loops
+//change Object types - Int, Float String, Bool, Function types that inherit from Object???
 //for loops
 //functions - function objects and function instances, including new scopes, returns using exceptions
+//Structs
 //Resolver - functions should capture closure during declaration
-//How should errors propagate?  Parsing, Type checking and Runtime errors
-//  should the entire program abort if there's a problem?  YES
+//For Lexer, Parser, TypeChecker and Resolver: replace exceptions with returning a struct
 
 
 int main(int argc, char** argv) {
@@ -35,19 +35,21 @@ int main(int argc, char** argv) {
         std::vector<zebra::Token> tokens = lexer.scan();
        
        
-        //lexer.print_source();
+        lexer.print_source();
         
-        //for (zebra::Token t: tokens) {
-         //   std::cout << t.to_string() << std::endl;
-       // }
+        for (zebra::Token t: tokens) {
+            std::cout << t.to_string() << std::endl;
+        }
 
 
         zebra::Parser parser(tokens);
         std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
 
+        //make the printer, checker, intepreter use raw pointers
+
         zebra::AstPrinter printer;        
         for(int i = 0; i < int(ast.size()); i++) {
-            printer.print(ast.at(i));
+            printer.print(ast.at(i).get());
         }
 
         zebra::TypeChecker checker;

@@ -30,13 +30,13 @@ namespace zebra {
         public:
             TypeChecker() {}
             ~TypeChecker() {}
-            void execute(std::shared_ptr<Stmt> stmt) {
+            void execute(Stmt* stmt) {
                 stmt->accept(*this);
             }
             bool check(const std::vector<std::shared_ptr<Stmt>>& ast) {
                 try {
                     for(std::shared_ptr<Stmt> s: ast) {
-                        execute(s);
+                        execute(s.get());
                     }
                 } catch (TypeError& e) {
                     e.print();
@@ -47,7 +47,7 @@ namespace zebra {
             }
         private:
 
-            DataType evaluate(std::shared_ptr<Expr> expr) {
+            DataType evaluate(Expr* expr) {
                 return expr->accept(*this);
             }
 
@@ -55,34 +55,30 @@ namespace zebra {
              * Statements
              */
 
-            void visit(std::shared_ptr<Print> stmt) {
-                DataType type = evaluate(stmt->m_value);                
+            void visit(Print* stmt) {
+                DataType type = evaluate(stmt->m_value.get());                
             }
-            void visit(std::shared_ptr<If> stmt) {
-                DataType type = evaluate(stmt->m_condition);
-                execute(stmt->m_then_branch);
-                if(stmt->m_else_branch) execute(stmt->m_else_branch);
+            void visit(If* stmt) {
+                DataType type = evaluate(stmt->m_condition.get());
+                execute(stmt->m_then_branch.get());
+                if(stmt->m_else_branch) execute(stmt->m_else_branch.get());
             }
-            void visit(std::shared_ptr<Block> stmt) {
+            void visit(Block* stmt) {
                 for(std::shared_ptr<Stmt> s: stmt->m_statements) {
-                    execute(s);
+                    execute(s.get());
                 }
             }
 
-            void visit(std::shared_ptr<AssignStmt> stmt) {
-                /*
-                if(m_types.count(stmt->m_name.m_lexeme) == 0) {
-                    throw TypeError(stmt->m_name, "Variable " + stmt->m_name.to_string() + " not declared.");
-                }*/
+            void visit(AssignStmt* stmt) {
                 DataType type = m_types[stmt->m_name.m_lexeme];
-                DataType expr_type = evaluate(stmt->m_value);
+                DataType expr_type = evaluate(stmt->m_value.get());
 
                 if(type != expr_type) {
                     throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
                 }
             }
 
-            void visit(std::shared_ptr<VarDecl> stmt) {
+            void visit(VarDecl* stmt) {
                 DataType type;
                 switch(stmt->m_type.m_type) {
                     case TokenType::BOOL_TYPE:
@@ -99,26 +95,26 @@ namespace zebra {
                         break;
                 }
                 m_types[stmt->m_name.m_lexeme] = type;
-                DataType expr_type = evaluate(stmt->m_value);
+                DataType expr_type = evaluate(stmt->m_value.get());
                 if(type != expr_type) {
                     throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
                 }
             }
 
-            void visit(std::shared_ptr<While> stmt) {
-                DataType type = evaluate(stmt->m_condition);
+            void visit(While* stmt) {
+                DataType type = evaluate(stmt->m_condition.get());
                 if (type != DataType::BOOL) {
                     throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
                 }
-                execute(stmt->m_body);
+                execute(stmt->m_body.get());
             }
 
             /*
              * Expressions
              */
-            DataType visit(std::shared_ptr<Unary> expr) {
+            DataType visit(Unary* expr) {
                 TokenType op_type = expr->m_op.m_type;
-                DataType right_type = evaluate(expr->m_right);
+                DataType right_type = evaluate(expr->m_right.get());
 
                 switch(op_type) {
                     case TokenType::MINUS:
@@ -132,9 +128,9 @@ namespace zebra {
                 throw TypeError(expr->m_op, "Cannot use " + expr->m_op.to_string() + " operator on this data type.");
             }
 
-            DataType visit(std::shared_ptr<Binary> expr) {
-                DataType left = evaluate(expr->m_left);
-                DataType right = evaluate(expr->m_right);
+            DataType visit(Binary* expr) {
+                DataType left = evaluate(expr->m_left.get());
+                DataType right = evaluate(expr->m_right.get());
 
                 if(left == DataType::BOOL || right == DataType::BOOL)
                     throw TypeError(expr->m_op, "Cannot use " + expr->m_op.to_string() + " operator on booleans.");
@@ -144,11 +140,11 @@ namespace zebra {
                 throw TypeError(expr->m_op, "Cannot use " + expr->m_op.to_string() + " operator on different data types. Explicity cast types if necessary.");
             }
 
-            DataType visit(std::shared_ptr<Group> expr) {
-                return evaluate(expr->m_expr);
+            DataType visit(Group* expr) {
+                return evaluate(expr->m_expr.get());
             }
 
-            DataType visit(std::shared_ptr<Literal> expr) {
+            DataType visit(Literal* expr) {
                 switch(expr->m_token.m_type) {
                     case TokenType::TRUE:
                     case TokenType::FALSE:
@@ -163,9 +159,9 @@ namespace zebra {
                 throw TypeError(expr->m_token, expr->m_token.to_string() + " token not valid.");
             }
 
-            DataType visit(std::shared_ptr<Logic> expr) {
-                DataType left = evaluate(expr->m_left);
-                DataType right = evaluate(expr->m_right);
+            DataType visit(Logic* expr) {
+                DataType left = evaluate(expr->m_left.get());
+                DataType right = evaluate(expr->m_right.get());
 
                 bool inequality = expr->m_op.m_type == TokenType::LESS ||
                                    expr->m_op.m_type == TokenType::LESS_EQUAL ||
@@ -186,25 +182,20 @@ namespace zebra {
             }
 
 
-            DataType visit(std::shared_ptr<AssignExpr> expr) {
+            DataType visit(AssignExpr* expr) {
                 if(m_types.count(expr->m_name.m_lexeme) == 0) {
                     throw TypeError(expr->m_name, "Variable not declared.");
                 }
 
                 DataType type = m_types[expr->m_name.m_lexeme];
-                DataType expr_type = evaluate(expr->m_value);
+                DataType expr_type = evaluate(expr->m_value.get());
 
                 if(type != expr_type) {
                     throw TypeError(expr->m_name, "Right hand expression must evaluate to type " + expr->m_name.to_string() + ".");
                 }
             }
 
-            DataType visit(std::shared_ptr<Variable> expr) {
-                /*
-                if(m_types.count(expr->m_name.m_lexeme) == 0) {
-                    throw TypeError(expr->m_name, "Variable not declared.");
-                }*/
-
+            DataType visit(Variable* expr) {
                 return m_types[expr->m_name.m_lexeme];
             }
 

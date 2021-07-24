@@ -21,14 +21,14 @@ namespace zebra {
             ~Interpreter() {}
             void run() {
                 for(std::shared_ptr<Stmt> s: m_statements) {
-                    execute(*s);
+                    execute(s.get());
                 }
             }
-            void execute(Stmt& stmt) {
-                stmt.accept(*this);
+            void execute(Stmt* stmt) {
+                stmt->accept(*this);
             }
 
-            void visit(std::shared_ptr<Print> stmt) {
+            void visit(Print* stmt) {
                 std::shared_ptr<Object> value = stmt->m_value->accept(*this);
                 if(value->is_string()) {
                     std::cout << value->get_string() << std::endl;
@@ -47,51 +47,51 @@ namespace zebra {
                 }
             }
 
-            void visit(std::shared_ptr<If> stmt) {
-                std::shared_ptr<Object> condition = evaluate(stmt->m_condition);
+            void visit(If* stmt) {
+                std::shared_ptr<Object> condition = evaluate(stmt->m_condition.get());
                 if(condition->is_truthy()) {
-                    execute(*(stmt->m_then_branch));                    
+                    execute(stmt->m_then_branch.get());                    
                 }else if(stmt->m_else_branch) {
-                    execute(*(stmt->m_else_branch));
+                    execute(stmt->m_else_branch.get());
                 }
             }
 
-            void visit(std::shared_ptr<Block> stmt) {
+            void visit(Block* stmt) {
                 std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment);
                 std::shared_ptr<Environment> closure = m_environment;
                 m_environment = block_env;
                 for(std::shared_ptr<Stmt> s: stmt->m_statements) {
-                    execute(*s);  
+                    execute(s.get());  
                 } 
                 m_environment = closure;   
             }
 
             //note: stmt->m_type is used in type checker only    
-            void visit(std::shared_ptr<VarDecl> stmt) {
-                std::shared_ptr<Object> value = evaluate(stmt->m_value);
+            void visit(VarDecl* stmt) {
+                std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
                 m_environment->define(stmt->m_name, value);
             }
 
 
-            void visit(std::shared_ptr<AssignStmt> stmt) {
-                std::shared_ptr<Object> value = evaluate(stmt->m_value);
+            void visit(AssignStmt* stmt) {
+                std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
                 m_environment->assign(stmt->m_name, value);
 
             }
 
-            void visit(std::shared_ptr<While> stmt) {
-                std::shared_ptr<Object> condition = evaluate(stmt->m_condition);
+            void visit(While* stmt) {
+                std::shared_ptr<Object> condition = evaluate(stmt->m_condition.get());
                 while(condition->get_bool()) {
-                    execute(*(stmt->m_body));
-                    condition = evaluate(stmt->m_condition);
+                    execute(stmt->m_body.get());
+                    condition = evaluate(stmt->m_condition.get());
                 }
             }
 
-            std::shared_ptr<Object> evaluate(std::shared_ptr<Expr> expr) {
+            std::shared_ptr<Object> evaluate(Expr* expr) {
                 return expr->accept(*this);
             }
 
-            std::shared_ptr<Object> visit(std::shared_ptr<Unary> expr) {
+            std::shared_ptr<Object> visit(Unary* expr) {
                 std::shared_ptr<Object> right = expr->m_right->accept(*this);
 
                 if(expr->m_op.m_type == TokenType::MINUS) {
@@ -106,7 +106,7 @@ namespace zebra {
 
             }
 
-            std::shared_ptr<Object> visit(std::shared_ptr<Binary> expr) {
+            std::shared_ptr<Object> visit(Binary* expr) {
                 //if left and right aren't of the same type (string, float or int), throw error
                 std::shared_ptr<Object> left = expr->m_left->accept(*this);
                 std::shared_ptr<Object> right = expr->m_right->accept(*this);
@@ -140,10 +140,10 @@ namespace zebra {
                 }
 
             }
-            std::shared_ptr<Object> visit(std::shared_ptr<Group> expr) {
+            std::shared_ptr<Object> visit(Group* expr) {
                 return expr->m_expr->accept(*this);
             }
-            std::shared_ptr<Object> visit(std::shared_ptr<Literal> expr) {
+            std::shared_ptr<Object> visit(Literal* expr) {
                 switch(expr->m_token.m_type) {
                     case TokenType::FLOAT:
                         return std::make_shared<Object>(stof(expr->m_token.m_lexeme));
@@ -158,7 +158,7 @@ namespace zebra {
                 }
             }
 
-            std::shared_ptr<Object> visit(std::shared_ptr<Logic> expr) {
+            std::shared_ptr<Object> visit(Logic* expr) {
                 std::shared_ptr<Object> left = expr->m_left->accept(*this);
                 std::shared_ptr<Object> right = expr->m_right->accept(*this);
 
@@ -204,13 +204,13 @@ namespace zebra {
             }
 
 
-            std::shared_ptr<Object> visit(std::shared_ptr<AssignExpr> expr) {
-                std::shared_ptr<Object> value = evaluate(expr->m_value);
+            std::shared_ptr<Object> visit(AssignExpr* expr) {
+                std::shared_ptr<Object> value = evaluate(expr->m_value.get());
                 m_environment->assign(expr->m_name, value);
                 return value;
             }
 
-            std::shared_ptr<Object> visit(std::shared_ptr<Variable> expr) {
+            std::shared_ptr<Object> visit(Variable* expr) {
                 return m_environment->get(expr->m_name);
             }
 

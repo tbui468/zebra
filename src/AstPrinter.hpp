@@ -11,23 +11,23 @@ namespace zebra {
         public:
             AstPrinter() {}
             ~AstPrinter() {}
-            void print(std::shared_ptr<Stmt> stmt);
+            void print(Stmt* stmt);
         private:
             //expressions
-            virtual std::string visit(std::shared_ptr<Unary> expr) override;
-            virtual std::string visit(std::shared_ptr<Binary> expr) override;
-            virtual std::string visit(std::shared_ptr<Group> expr) override;
-            virtual std::string visit(std::shared_ptr<Literal> expr) override;
-            virtual std::string visit(std::shared_ptr<Logic> expr) override;
-            virtual std::string visit(std::shared_ptr<AssignExpr> expr) override;
-            virtual std::string visit(std::shared_ptr<Variable> expr) override;
+            virtual std::string visit(Unary* expr) override;
+            virtual std::string visit(Binary* expr) override;
+            virtual std::string visit(Group* expr) override;
+            virtual std::string visit(Literal* expr) override;
+            virtual std::string visit(Logic* expr) override;
+            virtual std::string visit(AssignExpr* expr) override;
+            virtual std::string visit(Variable* expr) override;
             //statements
-            virtual std::string visit(std::shared_ptr<Print> stmt) override;
-            virtual std::string visit(std::shared_ptr<If> stmt) override;
-            virtual std::string visit(std::shared_ptr<Block> stmt) override;
-            virtual std::string visit(std::shared_ptr<AssignStmt> expr) override;
-            virtual std::string visit(std::shared_ptr<VarDecl> stmt) override;
-            virtual std::string visit(std::shared_ptr<While> stmt) override;
+            virtual std::string visit(Print* stmt) override;
+            virtual std::string visit(If* stmt) override;
+            virtual std::string visit(Block* stmt) override;
+            virtual std::string visit(AssignStmt* expr) override;
+            virtual std::string visit(VarDecl* stmt) override;
+            virtual std::string visit(While* stmt) override;
     };
 
 
