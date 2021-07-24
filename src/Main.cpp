@@ -20,7 +20,6 @@
 
 //TODO: 
 //change Object types - Int, Float String, Bool, Function types that inherit from Object???
-//for loops
 //functions - function objects and function instances, including new scopes, returns using exceptions
 //Structs
 //Resolver - functions should capture closure during declaration

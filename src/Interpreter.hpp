@@ -30,26 +30,24 @@ namespace zebra {
 
             void visit(Print* stmt) {
                 std::shared_ptr<Object> value = stmt->m_value->accept(*this);
-                if(value->is_string()) {
-                    std::cout << value->get_string() << std::endl;
-                }else if(value->is_float()) {
-                    std::cout << value->get_float() << std::endl;
-                }else if(value->is_int()) {
-                    std::cout << value->get_int() << std::endl;
-                }else if(value->is_bool()) {
-                    if(value->is_truthy()) {
-                        std::cout << "true" << std::endl;
-                    }else {
-                        std::cout << "false" << std::endl;
-                    }
-                }else if(value->is_nil()) {
-                    std::cout << "nil" << std::endl;
+
+                if(dynamic_cast<Bool*>(value.get())) {
+                    std::cout << dynamic_cast<Bool*>(value.get())->m_value << std::endl;
+                }
+                if(dynamic_cast<Int*>(value.get())) {
+                    std::cout << dynamic_cast<Int*>(value.get())->m_value << std::endl;
+                }
+                if(dynamic_cast<Float*>(value.get())) {
+                    std::cout << dynamic_cast<Float*>(value.get())->m_value << std::endl;
+                }
+                if(dynamic_cast<String*>(value.get())) {
+                    std::cout << dynamic_cast<String*>(value.get())->m_value << std::endl;
                 }
             }
 
             void visit(If* stmt) {
                 std::shared_ptr<Object> condition = evaluate(stmt->m_condition.get());
-                if(condition->is_truthy()) {
+                if(dynamic_cast<Bool*>(condition.get()) && dynamic_cast<Bool*>(condition.get())->m_value) {
                     execute(stmt->m_then_branch.get());                    
                 }else if(stmt->m_else_branch) {
                     execute(stmt->m_else_branch.get());
@@ -80,16 +78,18 @@ namespace zebra {
             }
 
             void visit(While* stmt) {
-                while(evaluate(stmt->m_condition.get())->get_bool()) {
+                std::shared_ptr<Expr> condition = stmt->m_condition;
+                while(dynamic_cast<Bool*>(evaluate(condition.get()).get())->m_value) {
                     execute(stmt->m_body.get());
                 }
             }
 
             void visit(For* stmt) {
                 execute(stmt->m_initializer.get());
-                while(evaluate(stmt->m_condition.get())->get_bool()) {
+                std::shared_ptr<Expr> condition = stmt->m_condition;
+                while(dynamic_cast<Bool*>(evaluate(condition.get()).get())->m_value) {
                     execute(stmt->m_body.get());
-                    std::shared_ptr<Object> up = evaluate(stmt->m_update.get()); //not using result of expression
+                    evaluate(stmt->m_update.get()); //not using result of expression
                 }
             }
 
@@ -101,47 +101,47 @@ namespace zebra {
                 std::shared_ptr<Object> right = expr->m_right->accept(*this);
 
                 if(expr->m_op.m_type == TokenType::MINUS) {
-                    if(right->is_float()) {
-                        return std::make_shared<Object>(-right->get_float());
-                    }else if(right->is_int()) {
-                        return std::make_shared<Object>(-right->get_int());
+                    if (dynamic_cast<Float*>(right.get())) {
+                        return std::make_shared<Float>(-dynamic_cast<Float*>(right.get())->m_value);
+                    }else if (dynamic_cast<Int*>(right.get())) {
+                        return std::make_shared<Int>(-dynamic_cast<Int*>(right.get())->m_value);
                     }
                 }else if(expr->m_op.m_type == TokenType::BANG) {
-                    return std::make_shared<Object>(!right->is_truthy());
+                    return std::make_shared<Bool>(dynamic_cast<Bool*>(right.get())->m_value);
                 }
 
             }
 
             std::shared_ptr<Object> visit(Binary* expr) {
-                //if left and right aren't of the same type (string, float or int), throw error
                 std::shared_ptr<Object> left = expr->m_left->accept(*this);
                 std::shared_ptr<Object> right = expr->m_right->accept(*this);
-                if(left->is_int() && right->is_int()) {
-                    int a = left->get_int();
-                    int b = right->get_int();
+
+                if(dynamic_cast<Int*>(left.get())) {
+                    int a = dynamic_cast<Int*>(left.get())->m_value;
+                    int b = dynamic_cast<Int*>(right.get())->m_value;
                     switch(expr->m_op.m_type) {
-                        case TokenType::PLUS: return std::make_shared<Object>(a + b);
-                        case TokenType::MINUS: return std::make_shared<Object>(a - b);
-                        case TokenType::STAR: return std::make_shared<Object>(a * b);
-                        case TokenType::SLASH: return std::make_shared<Object>(a / b);
-                        case TokenType::MOD: return std::make_shared<Object>(a % b);
+                        case TokenType::PLUS: return std::make_shared<Int>(a + b);
+                        case TokenType::MINUS: return std::make_shared<Int>(a - b);
+                        case TokenType::STAR: return std::make_shared<Int>(a * b);
+                        case TokenType::SLASH: return std::make_shared<Int>(a / b);
+                        case TokenType::MOD: return std::make_shared<Int>(a % b);
                     }
                 }
-                if(left->is_float() && right->is_float()) {
-                    float a = left->get_float();
-                    float b = right->get_float();
+                if(dynamic_cast<Float*>(left.get())) {
+                    float a = dynamic_cast<Float*>(left.get())->m_value;
+                    float b = dynamic_cast<Float*>(right.get())->m_value;
                     switch(expr->m_op.m_type) {
-                        case TokenType::PLUS: return std::make_shared<Object>(a + b);
-                        case TokenType::MINUS: return std::make_shared<Object>(a - b);
-                        case TokenType::STAR: return std::make_shared<Object>(a * b);
-                        case TokenType::SLASH: return std::make_shared<Object>(a / b);
+                        case TokenType::PLUS: return std::make_shared<Float>(a + b);
+                        case TokenType::MINUS: return std::make_shared<Float>(a - b);
+                        case TokenType::STAR: return std::make_shared<Float>(a * b);
+                        case TokenType::SLASH: return std::make_shared<Float>(a / b);
                     }
                 }
-                if(left->is_string() && right->is_string()) {
-                    std::string a = left->get_string();
-                    std::string b = right->get_string();
+                if(dynamic_cast<String*>(left.get())) {
+                    std::string a = dynamic_cast<String*>(left.get())->m_value;
+                    std::string b = dynamic_cast<String*>(right.get())->m_value;
                     switch(expr->m_op.m_type) {
-                        case TokenType::PLUS: return std::make_shared<Object>(a + b);
+                        case TokenType::PLUS: return std::make_shared<String>(a + b);
                     }
                 }
 
@@ -152,60 +152,88 @@ namespace zebra {
             std::shared_ptr<Object> visit(Literal* expr) {
                 switch(expr->m_token.m_type) {
                     case TokenType::FLOAT:
-                        return std::make_shared<Object>(stof(expr->m_token.m_lexeme));
+                        return std::make_shared<Float>(stof(expr->m_token.m_lexeme));
                     case TokenType::INT:
-                        return std::make_shared<Object>(stoi(expr->m_token.m_lexeme));
+                        return std::make_shared<Int>(stoi(expr->m_token.m_lexeme));
                     case TokenType::STRING:
-                        return std::make_shared<Object>(expr->m_token.m_lexeme);
+                        return std::make_shared<String>(expr->m_token.m_lexeme);
                     case TokenType::TRUE:
-                        return std::make_shared<Object>(true);
+                        return std::make_shared<Bool>(true);
                     case TokenType::FALSE:
-                        return std::make_shared<Object>(false);
+                        return std::make_shared<Bool>(false);
                 }
             }
 
             std::shared_ptr<Object> visit(Logic* expr) {
+
                 std::shared_ptr<Object> left = expr->m_left->accept(*this);
                 std::shared_ptr<Object> right = expr->m_right->accept(*this);
 
-                switch(expr->m_op.m_type) {
-                    case TokenType::OR:
-                        return std::make_shared<Object>(left->get_bool() || left->get_bool());
-                    case TokenType::AND:
-                        return std::make_shared<Object>(left->get_bool() && left->get_bool());
-                    case TokenType::EQUAL_EQUAL: //type checker will not allow interpreting if types aren't the same
-                        if(left->is_int())      return std::make_shared<Object>(left->get_int() == right->get_int());
-                        if(left->is_float())    return std::make_shared<Object>(abs(left->get_float() - right->get_float()) < 0.01f);
-                        if(left->is_string())   return std::make_shared<Object>(left->get_string() == right->get_string());
-                        if(left->is_bool())     return std::make_shared<Object>(left->get_bool() == right->get_bool());
-                        break;
-                    case TokenType::BANG_EQUAL:
-                        if(left->is_int())      return std::make_shared<Object>(left->get_int() != right->get_int());
-                        if(left->is_float())    return std::make_shared<Object>(abs(left->get_float() - right->get_float()) >= 0.01f);
-                        if(left->is_string())   return std::make_shared<Object>(left->get_string() != right->get_string());
-                        if(left->is_bool())     return std::make_shared<Object>(left->get_bool() != right->get_bool());
-                        break;
-                    case TokenType::LESS:
-                        if(left->is_int())      return std::make_shared<Object>(left->get_int() < right->get_int());
-                        if(left->is_float())    return std::make_shared<Object>(left->get_float() < right->get_float());
-                        break;
-                    case TokenType::LESS_EQUAL:
-                        if(left->is_int())      return std::make_shared<Object>(left->get_int() <= right->get_int());
-                        if(left->is_float())    return std::make_shared<Object>(
-                                                                        left->get_float() < right->get_float() ||
-                                                                        abs(left->get_float() - right->get_float()) < 0.01f);
-                        break;
-                    case TokenType::GREATER:
-                        if(left->is_int())      return std::make_shared<Object>(left->get_int() > right->get_int());
-                        if(left->is_float())    return std::make_shared<Object>(left->get_float() > right->get_float());
-                    case TokenType::GREATER_EQUAL:
-                        if(left->is_int())      return std::make_shared<Object>(left->get_int() >= right->get_int());
-                        if(left->is_float())    return std::make_shared<Object>(
-                                                                        left->get_float() > right->get_float() ||
-                                                                        abs(left->get_float() - right->get_float()) < 0.01f);
-                        break;
+                Bool* bool_left = dynamic_cast<Bool*>(left.get());
+                Bool* bool_right = dynamic_cast<Bool*>(right.get());
+                if(bool_left && bool_right) {
+                    switch(expr->m_op.m_type) {
+                        case TokenType::OR:
+                            return std::make_shared<Bool>(bool_left->m_value || bool_right->m_value);
+                        case TokenType::AND:
+                            return std::make_shared<Bool>(bool_left->m_value && bool_right->m_value);
+                        case TokenType::EQUAL_EQUAL: 
+                            return std::make_shared<Bool>(bool_left->m_value == bool_right->m_value);
+                        case TokenType::BANG_EQUAL:
+                            return std::make_shared<Bool>(bool_left->m_value != bool_right->m_value);
+                    }
                 }
 
+                Int* int_left = dynamic_cast<Int*>(left.get());
+                Int* int_right = dynamic_cast<Int*>(right.get());
+                if(int_left && int_right) {
+                    switch(expr->m_op.m_type) {
+                        case TokenType::EQUAL_EQUAL:
+                            return std::make_shared<Bool>(int_left->m_value == int_right->m_value);
+                        case TokenType::BANG_EQUAL:
+                            return std::make_shared<Bool>(int_left->m_value != int_right->m_value);
+                        case TokenType::LESS:
+                            return std::make_shared<Bool>(int_left->m_value < int_right->m_value);
+                        case TokenType::LESS_EQUAL:
+                            return std::make_shared<Bool>(int_left->m_value <= int_right->m_value);
+                        case TokenType::GREATER:
+                            return std::make_shared<Bool>(int_left->m_value > int_right->m_value);
+                        case TokenType::GREATER_EQUAL:
+                            return std::make_shared<Bool>(int_left->m_value >= int_right->m_value);
+                    }
+                }
+
+                Float* float_left   =   dynamic_cast<Float*>(left.get());
+                Float* float_right   =   dynamic_cast<Float*>(right.get());
+                if(float_left && float_right) {
+                    switch(expr->m_op.m_type) {
+                        case TokenType::EQUAL_EQUAL: 
+                            return std::make_shared<Bool>(abs(float_left->m_value - float_right->m_value) < 0.01f);
+                        case TokenType::BANG_EQUAL:
+                            return std::make_shared<Bool>(abs(float_left->m_value - float_right->m_value) >= 0.01f);
+                        case TokenType::LESS:
+                            return std::make_shared<Bool>(float_left->m_value < float_right->m_value);
+                        case TokenType::LESS_EQUAL:
+                            return std::make_shared<Bool>(float_left->m_value < float_right->m_value ||
+                                                            abs(float_left->m_value - float_right->m_value) < 0.01f);
+                        case TokenType::GREATER:
+                            return std::make_shared<Bool>(float_left->m_value > float_right->m_value);
+                        case TokenType::GREATER_EQUAL:
+                            return std::make_shared<Bool>(float_left->m_value > float_right->m_value ||
+                                                            abs(float_left->m_value - float_right->m_value) < 0.01f);
+                    }
+                }
+
+                String* string_left =   dynamic_cast<String*>(left.get());
+                String* string_right =   dynamic_cast<String*>(right.get());
+                if(string_left && string_right) {
+                    switch(expr->m_op.m_type) {
+                        case TokenType::EQUAL_EQUAL: 
+                            return std::make_shared<Bool>(string_left->m_value == string_right->m_value);
+                        case TokenType::BANG_EQUAL:
+                            return std::make_shared<Bool>(string_left->m_value != string_right->m_value);
+                    }
+                }
 
             }
 
