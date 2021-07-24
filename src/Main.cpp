@@ -19,11 +19,13 @@
     //no nulls or nils or nullptrs, using undefined variables will throw an error
 
 //TODO: 
-//change Object types - Int, Float String, Bool, Function types that inherit from Object???
+//Put Interpreter, TypeChecker, Parser headers directly in Main since we only need one copy - use header files and get rid of empty .cpp files
 //functions - function objects and function instances, including new scopes, returns using exceptions
 //Structs
 //Resolver - functions should capture closure during declaration
-//For Lexer, Parser, TypeChecker and Resolver: replace exceptions with returning a struct
+//For Lexer, Parser, TypeChecker and Resolver: replace exceptions with error codes - exceptions just cause trouble
+    //if more than one return is needed, create a struct that can be return.  Have funtions null out any info not need up higher,
+    //and the pass the struct upwards
 
 
 int main(int argc, char** argv) {

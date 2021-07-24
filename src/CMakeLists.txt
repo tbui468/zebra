@@ -1,21 +1,14 @@
 set(Sources
     Main.cpp
-    Stmt.hpp
-    Expr.hpp
-    Token.cpp
-    Object.hpp
-    Lexer.cpp
-    Parser.cpp
-    Interpreter.cpp
-    AstPrinter.cpp
-    TypeChecker.cpp
     )
 
 set(Headers
+    Stmt.hpp
+    Expr.hpp
     TokenType.hpp
     DataType.hpp
     Token.hpp
-    Object.cpp
+    Object.hpp
     Lexer.hpp
     Parser.hpp
     Interpreter.hpp
