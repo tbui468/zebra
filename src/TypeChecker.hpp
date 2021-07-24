@@ -70,9 +70,10 @@ namespace zebra {
             }
 
             void visit(std::shared_ptr<AssignStmt> stmt) {
+                /*
                 if(m_types.count(stmt->m_name.m_lexeme) == 0) {
                     throw TypeError(stmt->m_name, "Variable " + stmt->m_name.to_string() + " not declared.");
-                }
+                }*/
                 DataType type = m_types[stmt->m_name.m_lexeme];
                 DataType expr_type = evaluate(stmt->m_value);
 
@@ -82,9 +83,6 @@ namespace zebra {
             }
 
             void visit(std::shared_ptr<VarDecl> stmt) {
-                if(m_types.count(stmt->m_name.m_lexeme) > 0) {
-                    throw TypeError(stmt->m_name, "Variable " + stmt->m_name.to_string() + " already declared.");
-                }
                 DataType type;
                 switch(stmt->m_type.m_type) {
                     case TokenType::BOOL_TYPE:
@@ -167,11 +165,11 @@ namespace zebra {
                                    expr->m_op.m_type == TokenType::GREATER_EQUAL;
 
                 if ((left == DataType::BOOL || right == DataType::BOOL) && inequality) {
-                    throw TypeError(expr->m_op, "Can't use booleans with inequalities.");
+                    throw TypeError(expr->m_op, "Can't use " + expr->m_op.to_string() + " with inequalities.");
                 }
 
                 if ((left == DataType::STRING || right == DataType::STRING) && inequality) {
-                    throw TypeError(expr->m_op, "Can't use booleans with inequalities.");
+                    throw TypeError(expr->m_op, "Can't use " + expr->m_op.to_string() + " with inequalities.");
                 }
                    
                 if(left == right) return DataType::BOOL;
@@ -194,9 +192,10 @@ namespace zebra {
             }
 
             DataType visit(std::shared_ptr<Variable> expr) {
+                /*
                 if(m_types.count(expr->m_name.m_lexeme) == 0) {
                     throw TypeError(expr->m_name, "Variable not declared.");
-                }
+                }*/
 
                 return m_types[expr->m_name.m_lexeme];
             }

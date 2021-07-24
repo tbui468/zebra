@@ -6,33 +6,22 @@
 #include "Expr.hpp"
 #include "Stmt.hpp"
 #include "Object.hpp"
+#include "Environment.hpp"
 
 namespace zebra {
 
     class Interpreter: public StmtVoidVisitor, public ExprObjectVisitor {
         private:
             std::vector<std::shared_ptr<Stmt>> m_statements;
-            class RuntimeError {
-                private:
-                    Token m_token;
-                    std::string m_message;
-                public:
-                    RuntimeError(Token token, const std::string& message): m_token(token), m_message(message){}
-                    ~RuntimeError() {}
-                    void print() {
-                        std::cout << "[Line " << m_token.m_line << "] Error: " << m_message << std::endl;
-                    }
-            };
+            std::shared_ptr<Environment> m_environment;
         public:
-            Interpreter(const std::vector<std::shared_ptr<Stmt>> statements): m_statements(statements) {}
+            Interpreter(const std::vector<std::shared_ptr<Stmt>> statements): m_statements(statements) {
+                m_environment = std::make_shared<Environment>();
+            }
             ~Interpreter() {}
             void run() {
-                try {
-                    for(std::shared_ptr<Stmt> s: m_statements) {
-                        execute(*s);
-                    }
-                } catch(RuntimeError& e) {
-                    e.print();
+                for(std::shared_ptr<Stmt> s: m_statements) {
+                    execute(*s);
                 }
             }
             void execute(Stmt& stmt) {
@@ -68,9 +57,26 @@ namespace zebra {
             }
 
             void visit(std::shared_ptr<Block> stmt) {
+                std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment);
+                std::shared_ptr<Environment> closure = m_environment;
+                m_environment = block_env;
                 for(std::shared_ptr<Stmt> s: stmt->m_statements) {
                     execute(*s);  
-                }    
+                } 
+                m_environment = closure;   
+            }
+
+            //note: stmt->m_type is used in type checker only    
+            void visit(std::shared_ptr<VarDecl> stmt) {
+                std::shared_ptr<Object> value = evaluate(stmt->m_value);
+                m_environment->define(stmt->m_name, value);
+            }
+
+
+            void visit(std::shared_ptr<AssignStmt> stmt) {
+                std::shared_ptr<Object> value = evaluate(stmt->m_value);
+                m_environment->assign(stmt->m_name, value);
+
             }
 
             std::shared_ptr<Object> evaluate(std::shared_ptr<Expr> expr) {
@@ -90,7 +96,6 @@ namespace zebra {
                     return std::make_shared<Object>(!right->is_truthy());
                 }
 
-                throw RuntimeError(expr->m_op, "That invalid unary operator.");
             }
 
             std::shared_ptr<Object> visit(std::shared_ptr<Binary> expr) {
@@ -107,7 +112,6 @@ namespace zebra {
                         case TokenType::SLASH: return std::make_shared<Object>(a / b);
                         case TokenType::MOD: return std::make_shared<Object>(a % b);
                     }
-                    throw RuntimeError(expr->m_op, "That operation can't be performed on ints.");
                 }
                 if(left->is_float() && right->is_float()) {
                     float a = left->get_float();
@@ -118,7 +122,6 @@ namespace zebra {
                         case TokenType::STAR: return std::make_shared<Object>(a * b);
                         case TokenType::SLASH: return std::make_shared<Object>(a / b);
                     }
-                    throw RuntimeError(expr->m_op, "That operation can't be performed on floats.");
                 }
                 if(left->is_string() && right->is_string()) {
                     std::string a = left->get_string();
@@ -126,10 +129,8 @@ namespace zebra {
                     switch(expr->m_op.m_type) {
                         case TokenType::PLUS: return std::make_shared<Object>(a + b);
                     }
-                    throw RuntimeError(expr->m_op, "That operation can't be performed on strings.");
                 }
 
-                throw RuntimeError(expr->m_op, "Types in expression must match should.");
             }
             std::shared_ptr<Object> visit(std::shared_ptr<Group> expr) {
                 return expr->m_expr->accept(*this);
@@ -191,8 +192,18 @@ namespace zebra {
                         break;
                 }
 
-                throw RuntimeError(expr->m_op, "Invalid logical operator.  Equality and inequalities not implemented");
 
+            }
+
+
+            std::shared_ptr<Object> visit(std::shared_ptr<AssignExpr> expr) {
+                std::shared_ptr<Object> value = evaluate(expr->m_value);
+                m_environment->assign(expr->m_name, value);
+                return value;
+            }
+
+            std::shared_ptr<Object> visit(std::shared_ptr<Variable> expr) {
+                return m_environment->get(expr->m_name);
             }
 
 

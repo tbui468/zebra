@@ -19,9 +19,9 @@
     //no nulls or nils or nullptrs, using undefined variables will throw an error
 
 //TODO: 
-//must declare and define all variables at the same time
+//Could have checker and resolver take care of all errors, and the only run the interpreter if no problems found
+//Create Environment class and used as a linked list for scopes in Interpreter
 //create two tables, one with <variable name, type> and <variable name, value> for the Environment class (for scopes)
-//for TypeChecker, create a <variable name, type> table to check if the type is valid when assigning or other stuff
 //  
 //scopes for variables
 //while loops
@@ -37,31 +37,33 @@ int main(int argc, char** argv) {
     } else {
         zebra::Lexer lexer(argv[1]); 
         std::vector<zebra::Token> tokens = lexer.scan();
-        
+       
+       /* 
         lexer.print_source();
         
         for (zebra::Token t: tokens) {
             std::cout << t.to_string() << std::endl;
-        }
+        }*/
 
 
         zebra::Parser parser(tokens);
         std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
-    
+
+    /*    
         zebra::AstPrinter printer;        
         for(int i = 0; i < int(ast.size()); i++) {
             printer.print(ast.at(i));
-        }
+        }*/
 
         zebra::TypeChecker checker;
         bool passed = checker.check(ast);
-/*
+
         if(passed) {
             zebra::Interpreter interp(ast);
             interp.run();
         } else {
             std::cout << "Type errors found.  Can not run code." << std::endl;
-        }*/
+        }
 
     }
     return 0;

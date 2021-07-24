@@ -21,6 +21,8 @@ set(Headers
     Interpreter.hpp
     AstPrinter.hpp
     TypeChecker.hpp
+    Environment.hpp
+    RuntimeError.hpp
     )
 
 add_executable(
