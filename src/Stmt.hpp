@@ -12,6 +12,7 @@ namespace zebra {
     struct AssignStmt;
     struct VarDecl;
     struct While;
+    struct For;
 
     struct StmtStringVisitor {
         virtual std::string visit(Print* stmt) = 0;
@@ -20,6 +21,7 @@ namespace zebra {
         virtual std::string visit(AssignStmt* stmt) = 0;
         virtual std::string visit(VarDecl* stmt) = 0;
         virtual std::string visit(While* stmt) = 0;
+        virtual std::string visit(For* stmt) = 0;
     };
     struct StmtVoidVisitor {
         virtual void visit(Print* stmt) = 0;
@@ -28,6 +30,7 @@ namespace zebra {
         virtual void visit(AssignStmt* stmt) = 0;
         virtual void visit(VarDecl* stmt) = 0;
         virtual void visit(While* stmt) = 0;
+        virtual void visit(For* stmt) = 0;
     };
 
 
@@ -106,6 +109,21 @@ namespace zebra {
         public:
             Token m_name;
             std::shared_ptr<Expr> m_condition;
+            std::shared_ptr<Stmt> m_body;
+    };
+
+    struct For: public Stmt {
+        public:
+            For(Token name, std::shared_ptr<Stmt> initializer, std::shared_ptr<Expr> condition, std::shared_ptr<Expr> update, std::shared_ptr<Stmt> body): 
+                m_name(name), m_initializer(initializer), m_condition(condition), m_update(update), m_body(body) {}
+            ~For() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::shared_ptr<Stmt> m_initializer; //this is messy in parser since statments expect a semicolon
+            std::shared_ptr<Expr> m_condition;
+            std::shared_ptr<Expr> m_update;
             std::shared_ptr<Stmt> m_body;
     };
 

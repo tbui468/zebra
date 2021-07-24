@@ -80,10 +80,16 @@ namespace zebra {
             }
 
             void visit(While* stmt) {
-                std::shared_ptr<Object> condition = evaluate(stmt->m_condition.get());
-                while(condition->get_bool()) {
+                while(evaluate(stmt->m_condition.get())->get_bool()) {
                     execute(stmt->m_body.get());
-                    condition = evaluate(stmt->m_condition.get());
+                }
+            }
+
+            void visit(For* stmt) {
+                execute(stmt->m_initializer.get());
+                while(evaluate(stmt->m_condition.get())->get_bool()) {
+                    execute(stmt->m_body.get());
+                    std::shared_ptr<Object> up = evaluate(stmt->m_update.get()); //not using result of expression
                 }
             }
 

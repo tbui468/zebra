@@ -28,6 +28,7 @@ namespace zebra {
             virtual std::string visit(AssignStmt* expr) override;
             virtual std::string visit(VarDecl* stmt) override;
             virtual std::string visit(While* stmt) override;
+            virtual std::string visit(For* stmt) override;
     };
 
 

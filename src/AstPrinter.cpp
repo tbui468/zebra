@@ -64,6 +64,9 @@ namespace zebra {
     std::string AstPrinter::visit(While* stmt) {
         return "While";
     }
+    std::string AstPrinter::visit(For* stmt) {
+        return "For";
+    }
 
 
 }

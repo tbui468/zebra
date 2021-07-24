@@ -80,6 +80,7 @@ namespace zebra {
                 case 'f':
                     if (match("alse")) add_token(TokenType::FALSE);
                     else if(match("loat")) add_token(TokenType::FLOAT_TYPE);
+                    else if(match("or")) add_token(TokenType::FOR);
                     else read_identifier();
                     break;
                 case 'i':

@@ -17,7 +17,7 @@ namespace zebra {
         //literals
         INT, FLOAT, STRING, IDENTIFIER,
         //keywords
-        PRINT, IF, ELSE, WHILE,
+        PRINT, IF, ELSE, WHILE, FOR,
         TRUE, FALSE,
         AND, OR,
         INT_TYPE, FLOAT_TYPE, STRING_TYPE, BOOL_TYPE,
@@ -29,7 +29,6 @@ namespace zebra {
         STRING_TYPE, ??
         FLOAT_TYPE, ??
         BOOL_TYPE,  ??
-        FOR,
         NIL,
         ELIF, //new stuff
         BREAK,

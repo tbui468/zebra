@@ -109,6 +109,17 @@ namespace zebra {
                 execute(stmt->m_body.get());
             }
 
+            void visit(For* stmt) {
+                execute(stmt->m_initializer.get());
+                DataType con_type = evaluate(stmt->m_condition.get());
+                DataType up_type = evaluate(stmt->m_update.get());
+                if (con_type != DataType::BOOL) {
+                    throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
+                }
+                execute(stmt->m_body.get());
+            }
+
+
             /*
              * Expressions
              */
@@ -193,6 +204,8 @@ namespace zebra {
                 if(type != expr_type) {
                     throw TypeError(expr->m_name, "Right hand expression must evaluate to type " + expr->m_name.to_string() + ".");
                 }
+
+                return type;
             }
 
             DataType visit(Variable* expr) {
