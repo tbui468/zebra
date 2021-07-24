@@ -45,6 +45,7 @@ namespace zebra {
                 if (match(TokenType::IF)) return if_statement();
                 if (peek_one(TokenType::LEFT_BRACE)) return block_statement();
                 if (match(TokenType::IDENTIFIER)) return variable_statement();
+                if (match(TokenType::WHILE)) return while_statement();
                 
                 throw ParseError(previous(), "Invalid token");
             }
@@ -108,6 +109,15 @@ namespace zebra {
                 std::shared_ptr<Stmt> assignment = std::make_shared<AssignStmt>(identifier, expression());
                 consume(TokenType::SEMICOLON, "Expect ';' at the end of a statement");
                 return assignment;
+            }
+
+            std::shared_ptr<Stmt> while_statement() {
+                Token name = previous();
+                consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
+                std::shared_ptr<Expr> condition = expression();
+                consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
+                std::shared_ptr<Stmt> body = block_statement();
+                return std::make_shared<While>(name, condition, body);
             }
 
             std::shared_ptr<Expr> expression() {

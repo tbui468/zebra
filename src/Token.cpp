@@ -47,6 +47,7 @@ namespace zebra {
             case TokenType::FLOAT_TYPE: return "FLOAT_TYPE";
             case TokenType::STRING_TYPE: return "STRING_TYPE";
             case TokenType::BOOL_TYPE: return "BOOL_TYPE";
+            case TokenType::WHILE: return "WHILE";
             //other
             case TokenType::SLASH_SLASH: return "SLASH_SLASH";
             case TokenType::EOFILE: return "EOFILE";

@@ -105,6 +105,14 @@ namespace zebra {
                 }
             }
 
+            void visit(std::shared_ptr<While> stmt) {
+                DataType type = evaluate(stmt->m_condition);
+                if (type != DataType::BOOL) {
+                    throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
+                }
+                execute(stmt->m_body);
+            }
+
             /*
              * Expressions
              */

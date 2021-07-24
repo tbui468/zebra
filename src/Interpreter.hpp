@@ -79,6 +79,14 @@ namespace zebra {
 
             }
 
+            void visit(std::shared_ptr<While> stmt) {
+                std::shared_ptr<Object> condition = evaluate(stmt->m_condition);
+                while(condition->get_bool()) {
+                    execute(*(stmt->m_body));
+                    condition = evaluate(stmt->m_condition);
+                }
+            }
+
             std::shared_ptr<Object> evaluate(std::shared_ptr<Expr> expr) {
                 return expr->accept(*this);
             }

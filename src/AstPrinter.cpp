@@ -61,6 +61,9 @@ namespace zebra {
     std::string AstPrinter::visit(std::shared_ptr<VarDecl> stmt) {
         return "VarDecl";
     }
+    std::string AstPrinter::visit(std::shared_ptr<While> stmt) {
+        return "While";
+    }
 
 
 }

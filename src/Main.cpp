@@ -19,14 +19,10 @@
     //no nulls or nils or nullptrs, using undefined variables will throw an error
 
 //TODO: 
-//Could have checker and resolver take care of all errors, and the only run the interpreter if no problems found
-//Create Environment class and used as a linked list for scopes in Interpreter
-//create two tables, one with <variable name, type> and <variable name, value> for the Environment class (for scopes)
-//  
-//scopes for variables
 //while loops
 //for loops
-//Resolver - variables and functions too
+//functions - function objects and function instances, including new scopes, returns using exceptions
+//Resolver - functions should capture closure during declaration
 //How should errors propagate?  Parsing, Type checking and Runtime errors
 //  should the entire program abort if there's a problem?  YES
 
@@ -38,22 +34,21 @@ int main(int argc, char** argv) {
         zebra::Lexer lexer(argv[1]); 
         std::vector<zebra::Token> tokens = lexer.scan();
        
-       /* 
-        lexer.print_source();
+       
+        //lexer.print_source();
         
-        for (zebra::Token t: tokens) {
-            std::cout << t.to_string() << std::endl;
-        }*/
+        //for (zebra::Token t: tokens) {
+         //   std::cout << t.to_string() << std::endl;
+       // }
 
 
         zebra::Parser parser(tokens);
         std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
 
-    /*    
         zebra::AstPrinter printer;        
         for(int i = 0; i < int(ast.size()); i++) {
             printer.print(ast.at(i));
-        }*/
+        }
 
         zebra::TypeChecker checker;
         bool passed = checker.check(ast);

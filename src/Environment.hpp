@@ -19,6 +19,9 @@ namespace zebra {
                 m_values[name.m_lexeme] = value; 
             }
             void assign(Token name, std::shared_ptr<Object> value) {
+                if(m_values.count(name.m_lexeme) == 0) {
+                    m_closure->assign(name, value);
+                }
                 m_values[name.m_lexeme] = value; 
             }
             std::shared_ptr<Object> get(Token name) {

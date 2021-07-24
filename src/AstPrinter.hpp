@@ -27,6 +27,7 @@ namespace zebra {
             virtual std::string visit(std::shared_ptr<Block> stmt) override;
             virtual std::string visit(std::shared_ptr<AssignStmt> expr) override;
             virtual std::string visit(std::shared_ptr<VarDecl> stmt) override;
+            virtual std::string visit(std::shared_ptr<While> stmt) override;
     };
 
 

@@ -12,6 +12,7 @@ namespace zebra {
     struct Block;
     struct AssignStmt;
     struct VarDecl;
+    struct While;
 
     struct StmtStringVisitor {
         virtual std::string visit(std::shared_ptr<Print> stmt) = 0;
@@ -19,6 +20,7 @@ namespace zebra {
         virtual std::string visit(std::shared_ptr<Block> stmt) = 0;
         virtual std::string visit(std::shared_ptr<AssignStmt> stmt) = 0;
         virtual std::string visit(std::shared_ptr<VarDecl> stmt) = 0;
+        virtual std::string visit(std::shared_ptr<While> stmt) = 0;
     };
     struct StmtVoidVisitor {
         virtual void visit(std::shared_ptr<Print> stmt) = 0;
@@ -26,6 +28,7 @@ namespace zebra {
         virtual void visit(std::shared_ptr<Block> stmt) = 0;
         virtual void visit(std::shared_ptr<AssignStmt> stmt) = 0;
         virtual void visit(std::shared_ptr<VarDecl> stmt) = 0;
+        virtual void visit(std::shared_ptr<While> stmt) = 0;
     };
 
 
@@ -94,6 +97,18 @@ namespace zebra {
             std::shared_ptr<Expr> m_value;
     };
 
+    struct While: public Stmt, public std::enable_shared_from_this<While> {
+        public:
+            While(Token name, std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body): 
+                m_name(name), m_condition(condition), m_body(body) {}
+            ~While() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(shared_from_this()); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(shared_from_this()); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_condition;
+            std::shared_ptr<Stmt> m_body;
+    };
 
 
 }

@@ -103,6 +103,10 @@ namespace zebra {
                     if (match("rue")) add_token(TokenType::TRUE);
                     else read_identifier();
                     break;
+                case 'w':
+                    if (match("hile")) add_token(TokenType::WHILE);
+                    else read_identifier();
+                    break;
                 default:
                     if (is_numeric(c)) {
                         read_number();
