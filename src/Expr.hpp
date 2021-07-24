@@ -5,7 +5,6 @@
 #include <memory>
 #include "Token.hpp"
 #include "Object.hpp"
-#include "DataType.hpp"
 
 namespace zebra {
 
@@ -37,14 +36,14 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(Variable* expr) = 0;
     };
 
-    struct ExprDataTypeVisitor {
-        virtual DataType visit(Unary* expr) = 0;
-        virtual DataType visit(Binary* expr) = 0;
-        virtual DataType visit(Group* expr) = 0;
-        virtual DataType visit(Literal* expr) = 0;
-        virtual DataType visit(Logic* expr) = 0;
-        virtual DataType visit(AssignExpr* expr) = 0;
-        virtual DataType visit(Variable* expr) = 0;
+    struct ExprTokenTypeVisitor {
+        virtual TokenType visit(Unary* expr) = 0;
+        virtual TokenType visit(Binary* expr) = 0;
+        virtual TokenType visit(Group* expr) = 0;
+        virtual TokenType visit(Literal* expr) = 0;
+        virtual TokenType visit(Logic* expr) = 0;
+        virtual TokenType visit(AssignExpr* expr) = 0;
+        virtual TokenType visit(Variable* expr) = 0;
     };
 
     //Expressions
@@ -53,7 +52,7 @@ namespace zebra {
             virtual ~Expr() {}
             virtual std::string accept(ExprStringVisitor& visitor) = 0;
             virtual std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) = 0;
-            virtual DataType accept(ExprDataTypeVisitor& visitor) = 0;
+            virtual TokenType accept(ExprTokenTypeVisitor& visitor) = 0;
     };
 
 
@@ -63,7 +62,7 @@ namespace zebra {
             ~Unary() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(ExprDataTypeVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_op;
             std::shared_ptr<Expr> m_right;
@@ -75,7 +74,7 @@ namespace zebra {
             ~Binary() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(ExprDataTypeVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_op;
             std::shared_ptr<Expr> m_left;
@@ -89,7 +88,7 @@ namespace zebra {
             ~Group() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(ExprDataTypeVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
             std::shared_ptr<Expr> m_expr;
@@ -101,7 +100,7 @@ namespace zebra {
             ~Literal() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(ExprDataTypeVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_token;
     };
@@ -113,7 +112,7 @@ namespace zebra {
             ~Logic() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(ExprDataTypeVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_op;
             std::shared_ptr<Expr> m_left;
@@ -127,7 +126,7 @@ namespace zebra {
             ~AssignExpr() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(ExprDataTypeVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
             std::shared_ptr<Expr> m_value;
@@ -139,7 +138,7 @@ namespace zebra {
             ~Variable() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(ExprDataTypeVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
     };

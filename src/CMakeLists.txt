@@ -6,7 +6,6 @@ set(Headers
     Stmt.hpp
     Expr.hpp
     TokenType.hpp
-    DataType.hpp
     Token.hpp
     Object.hpp
     Lexer.hpp

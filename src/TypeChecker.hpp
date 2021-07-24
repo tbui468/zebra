@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <iostream>
 #include "TokenType.hpp"
-#include "DataType.hpp"
+#include "TokenType.hpp"
 #include "Token.hpp"
 #include "Expr.hpp"
 #include "Stmt.hpp"
@@ -13,9 +13,9 @@
 namespace zebra {
 
 
-    class TypeChecker: public ExprDataTypeVisitor, public StmtVoidVisitor {
+    class TypeChecker: public ExprTokenTypeVisitor, public StmtVoidVisitor {
         private:
-            std::unordered_map<std::string, DataType> m_types;
+            std::unordered_map<std::string, TokenType> m_types;
             class TypeError {
                 private:
                     Token m_token;
@@ -47,7 +47,7 @@ namespace zebra {
             }
         private:
 
-            DataType evaluate(Expr* expr) {
+            TokenType evaluate(Expr* expr) {
                 return expr->accept(*this);
             }
 
@@ -56,10 +56,10 @@ namespace zebra {
              */
 
             void visit(Print* stmt) {
-                DataType type = evaluate(stmt->m_value.get());                
+                TokenType type = evaluate(stmt->m_value.get());                
             }
             void visit(If* stmt) {
-                DataType type = evaluate(stmt->m_condition.get());
+                TokenType type = evaluate(stmt->m_condition.get());
                 execute(stmt->m_then_branch.get());
                 if(stmt->m_else_branch) execute(stmt->m_else_branch.get());
             }
@@ -70,8 +70,8 @@ namespace zebra {
             }
 
             void visit(AssignStmt* stmt) {
-                DataType type = m_types[stmt->m_name.m_lexeme];
-                DataType expr_type = evaluate(stmt->m_value.get());
+                TokenType type = m_types[stmt->m_name.m_lexeme];
+                TokenType expr_type = evaluate(stmt->m_value.get());
 
                 if(type != expr_type) {
                     throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
@@ -79,31 +79,16 @@ namespace zebra {
             }
 
             void visit(VarDecl* stmt) {
-                DataType type;
-                switch(stmt->m_type.m_type) {
-                    case TokenType::BOOL_TYPE:
-                        type = DataType::BOOL;
-                        break;
-                    case TokenType::INT_TYPE:
-                        type = DataType::INT;
-                        break;
-                    case TokenType::FLOAT_TYPE:
-                        type = DataType::FLOAT;
-                        break;
-                    case TokenType::STRING_TYPE:
-                        type = DataType::STRING;
-                        break;
-                }
-                m_types[stmt->m_name.m_lexeme] = type;
-                DataType expr_type = evaluate(stmt->m_value.get());
-                if(type != expr_type) {
+                m_types[stmt->m_name.m_lexeme] = stmt->m_type.m_type;
+                TokenType expr_type = evaluate(stmt->m_value.get());
+                if(stmt->m_type.m_type != expr_type) {
                     throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
                 }
             }
 
             void visit(While* stmt) {
-                DataType type = evaluate(stmt->m_condition.get());
-                if (type != DataType::BOOL) {
+                TokenType type = evaluate(stmt->m_condition.get());
+                if (type != TokenType::BOOL_TYPE) {
                     throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
                 }
                 execute(stmt->m_body.get());
@@ -111,9 +96,9 @@ namespace zebra {
 
             void visit(For* stmt) {
                 execute(stmt->m_initializer.get());
-                DataType con_type = evaluate(stmt->m_condition.get());
-                DataType up_type = evaluate(stmt->m_update.get());
-                if (con_type != DataType::BOOL) {
+                TokenType con_type = evaluate(stmt->m_condition.get());
+                TokenType up_type = evaluate(stmt->m_update.get());
+                if (con_type != TokenType::BOOL_TYPE) {
                     throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
                 }
                 execute(stmt->m_body.get());
@@ -123,27 +108,26 @@ namespace zebra {
             /*
              * Expressions
              */
-            DataType visit(Unary* expr) {
-                TokenType op_type = expr->m_op.m_type;
-                DataType right_type = evaluate(expr->m_right.get());
+            TokenType visit(Unary* expr) {
+                TokenType right_type = evaluate(expr->m_right.get());
 
-                switch(op_type) {
+                switch(expr->m_op.m_type) {
                     case TokenType::MINUS:
-                        if(right_type == DataType::INT || right_type == DataType::FLOAT) return right_type;
+                        if(right_type == TokenType::INT_TYPE || right_type == TokenType::FLOAT_TYPE) return right_type;
                         break;
                     case TokenType::BANG:
-                        if(right_type == DataType::BOOL) return right_type;
+                        if(right_type == TokenType::BOOL_TYPE) return right_type;
                         break;
                 }
 
                 throw TypeError(expr->m_op, "Cannot use " + expr->m_op.to_string() + " operator on this data type.");
             }
 
-            DataType visit(Binary* expr) {
-                DataType left = evaluate(expr->m_left.get());
-                DataType right = evaluate(expr->m_right.get());
+            TokenType visit(Binary* expr) {
+                TokenType left = evaluate(expr->m_left.get());
+                TokenType right = evaluate(expr->m_right.get());
 
-                if(left == DataType::BOOL || right == DataType::BOOL)
+                if(left == TokenType::BOOL_TYPE || right == TokenType::BOOL_TYPE)
                     throw TypeError(expr->m_op, "Cannot use " + expr->m_op.to_string() + " operator on booleans.");
 
                 if(left == right) return left;
@@ -151,55 +135,55 @@ namespace zebra {
                 throw TypeError(expr->m_op, "Cannot use " + expr->m_op.to_string() + " operator on different data types. Explicity cast types if necessary.");
             }
 
-            DataType visit(Group* expr) {
+            TokenType visit(Group* expr) {
                 return evaluate(expr->m_expr.get());
             }
 
-            DataType visit(Literal* expr) {
+            TokenType visit(Literal* expr) {
                 switch(expr->m_token.m_type) {
                     case TokenType::TRUE:
                     case TokenType::FALSE:
-                        return DataType::BOOL;
+                        return TokenType::BOOL_TYPE;
                     case TokenType::FLOAT:
-                        return DataType::FLOAT;
+                        return TokenType::FLOAT_TYPE;
                     case TokenType::INT:
-                        return DataType::INT;
+                        return TokenType::INT_TYPE;
                     case TokenType::STRING:
-                        return DataType::STRING;
+                        return TokenType::STRING_TYPE;
                 }
                 throw TypeError(expr->m_token, expr->m_token.to_string() + " token not valid.");
             }
 
-            DataType visit(Logic* expr) {
-                DataType left = evaluate(expr->m_left.get());
-                DataType right = evaluate(expr->m_right.get());
+            TokenType visit(Logic* expr) {
+                TokenType left = evaluate(expr->m_left.get());
+                TokenType right = evaluate(expr->m_right.get());
 
                 bool inequality = expr->m_op.m_type == TokenType::LESS ||
                                    expr->m_op.m_type == TokenType::LESS_EQUAL ||
                                    expr->m_op.m_type == TokenType::GREATER ||
                                    expr->m_op.m_type == TokenType::GREATER_EQUAL;
 
-                if ((left == DataType::BOOL || right == DataType::BOOL) && inequality) {
+                if ((left == TokenType::BOOL_TYPE || right == TokenType::BOOL_TYPE) && inequality) {
                     throw TypeError(expr->m_op, "Can't use " + expr->m_op.to_string() + " with inequalities.");
                 }
 
-                if ((left == DataType::STRING || right == DataType::STRING) && inequality) {
+                if ((left == TokenType::STRING_TYPE || right == TokenType::STRING_TYPE) && inequality) {
                     throw TypeError(expr->m_op, "Can't use " + expr->m_op.to_string() + " with inequalities.");
                 }
                    
-                if(left == right) return DataType::BOOL;
+                if(left == right) return TokenType::BOOL_TYPE;
 
                 throw TypeError(expr->m_op, "Inputs to logical operator must be of same type.");
             }
 
 
-            DataType visit(AssignExpr* expr) {
+            TokenType visit(AssignExpr* expr) {
                 if(m_types.count(expr->m_name.m_lexeme) == 0) {
                     throw TypeError(expr->m_name, "Variable not declared.");
                 }
 
-                DataType type = m_types[expr->m_name.m_lexeme];
-                DataType expr_type = evaluate(expr->m_value.get());
+                TokenType type = m_types[expr->m_name.m_lexeme];
+                TokenType expr_type = evaluate(expr->m_value.get());
 
                 if(type != expr_type) {
                     throw TypeError(expr->m_name, "Right hand expression must evaluate to type " + expr->m_name.to_string() + ".");
@@ -208,7 +192,7 @@ namespace zebra {
                 return type;
             }
 
-            DataType visit(Variable* expr) {
+            TokenType visit(Variable* expr) {
                 return m_types[expr->m_name.m_lexeme];
             }
 

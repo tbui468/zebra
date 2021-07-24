@@ -19,7 +19,7 @@
     //no nulls or nils or nullptrs, using undefined variables will throw an error
 
 //TODO: 
-//Put Interpreter, TypeChecker, Parser headers directly in Main since we only need one copy - use header files and get rid of empty .cpp files
+//remove DataType - just use TokenType::BOOL_TYPE
 //functions - function objects and function instances, including new scopes, returns using exceptions
 //Structs
 //Resolver - functions should capture closure during declaration
