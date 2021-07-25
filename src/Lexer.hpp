@@ -136,6 +136,9 @@ namespace zebra {
                             if (match("rint")) add_token(TokenType::PRINT);
                             else read_identifier();
                             break;
+                        case 'r':
+                            if (match("eturn")) add_token(TokenType::RETURN);
+                            break;
                         case 's':
                             if (match("tring")) add_token(TokenType::STRING_TYPE);
                             else read_identifier();

@@ -47,6 +47,7 @@ namespace zebra {
                 if (match(TokenType::IDENTIFIER)) return decl_statement();
                 if (match(TokenType::WHILE)) return while_statement();
                 if (match(TokenType::FOR)) return for_statement();
+                if (match(TokenType::RETURN)) return return_statement();
                 
                 throw ParseError(previous(), "Invalid token");
             }
@@ -185,6 +186,17 @@ namespace zebra {
                 std::shared_ptr<Stmt> body = block_statement();
                 return std::make_shared<For>(name, initializer, condition, update, body);
             }
+
+            std::shared_ptr<Stmt> return_statement() {
+                Token name = previous();
+                std::shared_ptr<Expr> value = expression();
+                consume(TokenType::SEMICOLON, "Expect ';' after statement.");
+                return std::make_shared<Return>(name, value);
+            }
+
+            /*
+             * Expressions
+             */
 
             std::shared_ptr<Expr> expression() {
                 return assign();

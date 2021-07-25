@@ -14,6 +14,7 @@ namespace zebra {
     struct While;
     struct For;
     struct FunDecl;
+    struct Return;
 
     struct StmtStringVisitor {
         virtual std::string visit(Print* stmt) = 0;
@@ -24,6 +25,7 @@ namespace zebra {
         virtual std::string visit(While* stmt) = 0;
         virtual std::string visit(For* stmt) = 0;
         virtual std::string visit(FunDecl* stmt) = 0;
+        virtual std::string visit(Return* stmt) = 0;
     };
     struct StmtVoidVisitor {
         virtual void visit(Print* stmt) = 0;
@@ -34,6 +36,7 @@ namespace zebra {
         virtual void visit(While* stmt) = 0;
         virtual void visit(For* stmt) = 0;
         virtual void visit(FunDecl* stmt) = 0;
+        virtual void visit(Return* stmt) = 0;
     };
 
 
@@ -142,6 +145,17 @@ namespace zebra {
             std::vector<std::shared_ptr<Stmt>> m_arguments;
             Token m_return;
             std::shared_ptr<Stmt> m_body;
+    };
+
+    struct Return: public Stmt {
+        public:
+            Return(Token name, std::shared_ptr<Expr> value): m_name(name), m_value(value) {}
+            ~Return() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_value;
     };
 
 

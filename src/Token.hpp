@@ -58,6 +58,7 @@ namespace zebra {
                     case TokenType::AND: return "AND";
                     case TokenType::WHILE: return "WHILE";
                     case TokenType::FOR: return "FOR";
+                    case TokenType::RETURN: return "RETURN";
                     //types
                     case TokenType::INT_TYPE: return "INT_TYPE";
                     case TokenType::FLOAT_TYPE: return "FLOAT_TYPE";
