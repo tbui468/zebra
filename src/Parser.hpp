@@ -317,7 +317,11 @@ namespace zebra {
                 }else if(match(TokenType::FALSE)) {
                     return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::IDENTIFIER)) {
-                    return std::make_shared<Variable>(previous());
+                    if(peek_one(TokenType::LEFT_PAREN)) {
+                        return call_expression();
+                    }else{
+                        return std::make_shared<Variable>(previous());
+                    }
                 }else if(match(TokenType::LEFT_PAREN)) {
                     Token t = previous();
                     std::shared_ptr<Expr> expr = expression();
@@ -325,6 +329,18 @@ namespace zebra {
                     return std::make_shared<Group>(t, expr);
                 }
                 throw ParseError(previous(), "Expecting an expression.");
+            }
+
+            //TODO: gotta fix this by putting call into ExprtStmt and then ignoring the return value for statements
+            std::shared_ptr<Expr> call_expression() {
+                Token token = previous();
+                match(TokenType::LEFT_PAREN);
+                std::vector<std::shared_ptr<Expr>> arguments;
+                while(!match(TokenType::RIGHT_PAREN)) {
+                    arguments.emplace_back(expression());
+                    match(TokenType::COMMA);
+                }
+                return std::make_shared<Call>(token, arguments);
             }
 
             bool match(TokenType type) {

@@ -135,16 +135,17 @@ namespace zebra {
 
     struct FunDecl: public Stmt {
         public:
-            FunDecl(Token name, std::vector<std::shared_ptr<Stmt>> arguments, Token return_type, std::shared_ptr<Stmt> body): 
-                m_name(name), m_arguments(arguments), m_return_type(return_type), m_body(body) {}
+            FunDecl(Token name, std::vector<std::shared_ptr<Stmt>> arguments, Token type, std::shared_ptr<Stmt> body): 
+                m_name(name), m_arguments(arguments), m_type(type), m_body(body), m_arity(arguments.size()) {}
             ~FunDecl() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
             std::vector<std::shared_ptr<Stmt>> m_arguments;
-            Token m_return_type;
+            Token m_type;
             std::shared_ptr<Stmt> m_body;
+            int m_arity;
     };
 
     struct Return: public Stmt {

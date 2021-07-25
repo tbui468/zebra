@@ -15,6 +15,7 @@ namespace zebra {
     struct Logic;
     struct AssignExpr;
     struct Variable;
+    struct Call;
 
     struct ExprStringVisitor {
         virtual std::string visit(Unary* expr) = 0;
@@ -24,6 +25,7 @@ namespace zebra {
         virtual std::string visit(Logic* expr) = 0;
         virtual std::string visit(AssignExpr* expr) = 0;
         virtual std::string visit(Variable* expr) = 0;
+        virtual std::string visit(Call* expr) = 0;
     };
 
     struct ExprObjectVisitor {
@@ -34,6 +36,7 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(Logic* expr) = 0;
         virtual std::shared_ptr<Object> visit(AssignExpr* expr) = 0;
         virtual std::shared_ptr<Object> visit(Variable* expr) = 0;
+        virtual std::shared_ptr<Object> visit(Call* expr) = 0;
     };
 
     struct ExprTokenTypeVisitor {
@@ -44,6 +47,7 @@ namespace zebra {
         virtual TokenType visit(Logic* expr) = 0;
         virtual TokenType visit(AssignExpr* expr) = 0;
         virtual TokenType visit(Variable* expr) = 0;
+        virtual TokenType visit(Call* expr) = 0;
     };
 
     //Expressions
@@ -119,6 +123,16 @@ namespace zebra {
             std::shared_ptr<Expr> m_right;
     };
 
+    struct Variable: public Expr {
+        public:
+            Variable(Token name): m_name(name) {}
+            ~Variable() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+    };
 
     struct AssignExpr: public Expr {
         public:
@@ -132,15 +146,18 @@ namespace zebra {
             std::shared_ptr<Expr> m_value;
     };
 
-    struct Variable: public Expr {
+
+    struct Call: public Expr {
         public:
-            Variable(Token name): m_name(name) {}
-            ~Variable() {}
+            Call(Token name, std::vector<std::shared_ptr<Expr>> arguments): m_name(name), m_arguments(arguments), m_arity(arguments.size()) {}
+            ~Call() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
             TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
+            std::vector<std::shared_ptr<Expr>> m_arguments;
+            int m_arity;
     };
 
 }

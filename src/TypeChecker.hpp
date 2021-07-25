@@ -6,7 +6,6 @@
 #include <iostream>
 
 #include "TokenType.hpp"
-#include "TokenType.hpp"
 #include "Token.hpp"
 #include "Expr.hpp"
 #include "Stmt.hpp"
@@ -16,7 +15,8 @@ namespace zebra {
 
     class TypeChecker: public ExprTokenTypeVisitor, public StmtVoidVisitor {
         private:
-            std::unordered_map<std::string, TokenType> m_types;
+            //std::unordered_map<std::string, TokenType> m_types;
+            std::unordered_map<std::string, Stmt*> m_variables; //should only be VarDecl and FunDecl
             class TypeError {
                 private:
                     Token m_token;
@@ -28,6 +28,7 @@ namespace zebra {
                         std::cout << "[Line " << m_token.m_line << "] Type Error: " << m_message << std::endl;
                     }
             };
+
         public:
             TypeChecker() {}
             ~TypeChecker() {}
@@ -47,6 +48,15 @@ namespace zebra {
                 return true;
             }
         private:
+
+            TokenType get_type(const std::string& lexeme) {
+                Stmt* var = m_variables[lexeme];
+                if(dynamic_cast<VarDecl*>(var)) {
+                    return dynamic_cast<VarDecl*>(var)->m_type.m_type;
+                }else{
+                    return dynamic_cast<FunDecl*>(var)->m_type.m_type;
+                }
+            }
 
             TokenType evaluate(Expr* expr) {
                 return expr->accept(*this);
@@ -71,7 +81,8 @@ namespace zebra {
             }
 
             void visit(AssignStmt* stmt) {
-                TokenType type = m_types[stmt->m_name.m_lexeme];
+                Stmt* var = m_variables[stmt->m_name.m_lexeme]; //either a VarDecl or FunDecl
+                TokenType type = get_type(stmt->m_name.m_lexeme);
                 TokenType expr_type = evaluate(stmt->m_value.get());
 
                 if(type != expr_type) {
@@ -80,7 +91,7 @@ namespace zebra {
             }
 
             void visit(VarDecl* stmt) {
-                m_types[stmt->m_name.m_lexeme] = stmt->m_type.m_type;
+                m_variables[stmt->m_name.m_lexeme] = stmt;
                 TokenType expr_type = evaluate(stmt->m_value.get());
                 if(stmt->m_type.m_type != expr_type) {
                     throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
@@ -106,9 +117,10 @@ namespace zebra {
             }
 
             void visit(FunDecl* stmt) {
+                m_variables[stmt->m_name.m_lexeme] = stmt;
                 for(std::shared_ptr<Stmt> s: stmt->m_arguments) {
                     VarDecl* var_decl = dynamic_cast<VarDecl*>(s.get());
-                    m_types[var_decl->m_name.m_lexeme] = var_decl->m_type.m_type;
+                    m_variables[var_decl->m_name.m_lexeme] = s.get();
                 }
 
                 execute(stmt->m_body.get());
@@ -195,11 +207,12 @@ namespace zebra {
 
 
             TokenType visit(AssignExpr* expr) {
-                if(m_types.count(expr->m_name.m_lexeme) == 0) {
+                if(m_variables.count(expr->m_name.m_lexeme) == 0) {
                     throw TypeError(expr->m_name, "Variable not declared.");
                 }
 
-                TokenType type = m_types[expr->m_name.m_lexeme];
+                TokenType type = get_type(expr->m_name.m_lexeme);
+
                 TokenType expr_type = evaluate(expr->m_value.get());
 
                 if(type != expr_type) {
@@ -210,7 +223,28 @@ namespace zebra {
             }
 
             TokenType visit(Variable* expr) {
-                return m_types[expr->m_name.m_lexeme];
+                return get_type(expr->m_name.m_lexeme);
+            }
+
+            TokenType visit(Call* expr) {
+                FunDecl* fun_decl = dynamic_cast<FunDecl*>(m_variables[expr->m_name.m_lexeme]);
+
+                //check parameter/argument count
+                if(expr->m_arity != fun_decl->m_arity) {
+                    throw TypeError(expr->m_name, "Function call argument count must match declaration parameter count.");
+                }
+
+                //check parameter/argument type
+                for (int i = 0; i < expr->m_arguments.size(); i++) {
+                    TokenType arg_type = evaluate(expr->m_arguments.at(i).get());
+                    VarDecl* param = dynamic_cast<VarDecl*>(fun_decl->m_arguments.at(i).get());
+                    if(arg_type != get_type(param->m_name.m_lexeme)) {
+                        throw TypeError(expr->m_name, "Function call argument type must match declaration parameter type.");
+                    }
+                }
+
+                //check return type
+                return get_type(expr->m_name.m_lexeme);                
             }
 
 

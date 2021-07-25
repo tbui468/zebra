@@ -40,6 +40,9 @@ namespace zebra {
             std::string visit(Variable* expr) override {
                 return "( " + expr->m_name.to_string() + " )";
             }
+            std::string visit(Call* expr) override {
+                return "Call";
+            }
 
             /*
              * Statements
