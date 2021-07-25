@@ -5,8 +5,8 @@
 #include "Lexer.hpp"
 #include "Stmt.hpp"
 #include "Parser.hpp"
-#include "AstPrinter.hpp"
-#include "TypeChecker.hpp"
+//#include "AstPrinter.hpp"
+//#include "TypeChecker.hpp"
 //#include "Interpreter.hpp"
 
 //TITLE: Zebra scripting language - 
@@ -19,7 +19,7 @@
 
 //TODO: 
 //Call implementation is causing problems with the mixture of Stmt and Expr
-//  Make Assign, VarDecl, FunDecl, Call (already expr) into Expr.  Remove combine AssignStmt and AssignExpr into Assign (Expr).
+//  Make Assign, Call (already expr) into Expr.  Remove combine AssignStmt and AssignExpr into Assign (Expr).
 //  then create a ExprStmt (Stmt) that holds an Expr*.  Wrap any expressions with unused values in ExprStmt for better organized Parser code
 //  The ExprStmt just calls eval on the expression but throws out the output then reorganize Parser using ExprStmt where possible to simplify code
 //In TypeChecker, chang m_types map to m_declarations map (of Stmt*) so that expressions have access to variable types and function return types
@@ -74,16 +74,15 @@ int main(int argc, char** argv) {
         zebra::Parser parser(tokens);
         std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
 
-
+/*
         zebra::AstPrinter printer;        
         for(int i = 0; i < int(ast.size()); i++) {
             printer.print(ast.at(i).get());
         }
 
-
         zebra::TypeChecker checker;
         bool passed = checker.check(ast);
-/*
+
         if(passed) {
             zebra::Interpreter interp(ast);
             interp.run();

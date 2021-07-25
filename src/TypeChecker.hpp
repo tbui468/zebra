@@ -80,16 +80,6 @@ namespace zebra {
                 }
             }
 
-            void visit(AssignStmt* stmt) {
-                Stmt* var = m_variables[stmt->m_name.m_lexeme]; //either a VarDecl or FunDecl
-                TokenType type = get_type(stmt->m_name.m_lexeme);
-                TokenType expr_type = evaluate(stmt->m_value.get());
-
-                if(type != expr_type) {
-                    throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
-                }
-            }
-
             void visit(VarDecl* stmt) {
                 m_variables[stmt->m_name.m_lexeme] = stmt;
                 TokenType expr_type = evaluate(stmt->m_value.get());
@@ -131,6 +121,11 @@ namespace zebra {
                 if(expr_type != stmt->m_return_type.m_type) {
                     throw TypeError(stmt->m_name, "Return type must match return type in function declaration.");
                 }
+            }
+
+            //Expression Statements throw away the evaluated expression
+            void visit(ExprStmt* stmt) {
+                evaluate(stmt->m_expr.get());
             }
 
 
@@ -205,11 +200,24 @@ namespace zebra {
                 throw TypeError(expr->m_op, "Inputs to logical operator must be of same type.");
             }
 
+            /*
+            void visit(AssignStmt* stmt) {
+                Stmt* var = m_variables[stmt->m_name.m_lexeme]; //either a VarDecl or FunDecl
+                TokenType type = get_type(stmt->m_name.m_lexeme);
+                TokenType expr_type = evaluate(stmt->m_value.get());
 
-            TokenType visit(AssignExpr* expr) {
+                if(type != expr_type) {
+                    throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
+                }
+            }*/
+
+
+            TokenType visit(Assign* expr) {
                 if(m_variables.count(expr->m_name.m_lexeme) == 0) {
                     throw TypeError(expr->m_name, "Variable not declared.");
                 }
+
+                Stmt* var = m_variables[stmt->m_name.m_lexeme]; //either a VarDecl or FunDecl
 
                 TokenType type = get_type(expr->m_name.m_lexeme);
 
