@@ -54,7 +54,10 @@ namespace zebra {
                     switch(c) {
                         //single char tokens
                         case '+': add_token(TokenType::PLUS); break;
-                        case '-': add_token(TokenType::MINUS); break;
+                        case '-': 
+                            if(match('>')) add_token(TokenType::RIGHT_ARROW);
+                            else add_token(TokenType::MINUS); 
+                            break;
                         case '/': 
                             if(match('/'))  advance_to_next_line();
                             else            add_token(TokenType::SLASH);
@@ -66,7 +69,11 @@ namespace zebra {
                         case '{': add_token(TokenType::LEFT_BRACE); break;
                         case '}': add_token(TokenType::RIGHT_BRACE); break;
                         case '%': add_token(TokenType::MOD); break;
-                        case ':': add_token(TokenType::COLON); break;
+                        case ',': add_token(TokenType::COMMA); break;
+                        case ':': 
+                            if (match(':')) add_token(TokenType::COLON_COLON);
+                            else add_token(TokenType::COLON);
+                            break;
                         case '.': 
                             if(is_numeric(peek()))   read_float_with_leading();
                             else                     add_token(TokenType::DOT); 
@@ -110,6 +117,7 @@ namespace zebra {
                             if (match("alse")) add_token(TokenType::FALSE);
                             else if(match("loat")) add_token(TokenType::FLOAT_TYPE);
                             else if(match("or")) add_token(TokenType::FOR);
+                            else if(match("un")) add_token(TokenType::FUN_TYPE);
                             else read_identifier();
                             break;
                         case 'i':
@@ -120,6 +128,9 @@ namespace zebra {
                         case 'o':
                             if (match("r")) add_token(TokenType::OR);
                             else read_identifier();
+                            break;
+                        case 'n':
+                            if (match("one")) add_token(TokenType::NONE_TYPE);
                             break;
                         case 'p':
                             if (match("rint")) add_token(TokenType::PRINT);

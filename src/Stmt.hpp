@@ -13,6 +13,7 @@ namespace zebra {
     struct VarDecl;
     struct While;
     struct For;
+    struct FunDecl;
 
     struct StmtStringVisitor {
         virtual std::string visit(Print* stmt) = 0;
@@ -22,6 +23,7 @@ namespace zebra {
         virtual std::string visit(VarDecl* stmt) = 0;
         virtual std::string visit(While* stmt) = 0;
         virtual std::string visit(For* stmt) = 0;
+        virtual std::string visit(FunDecl* stmt) = 0;
     };
     struct StmtVoidVisitor {
         virtual void visit(Print* stmt) = 0;
@@ -31,6 +33,7 @@ namespace zebra {
         virtual void visit(VarDecl* stmt) = 0;
         virtual void visit(While* stmt) = 0;
         virtual void visit(For* stmt) = 0;
+        virtual void visit(FunDecl* stmt) = 0;
     };
 
 
@@ -82,9 +85,9 @@ namespace zebra {
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-        Token m_name;
-        Token m_type;
-        std::shared_ptr<Expr> m_value;
+            Token m_name;
+            Token m_type;
+            std::shared_ptr<Expr> m_value;
     };
 
 
@@ -124,6 +127,20 @@ namespace zebra {
             std::shared_ptr<Stmt> m_initializer; //this is messy in parser since statments expect a semicolon
             std::shared_ptr<Expr> m_condition;
             std::shared_ptr<Expr> m_update;
+            std::shared_ptr<Stmt> m_body;
+    };
+
+    struct FunDecl: public Stmt {
+        public:
+            FunDecl(Token name, std::vector<std::shared_ptr<Stmt>> arguments, Token ret, std::shared_ptr<Stmt> body): 
+                m_name(name), m_arguments(arguments), m_return(ret), m_body(body) {}
+            ~FunDecl() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::vector<std::shared_ptr<Stmt>> m_arguments;
+            Token m_return;
             std::shared_ptr<Stmt> m_body;
     };
 

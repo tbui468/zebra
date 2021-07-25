@@ -7,14 +7,14 @@ set(Headers
     Expr.hpp
     TokenType.hpp
     Token.hpp
-    Object.hpp
     Lexer.hpp
     Parser.hpp
-    Interpreter.hpp
     AstPrinter.hpp
-    TypeChecker.hpp
-    Environment.hpp
-    RuntimeError.hpp
+    #TypeChecker.hpp
+    #Interpreter.hpp
+    #Object.hpp
+    #Environment.hpp
+    #RuntimeError.hpp
     )
 
 add_executable(

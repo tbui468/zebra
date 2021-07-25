@@ -74,6 +74,9 @@ namespace zebra {
             std::string visit(For* stmt) override {
                 return "For";
             }
+            std::string visit(FunDecl* stmt) override {
+                return "FunDecl";
+            }
     };
 
 

@@ -44,7 +44,7 @@ namespace zebra {
                 if (match(TokenType::PRINT)) return print_statement();
                 if (match(TokenType::IF)) return if_statement();
                 if (peek_one(TokenType::LEFT_BRACE)) return block_statement();
-                if (match(TokenType::IDENTIFIER)) return variable_statement();
+                if (match(TokenType::IDENTIFIER)) return decl_statement();
                 if (match(TokenType::WHILE)) return while_statement();
                 if (match(TokenType::FOR)) return for_statement();
                 
@@ -81,29 +81,73 @@ namespace zebra {
                 return std::make_shared<Block>(statements);
             }
 
-            std::shared_ptr<Stmt> variable_statement() {
+            std::shared_ptr<Stmt> decl_statement() {
                 Token identifier = previous();
                 if(match(TokenType::COLON)) {
-                    return decl_statement(identifier);
-                }else if(match(TokenType::EQUAL)){
+                    return decl_var(identifier);
+                }else if(match(TokenType::COLON_COLON)){
+                    return decl_fun(identifier);
+                }else if(match(TokenType::EQUAL)){ //TypeChecker will make sure assignment is of valid type
                     return assign_statement(identifier);
                 }
 
                 throw ParseError(identifier, "Identifier must be followed by a type declaration or assignment.");
+                
             }
 
-            std::shared_ptr<Stmt> decl_statement(Token identifier) {
+            //TODO: Matching token like this is messy - clean this up
+            std::shared_ptr<Stmt> decl_var(Token identifier) {
                 match(TokenType::BOOL_TYPE);
                 match(TokenType::INT_TYPE);
                 match(TokenType::FLOAT_TYPE);
                 match(TokenType::STRING_TYPE);
+                match(TokenType::FUN_TYPE);
                 Token type = previous();
 
                 consume(TokenType::EQUAL, "Variables must be defined at declaration.");
                 std::shared_ptr<Expr> value = expression();
                 consume(TokenType::SEMICOLON, "Expect ';' at the end of a statement."); 
 
-                return  std::make_shared<VarDecl>(identifier, type, value);
+                return std::make_shared<VarDecl>(identifier, type, value);
+            }
+
+            //TODO: Matching tokens like this is messy - clean this up
+            std::shared_ptr<Stmt> decl_fun(Token identifier) {
+                consume(TokenType::LEFT_PAREN, "Expect '(' before function parameters.");
+
+                std::vector<std::shared_ptr<Stmt>> arguments;
+                while(!match(TokenType::RIGHT_PAREN)) {
+                    match(TokenType::IDENTIFIER);
+                    Token name = previous();
+
+                    consume(TokenType::COLON, "Expect colon after variable identifier.");
+
+                    match(TokenType::BOOL_TYPE);
+                    match(TokenType::INT_TYPE);
+                    match(TokenType::FLOAT_TYPE);
+                    match(TokenType::STRING_TYPE);
+                    match(TokenType::FUN_TYPE);
+                    Token type = previous();
+
+                    arguments.emplace_back(std::make_shared<VarDecl>(name, type, nullptr));
+                    match(TokenType::COMMA);                    
+                }                
+
+                consume(TokenType::RIGHT_ARROW, "Expect '->' and return type after parameter declaration.");
+
+                //TODO: Matching like this is messy and error prone - clean this up
+                match(TokenType::BOOL_TYPE);
+                match(TokenType::INT_TYPE);
+                match(TokenType::FLOAT_TYPE);
+                match(TokenType::STRING_TYPE);
+                match(TokenType::FUN_TYPE);
+                match(TokenType::NONE_TYPE);
+                Token ret_type = previous(); 
+
+                std::shared_ptr<Stmt> body = block_statement();
+
+
+                return std::make_shared<FunDecl>(identifier, arguments, ret_type, body);
             }
 
             std::shared_ptr<Stmt> assign_statement(Token identifier) {

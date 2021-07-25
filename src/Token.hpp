@@ -31,6 +31,7 @@ namespace zebra {
                     case TokenType::RIGHT_BRACE: return "RIGHT_BRACE"; break;
                     case TokenType::MOD: return "MOD";
                     case TokenType::COLON: return "COLON";
+                    case TokenType::COMMA: return "COMMA";
                     //double or single char tokens
                     case TokenType::EQUAL: return "EQUAL"; break;
                     case TokenType::EQUAL_EQUAL: return "EQUAL_EQUAL"; break;
@@ -40,6 +41,8 @@ namespace zebra {
                     case TokenType::GREATER_EQUAL: return "GREATER_EQUAL"; break;
                     case TokenType::BANG: return "BANG"; break;
                     case TokenType::BANG_EQUAL: return "BANG_EQUAL"; break;
+                    case TokenType::COLON_COLON: return "COLON_COLON"; break;
+                    case TokenType::RIGHT_ARROW: return "RIGHT_ARROW"; break;
                     //literals
                     case TokenType::INT: return "INT [" + m_lexeme + "]"; break;
                     case TokenType::FLOAT: return "FLOAT [" + m_lexeme + "]"; break;
@@ -53,12 +56,15 @@ namespace zebra {
                     case TokenType::FALSE: return "FALSE"; break;
                     case TokenType::OR: return "OR"; break;
                     case TokenType::AND: return "AND";
+                    case TokenType::WHILE: return "WHILE";
+                    case TokenType::FOR: return "FOR";
+                    //types
                     case TokenType::INT_TYPE: return "INT_TYPE";
                     case TokenType::FLOAT_TYPE: return "FLOAT_TYPE";
                     case TokenType::STRING_TYPE: return "STRING_TYPE";
                     case TokenType::BOOL_TYPE: return "BOOL_TYPE";
-                    case TokenType::WHILE: return "WHILE";
-                    case TokenType::FOR: return "FOR";
+                    case TokenType::FUN_TYPE: return "FUN_TYPE";
+                    case TokenType::NONE_TYPE: return "NONE_TYPE";
                     //other
                     case TokenType::SLASH_SLASH: return "SLASH_SLASH";
                     case TokenType::EOFILE: return "EOFILE";
