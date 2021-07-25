@@ -81,7 +81,7 @@ namespace zebra {
                 return "Return";
             }
             std::string visit(ExprStmt* stmt) override {
-                return "Return";
+                return "ExprStmt";
             }
     };
 

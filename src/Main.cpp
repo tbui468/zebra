@@ -5,8 +5,8 @@
 #include "Lexer.hpp"
 #include "Stmt.hpp"
 #include "Parser.hpp"
-//#include "AstPrinter.hpp"
-//#include "TypeChecker.hpp"
+#include "AstPrinter.hpp"
+#include "TypeChecker.hpp"
 //#include "Interpreter.hpp"
 
 //TITLE: Zebra scripting language - 
@@ -18,35 +18,10 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Call implementation is causing problems with the mixture of Stmt and Expr
-//  Make Assign, Call (already expr) into Expr.  Remove combine AssignStmt and AssignExpr into Assign (Expr).
-//  then create a ExprStmt (Stmt) that holds an Expr*.  Wrap any expressions with unused values in ExprStmt for better organized Parser code
-//  The ExprStmt just calls eval on the expression but throws out the output then reorganize Parser using ExprStmt where possible to simplify code
-//In TypeChecker, chang m_types map to m_declarations map (of Stmt*) so that expressions have access to variable types and function return types
-//Get function calls working - need a Call object (which we will use again for methods) - Call  is an expression
+//Get function calls working in interpreter- need a Call object (which we will use again for methods) - Call  is an expression
 //
-//  try a basic call with now variables if that's easier
-//  note: FunDecl creates a function in the environment
-//       Call grabs that function, binds the arguments to that function, and then calls the function body
-//       Need a none object for no returns; typechecker needs to make sure that Calls with no return can't be assigned to a variable
-//make sure to add FUNC_TYPE to variables too
-//functions - function objects and function instances, including new scopes, returns using exceptions
-//  implement functions in parser - check that it works
-//  my_fun :: (a: int, b: float) -> string {} // anonymous function (a: int) -> none {}
-//  
-//  a: Func = my_fun;
-//  a = other_fun;
-//  a: int = my_fun(4);
+//should functions be first class citizens??? It makes the syntax uglier (and a fun type is required), but it's very useful...
 //
-//Classes
-//  Animal :: Class { //base class declaration (with Class keyword)
-//      my_method :: (a: float) -> {
-//
-//      }
-//  }
-//  Dog :: Animal { //subclass (up to one inheritance for now)
-//  
-//  }
 //Resolver - functions should capture closure during declaration - this should integrate the TypeChecker (instead of traversing the tree twice)
 //  could have the return be a struct of multiple values + a list of Resolver/TypeChecking errors (rather than using exceptions)
 //For Lexer, Parser, TypeChecker and Resolver: replace exceptions with error codes - exceptions just cause trouble
@@ -74,7 +49,6 @@ int main(int argc, char** argv) {
         zebra::Parser parser(tokens);
         std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
 
-/*
         zebra::AstPrinter printer;        
         for(int i = 0; i < int(ast.size()); i++) {
             printer.print(ast.at(i).get());
@@ -82,7 +56,7 @@ int main(int argc, char** argv) {
 
         zebra::TypeChecker checker;
         bool passed = checker.check(ast);
-
+/*
         if(passed) {
             zebra::Interpreter interp(ast);
             interp.run();
