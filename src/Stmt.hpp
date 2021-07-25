@@ -135,26 +135,27 @@ namespace zebra {
 
     struct FunDecl: public Stmt {
         public:
-            FunDecl(Token name, std::vector<std::shared_ptr<Stmt>> arguments, Token ret, std::shared_ptr<Stmt> body): 
-                m_name(name), m_arguments(arguments), m_return(ret), m_body(body) {}
+            FunDecl(Token name, std::vector<std::shared_ptr<Stmt>> arguments, Token return_type, std::shared_ptr<Stmt> body): 
+                m_name(name), m_arguments(arguments), m_return_type(return_type), m_body(body) {}
             ~FunDecl() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
             std::vector<std::shared_ptr<Stmt>> m_arguments;
-            Token m_return;
+            Token m_return_type;
             std::shared_ptr<Stmt> m_body;
     };
 
     struct Return: public Stmt {
         public:
-            Return(Token name, std::shared_ptr<Expr> value): m_name(name), m_value(value) {}
+            Return(Token name, Token return_type, std::shared_ptr<Expr> value): m_name(name), m_return_type(return_type), m_value(value) {}
             ~Return() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
+            Token m_return_type;
             std::shared_ptr<Expr> m_value;
     };
 

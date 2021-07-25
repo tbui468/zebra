@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <iostream>
+
 #include "TokenType.hpp"
 #include "TokenType.hpp"
 #include "Token.hpp"
@@ -102,6 +103,22 @@ namespace zebra {
                     throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
                 }
                 execute(stmt->m_body.get());
+            }
+
+            void visit(FunDecl* stmt) {
+                for(std::shared_ptr<Stmt> s: stmt->m_arguments) {
+                    VarDecl* var_decl = dynamic_cast<VarDecl*>(s.get());
+                    m_types[var_decl->m_name.m_lexeme] = var_decl->m_type.m_type;
+                }
+
+                execute(stmt->m_body.get());
+            }
+
+            void visit(Return* stmt) {
+                TokenType expr_type = evaluate(stmt->m_value.get());
+                if(expr_type != stmt->m_return_type.m_type) {
+                    throw TypeError(stmt->m_name, "Return type must match return type in function declaration.");
+                }
             }
 
 

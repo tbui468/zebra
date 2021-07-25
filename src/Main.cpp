@@ -3,11 +3,11 @@
 #include "TokenType.hpp"
 #include "Token.hpp"
 #include "Lexer.hpp"
-#include "Parser.hpp"
 #include "Stmt.hpp"
+#include "Parser.hpp"
 #include "AstPrinter.hpp"
+#include "TypeChecker.hpp"
 //#include "Interpreter.hpp"
-//#include "TypeChecker.hpp"
 
 //TITLE: Zebra scripting language - 
     //types must match, brackets, semicolons and parentheses are required.  No ambiguity, no shades of gray.  Keeping it black and white.
@@ -65,10 +65,10 @@ int main(int argc, char** argv) {
             printer.print(ast.at(i).get());
         }
 
-/*
+
         zebra::TypeChecker checker;
         bool passed = checker.check(ast);
-
+/*
         if(passed) {
             zebra::Interpreter interp(ast);
             interp.run();

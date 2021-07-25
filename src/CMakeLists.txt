@@ -10,7 +10,7 @@ set(Headers
     Lexer.hpp
     Parser.hpp
     AstPrinter.hpp
-    #TypeChecker.hpp
+    TypeChecker.hpp
     #Interpreter.hpp
     #Object.hpp
     #Environment.hpp
