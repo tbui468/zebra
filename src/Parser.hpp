@@ -14,6 +14,9 @@ namespace zebra {
         private:
             std::vector<Token> m_tokens;
             int m_current;
+            //Note: doesn't check if return statement if valid (eg outside of function) - resolver should do that in next phase
+            //Used for type checking for function and return
+            Token m_return_type = Token(TokenType::NONE_TYPE, "init", 0);
             class ParseError {
                 private:
                     Token m_token;
@@ -47,8 +50,17 @@ namespace zebra {
                 if (peek_one(TokenType::IDENTIFIER))    return identifier_statement();
                 if (match(TokenType::WHILE))            return while_statement();
                 if (match(TokenType::FOR))              return for_statement();
+                if (match(TokenType::RETURN))           return return_statement();
                 
                 throw ParseError(previous(), "Invalid token");
+            }
+
+
+            std::shared_ptr<Stmt> return_statement() {
+                Token name = previous();
+                std::shared_ptr<Expr> value = expression();
+                consume(TokenType::SEMICOLON, "Expect ';' after statement.");
+                return std::make_shared<Return>(name, m_return_type, value);
             }
 
             //starts with identifier - declaration, assignment or function call with unused result
@@ -211,23 +223,11 @@ namespace zebra {
                         match(TokenType::STRING_TYPE);
                         match(TokenType::FUN_TYPE);
                         match(TokenType::NONE_TYPE);
-                        Token ret_type = previous(); 
+                        m_return_type = previous(); 
 
-                        //body of function declaration
-                        consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
-                        std::vector<std::shared_ptr<Stmt>> statements;
-                        while (!match(TokenType::RIGHT_BRACE)) {
-                            if(match(TokenType::RETURN)) {
-                                Token name = previous();
-                                std::shared_ptr<Expr> value = expression();
-                                consume(TokenType::SEMICOLON, "Expect ';' after statement.");
-                                statements.emplace_back(std::make_shared<Return>(name, ret_type, value));
-                            } else {
-                                statements.push_back(statement());
-                            }
-                        }
+                        std::shared_ptr<Stmt> body = block_statement();
 
-                        return std::make_shared<FunDecl>(identifier, parameters, ret_type, std::make_shared<Block>(statements));
+                        return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
 
                     }
                 }

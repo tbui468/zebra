@@ -43,7 +43,12 @@ namespace zebra {
             }
 
             std::shared_ptr<Object> get_return() {
+                if(m_closure && !m_return) {
+                    return m_closure->get_return(); 
+                }
+
                 return m_return;
+
             }
     };
 

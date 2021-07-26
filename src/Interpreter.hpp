@@ -25,6 +25,9 @@ namespace zebra {
                 }
             }
             void execute(Stmt* stmt) {
+                if (m_environment->get_return()) {
+                    return;
+                }
                 stmt->accept(*this);
             }
 
@@ -69,6 +72,9 @@ namespace zebra {
                 m_environment = block_env;
                 for(std::shared_ptr<Stmt> s: stmt->m_statements) {
                     execute(s.get());  
+                    if( dynamic_cast<Return*>(s.get())) {
+                        break;
+                    }
                 } 
                 m_environment = closure;   
             }
