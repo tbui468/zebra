@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include "RuntimeError.hpp"
+#include "Object.hpp"
 
 
 namespace zebra {

@@ -28,6 +28,15 @@ namespace zebra {
                 stmt->accept(*this);
             }
 
+            std::shared_ptr<Object> evaluate(Expr* expr) {
+                return expr->accept(*this);
+            }
+
+            //throw away result of expression
+            void visit(ExprStmt* stmt) {
+                evaluate(stmt->m_expr.get());
+            }
+
             void visit(Print* stmt) {
                 std::shared_ptr<Object> value = stmt->m_value->accept(*this);
 
@@ -64,19 +73,6 @@ namespace zebra {
                 m_environment = closure;   
             }
 
-            //note: stmt->m_type is used in type checker only    
-            void visit(VarDecl* stmt) {
-                std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
-                m_environment->define(stmt->m_name, value);
-            }
-
-
-            void visit(AssignStmt* stmt) {
-                std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
-                m_environment->assign(stmt->m_name, value);
-
-            }
-
             void visit(While* stmt) {
                 std::shared_ptr<Expr> condition = stmt->m_condition;
                 while(dynamic_cast<Bool*>(evaluate(condition.get()).get())->m_value) {
@@ -93,9 +89,11 @@ namespace zebra {
                 }
             }
 
-            std::shared_ptr<Object> evaluate(Expr* expr) {
-                return expr->accept(*this);
+            void visit(Return* stmt) {
+                std::shared_ptr<Object> ret = evaluate(stmt->m_value.get());
+                //TODO: how to get ret back to the call function???
             }
+
 
             std::shared_ptr<Object> visit(Unary* expr) {
                 std::shared_ptr<Object> right = expr->m_right->accept(*this);
@@ -238,11 +236,54 @@ namespace zebra {
             }
 
 
-            std::shared_ptr<Object> visit(AssignExpr* expr) {
+
+            std::shared_ptr<Object> visit(Assign* expr) {
                 std::shared_ptr<Object> value = evaluate(expr->m_value.get());
                 m_environment->assign(expr->m_name, value);
                 return value;
             }
+
+            std::shared_ptr<Object> visit(VarDecl* expr) {
+                std::shared_ptr<Object> value = evaluate(expr->m_value.get());
+                m_environment->define(expr->m_name, value);
+                return value;
+            }
+
+            std::shared_ptr<Object> visit(FunDecl* expr) {
+                std::shared_ptr<Object> fun = std::make_shared<Fun>(expr);
+                m_environment->define(expr->m_name, fun);
+                return fun;
+            }
+
+            std::shared_ptr<Object> visit(Call* expr) {
+                std::shared_ptr<Object> obj = m_environment->get(expr->m_name);
+                Fun* fun = dynamic_cast<Fun*>(obj.get());
+                FunDecl* fun_decl = dynamic_cast<FunDecl*>(fun->m_fun_decl);
+
+                //evaluate call arguments
+                std::vector<std::shared_ptr<Object>> arguments;
+                for (std::shared_ptr<Expr> e: expr->m_arguments) {
+                    arguments.push_back(evaluate(e.get()));
+                }
+                
+                std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment);
+                std::shared_ptr<Environment> closure = m_environment;
+                m_environment = block_env;
+
+                //declare and define parameters in FunDecl
+                //type checker should have already verified that parameter/argument types/counts match
+                for (int i = 0; i < fun_decl->m_parameters.size(); i++) {
+                    Token param_token = dynamic_cast<VarDecl*>(fun_decl->m_parameters.at(i).get())->m_name;
+                    std::shared_ptr<Object> param_value = arguments.at(i);
+                    m_environment->define(param_token, param_value);
+                }
+
+                execute(fun_decl->m_body.get()); //return needs to happen here
+
+                m_environment = closure;   
+
+                return nullptr; //TODO: need to integrate return values
+            } 
 
             std::shared_ptr<Object> visit(Variable* expr) {
                 return m_environment->get(expr->m_name);

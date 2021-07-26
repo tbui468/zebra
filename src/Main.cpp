@@ -7,7 +7,7 @@
 #include "Parser.hpp"
 #include "AstPrinter.hpp"
 #include "TypeChecker.hpp"
-//#include "Interpreter.hpp"
+#include "Interpreter.hpp"
 
 //TITLE: Zebra scripting language - 
     //types must match, brackets, semicolons and parentheses are required.  No ambiguity, no shades of gray.  Keeping it black and white.
@@ -18,6 +18,8 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
+//Bug: "printer" identifier will match "print" keyword (same with other keywords too)
+//TypeChecker should return error is a function with a none-return type is used as an expression
 //Get function calls working in interpreter- need a Call object (which we will use again for methods) - Call  is an expression
 //
 //should functions be first class citizens??? It makes the syntax uglier (and a fun type is required), but it's very useful...
@@ -56,13 +58,13 @@ int main(int argc, char** argv) {
 
         zebra::TypeChecker checker;
         bool passed = checker.check(ast);
-/*
+
         if(passed) {
             zebra::Interpreter interp(ast);
             interp.run();
         } else {
             std::cout << "Type errors found.  Can not run code." << std::endl;
-        }*/
+        }
 
     }
     return 0;

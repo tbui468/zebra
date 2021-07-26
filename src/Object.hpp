@@ -2,9 +2,10 @@
 #define ZEBRA_OBJECT_H
 
 #include <string>
-//#include "Stmt.hpp"
 
 namespace zebra {
+
+    struct Expr;
 
     class Object {
         public:
@@ -37,16 +38,13 @@ namespace zebra {
             String(std::string value): m_value(value) {}
     };
 
-    /*
+    
     class Fun: public Object {
         public:
-            std::vector<TokenType> m_arguments;
-            TokenType m_return;
-            std::shared_ptr<Stmt> m_body;
+            Expr* m_fun_decl;
         public:
-            Fun(std::vector<TokenType> arguments, TokenType ret, std::shared_ptr<Stmt> body): 
-                m_arguments(arguments), m_return(ret), m_body(body) {}
-    };*/
+            Fun(Expr* fun_decl): m_fun_decl(fun_decl) {}
+    };
 
 }
 
