@@ -48,6 +48,7 @@ namespace zebra {
                     case TokenType::FLOAT: return "FLOAT [" + m_lexeme + "]"; break;
                     case TokenType::STRING: return "STRING [" + m_lexeme + "]"; break;
                     case TokenType::IDENTIFIER: return "IDENTIFIER [" + m_lexeme + "]"; break;
+                    case TokenType::NIL: return "NIL";
                     //keywords
                     case TokenType::PRINT: return "PRINT"; break;
                     case TokenType::IF: return "IF"; break;
@@ -65,7 +66,7 @@ namespace zebra {
                     case TokenType::STRING_TYPE: return "STRING_TYPE";
                     case TokenType::BOOL_TYPE: return "BOOL_TYPE";
                     case TokenType::FUN_TYPE: return "FUN_TYPE";
-                    case TokenType::NONE_TYPE: return "NONE_TYPE";
+                    case TokenType::NIL_TYPE: return "NIL_TYPE";
                     //other
                     case TokenType::SLASH_SLASH: return "SLASH_SLASH";
                     case TokenType::EOFILE: return "EOFILE";

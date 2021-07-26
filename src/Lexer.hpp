@@ -130,14 +130,19 @@ namespace zebra {
                             else read_identifier();
                             break;
                         case 'n':
-                            if (match("one")) add_token(TokenType::NONE_TYPE);
+                            if (match("il")) add_token(TokenType::NIL_TYPE);
                             break;
                         case 'p':
                             if (match("rint")) add_token(TokenType::PRINT);
                             else read_identifier();
                             break;
                         case 'r':
-                            if (match("eturn")) add_token(TokenType::RETURN);
+                            if (match("eturn")) {
+                                add_token(TokenType::RETURN);
+                                if (peek() == ';') {
+                                    add_token(TokenType::NIL);
+                                }
+                            }
                             break;
                         case 's':
                             if (match("tring")) add_token(TokenType::STRING_TYPE);

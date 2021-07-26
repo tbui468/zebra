@@ -16,7 +16,7 @@ namespace zebra {
             int m_current;
             //Note: doesn't check if return statement if valid (eg outside of function) - resolver should do that in next phase
             //Used for type checking for function and return
-            Token m_return_type = Token(TokenType::NONE_TYPE, "init", 0);
+            Token m_return_type = Token(TokenType::NIL_TYPE, "init", 0);
             class ParseError {
                 private:
                     Token m_token;
@@ -222,7 +222,7 @@ namespace zebra {
                         match(TokenType::FLOAT_TYPE);
                         match(TokenType::STRING_TYPE);
                         match(TokenType::FUN_TYPE);
-                        match(TokenType::NONE_TYPE);
+                        match(TokenType::NIL_TYPE);
                         m_return_type = previous(); 
 
                         std::shared_ptr<Stmt> body = block_statement();
@@ -328,6 +328,8 @@ namespace zebra {
                 }else if(match(TokenType::TRUE)) {
                     return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::FALSE)) {
+                    return std::make_shared<Literal>(previous());
+                }else if(match(TokenType::NIL)) {
                     return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::IDENTIFIER)) {
                     if (peek_one(TokenType::LEFT_PAREN)) {

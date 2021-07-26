@@ -16,7 +16,7 @@ namespace zebra {
         BANG,BANG_EQUAL, COLON_COLON,
         RIGHT_ARROW,
         //literals
-        INT, FLOAT, STRING, IDENTIFIER,
+        INT, FLOAT, STRING, IDENTIFIER, NIL,
         //keywords
         PRINT, IF, ELSE, WHILE, FOR,
         TRUE, FALSE,
@@ -24,7 +24,7 @@ namespace zebra {
         RETURN,
         //types
         INT_TYPE, FLOAT_TYPE, STRING_TYPE,
-        BOOL_TYPE, FUN_TYPE, NONE_TYPE,
+        BOOL_TYPE, FUN_TYPE, NIL_TYPE,
         /*
         ELIF, //new stuff
         BREAK,

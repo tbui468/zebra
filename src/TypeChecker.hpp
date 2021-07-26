@@ -156,6 +156,8 @@ namespace zebra {
                         return TokenType::INT_TYPE;
                     case TokenType::STRING:
                         return TokenType::STRING_TYPE;
+                    case TokenType::NIL:
+                        return TokenType::NIL_TYPE;
                 }
                 throw TypeError(expr->m_token, expr->m_token.to_string() + " token not valid.");
             }

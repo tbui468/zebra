@@ -38,6 +38,11 @@ namespace zebra {
             String(std::string value): m_value(value) {}
     };
 
+    class Nil: public Object {
+        public:
+        public:
+            Nil() {}
+    };
     
     class Fun: public Object {
         public:
