@@ -18,12 +18,33 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
+//  Returns should short circuit Block statements
+//  Allow empty returns for functions with 'none' return type
 //Bug: "printer" identifier will match "print" keyword (same with other keywords too)
+//Bug: TypeChecker uses global environment without caring about scope - this causes code that should be valid to throw type checking errors
+//      Code: Second call to a("cat") throws type check error since function 'a' is overriden in inner scope, rather than being declared
+//      in a new scope (shadowing the outer function 'a') and then being discarded after the scope exits.  So the typechecker expects an int
+//      for the argument, not a string.
+            /*
+            a :: (b: string) -> {
+                print b;
+            }
+
+            {
+                a("dog");
+                a :: (b: int) -> none {
+                    if (b > 0) {
+                        a(b - 1);
+                    }
+                    print b;
+                }
+
+                a(5);
+            }
+
+            a("cat");*/
+
 //TypeChecker should return error is a function with a none-return type is used as an expression
-//Get function calls working in interpreter- need a Call object (which we will use again for methods) - Call  is an expression
-//
-//should functions be first class citizens??? It makes the syntax uglier (and a fun type is required), but it's very useful...
-//
 //Resolver - functions should capture closure during declaration - this should integrate the TypeChecker (instead of traversing the tree twice)
 //  could have the return be a struct of multiple values + a list of Resolver/TypeChecking errors (rather than using exceptions)
 //For Lexer, Parser, TypeChecker and Resolver: replace exceptions with error codes - exceptions just cause trouble

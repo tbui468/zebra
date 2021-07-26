@@ -38,7 +38,7 @@ namespace zebra {
             }
 
             void visit(Print* stmt) {
-                std::shared_ptr<Object> value = stmt->m_value->accept(*this);
+                std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
 
                 if(dynamic_cast<Bool*>(value.get())) {
                     std::cout << dynamic_cast<Bool*>(value.get())->m_value << std::endl;
@@ -64,7 +64,7 @@ namespace zebra {
             }
 
             void visit(Block* stmt) {
-                std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment);
+                std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, false);
                 std::shared_ptr<Environment> closure = m_environment;
                 m_environment = block_env;
                 for(std::shared_ptr<Stmt> s: stmt->m_statements) {
@@ -91,7 +91,7 @@ namespace zebra {
 
             void visit(Return* stmt) {
                 std::shared_ptr<Object> ret = evaluate(stmt->m_value.get());
-                //TODO: how to get ret back to the call function???
+                m_environment->set_return(ret);
             }
 
 
@@ -235,8 +235,6 @@ namespace zebra {
 
             }
 
-
-
             std::shared_ptr<Object> visit(Assign* expr) {
                 std::shared_ptr<Object> value = evaluate(expr->m_value.get());
                 m_environment->assign(expr->m_name, value);
@@ -266,7 +264,7 @@ namespace zebra {
                     arguments.push_back(evaluate(e.get()));
                 }
                 
-                std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment);
+                std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, true);
                 std::shared_ptr<Environment> closure = m_environment;
                 m_environment = block_env;
 
@@ -278,11 +276,13 @@ namespace zebra {
                     m_environment->define(param_token, param_value);
                 }
 
-                execute(fun_decl->m_body.get()); //return needs to happen here
+                execute(fun_decl->m_body.get()); //fun_decl->m_body is a Block, which will already create its own environment
+
+                std::shared_ptr<Object> return_value = m_environment->get_return();
 
                 m_environment = closure;   
 
-                return nullptr; //TODO: need to integrate return values
+                return return_value;
             } 
 
             std::shared_ptr<Object> visit(Variable* expr) {
