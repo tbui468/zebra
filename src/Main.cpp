@@ -18,10 +18,7 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//  Allow empty returns for functions with 'none' return type
-//  Write comprehensive tests in Zebra to make sure I don't break shit that already works
-//      upload them to github too
-//Bug: "printer" identifier will match "print" keyword (same with other keywords too) - problem with Lexer
+//Write comprehensive tests in Zebra to make sure I don't break shit that already works.  Upload tests to github too
 //Bug: TypeChecker uses global environment without caring about scope - this causes code that should be valid to throw type checking errors
 //      Code: Second call to a("cat") throws type check error since function 'a' is overriden in inner scope, rather than being declared
 //      in a new scope (shadowing the outer function 'a') and then being discarded after the scope exits.  So the typechecker expects an int

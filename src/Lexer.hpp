@@ -208,6 +208,11 @@ namespace zebra {
                     return false;
                 }
 
+                //check that next char is also not a letter
+                if (is_alpha(char(m_source.at(m_current + s.length())))) {
+                    return false;
+                }
+
                 for (int i = 0; i < (int)(s.length()); i++) next();
 
                 return true;
