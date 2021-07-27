@@ -18,7 +18,6 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Write comprehensive tests in Zebra to make sure I don't break shit that already works.  Upload tests to github too
 //Bug: TypeChecker uses global environment without caring about scope - this causes code that should be valid to throw type checking errors
 //      Code: Second call to a("cat") throws type check error since function 'a' is overriden in inner scope, rather than being declared
 //      in a new scope (shadowing the outer function 'a') and then being discarded after the scope exits.  So the typechecker expects an int
@@ -41,13 +40,13 @@
             }
 
             a("cat");*/
-
-//TypeChecker should return error is a function with a none-return type is used as an expression
+//Look up edges cases in Jlox book, and write tests to see if my code passes them - if not, then fix the bugs
 //Resolver - functions should capture closure during declaration - this should integrate the TypeChecker (instead of traversing the tree twice)
 //  could have the return be a struct of multiple values + a list of Resolver/TypeChecking errors (rather than using exceptions)
 //For Lexer, Parser, TypeChecker and Resolver: replace exceptions with error codes - exceptions just cause trouble
     //if more than one return is needed, create a struct that can be return.  Have funtions null out any info not need up higher,
     //and the pass the struct upwards
+//TypeChecker should return error is a function with a none-return type is used as an expression
 //Change for loop separators from semicolons to commas(or colons) to make it prettier (and more consistent with function declaraction syntax)
 //native cast functions - int(2.3), string(3), float("3.2"), float(3), bool("cat"), print("dog"), print(23.2) should be a native function too
 //  Structs - a way to hold data must be initialized
@@ -84,21 +83,21 @@ int main(int argc, char** argv) {
         zebra::Lexer lexer(argv[1]); 
         std::vector<zebra::Token> tokens = lexer.scan();
        
-       
+/*       
         lexer.print_source();
         
         for (zebra::Token t: tokens) {
             std::cout << t.to_string() << std::endl;
-        }
+        }*/
 
 
         zebra::Parser parser(tokens);
         std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
-
+/*
         zebra::AstPrinter printer;        
         for(int i = 0; i < int(ast.size()); i++) {
             printer.print(ast.at(i).get());
-        }
+        }*/
 
         zebra::TypeChecker checker;
         bool passed = checker.check(ast);

@@ -1,0 +1,78 @@
+//String return functions tests
+a :: () -> string {
+    return "test"; 
+}
+
+b :: (c: string) -> string {
+    return c + "st";
+}
+
+d :: (e: string, f: string) -> string {
+    return e + f;
+}
+
+if (a() == "test" and 
+    b("te") == "test" and 
+    d("te", "st") == "test") {
+    print "Functions - string return: Passed"; 
+} else {
+    print "Functions - string return: Failed"; 
+}
+
+//nil return function tests
+g :: () -> nil {
+    print "Functions - nil return: Passed";
+}
+
+g();
+
+//float return function tests
+h :: () -> float {
+    return 1.0;
+}
+
+if(h() <= 1.01 and h() >= 0.99) {
+    print "Functions - float return: Passed"; 
+}else{
+    print "Functions - float return: Failed"; 
+}
+
+//bool returns
+boolean :: () -> bool {
+    return true;
+}
+
+if (boolean()) {
+    print "Functions - boolean return: Passed"; 
+} else {
+    print "Functions - boolean return: Failed"; 
+}
+
+//recursion
+i :: (j: int) -> int {
+    if (j == 1) {
+        return 1;
+    } else {
+        return i(j-1) + 1;
+    }
+}
+
+if (i(10) == 10) {
+    print "Functions - single call recursion: Passed"; 
+} else {
+    print "Functions - single call recursion: Failed"; 
+}
+
+k :: (l: int) -> int {
+    if (l == 1) {
+        return 1;
+    } else {
+        return k(l-1) + k(l-1);
+    }
+}
+
+if (k(4) == 8) {
+    print "Functions - double call recursion: Passed"; 
+} else {
+    print "Functions - double call recursion: Failed"; 
+}
