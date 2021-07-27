@@ -51,17 +51,18 @@ namespace zebra {
             }
         private:
 
-            Expr* get_decl(const std::string& lexeme) {
+            Expr* get_decl(Token& token) {
                 for (int i = m_variables.size() - 1; i >= 0; i--) {
-                    if(m_variables.at(i).count(lexeme) > 0) {
-                        return m_variables.at(i)[lexeme];
+                    if(m_variables.at(i).count(token.m_lexeme) > 0) {
+                        return m_variables.at(i)[token.m_lexeme];
                     }
                 }
-                return nullptr;
+
+                throw TypeError(token, token.to_string() + " not declared.");
             }
 
-            TokenType get_type(const std::string& lexeme) {
-                Expr* var = get_decl(lexeme);
+            TokenType get_type(Token& token) {
+                Expr* var = get_decl(token);
 
                 if(dynamic_cast<VarDecl*>(var)) {
                     return dynamic_cast<VarDecl*>(var)->m_type.m_type;
@@ -202,13 +203,16 @@ namespace zebra {
 
 
             TokenType visit(VarDecl* expr) {
-                m_variables.back()[expr->m_name.m_lexeme] = expr;
                 if(expr->m_value) {
                     TokenType expr_type = evaluate(expr->m_value.get());
                     if(expr->m_type.m_type != expr_type) {
                         throw TypeError(expr->m_name, "Right hand expression must evaluate to type " + expr->m_name.to_string() + ".");
                     }
+                } else {
+                    throw TypeError(expr->m_name, expr->m_name.to_string() + " must be defined at declaration.");
                 }
+
+                m_variables.back()[expr->m_name.m_lexeme] = expr; //put indentifier in env. variables
 
                 return expr->m_type.m_type;
             }
@@ -227,7 +231,7 @@ namespace zebra {
 
 
             TokenType visit(Assign* expr) {
-                TokenType type = get_type(expr->m_name.m_lexeme);
+                TokenType type = get_type(expr->m_name);
 
                 TokenType expr_type = evaluate(expr->m_value.get());
 
@@ -239,11 +243,11 @@ namespace zebra {
             }
 
             TokenType visit(Variable* expr) {
-                return get_type(expr->m_name.m_lexeme);
+                return get_type(expr->m_name);
             }
 
             TokenType visit(Call* expr) {
-                FunDecl* fun_decl = dynamic_cast<FunDecl*>(get_decl(expr->m_name.m_lexeme));
+                FunDecl* fun_decl = dynamic_cast<FunDecl*>(get_decl(expr->m_name));
 
                 //check parameter/argument count
                 if(expr->m_arity != fun_decl->m_arity) {
@@ -254,13 +258,13 @@ namespace zebra {
                 for (int i = 0; i < expr->m_arguments.size(); i++) {
                     TokenType arg_type = evaluate(expr->m_arguments.at(i).get());
                     VarDecl* param = dynamic_cast<VarDecl*>(fun_decl->m_parameters.at(i).get());
-                    if(arg_type != get_type(param->m_name.m_lexeme)) {
+                    if(arg_type != get_type(param->m_name)) {
                         throw TypeError(expr->m_name, "Function call argument type must match declaration parameter type.");
                     }
                 }
 
                 //check return type
-                return get_type(expr->m_name.m_lexeme);                
+                return get_type(expr->m_name);                
             }
 
 

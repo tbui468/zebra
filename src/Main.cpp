@@ -18,31 +18,11 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Bug: TypeChecker uses global environment without caring about scope - this causes code that should be valid to throw type checking errors
-//      Code: Second call to a("cat") throws type check error since function 'a' is overriden in inner scope, rather than being declared
-//      in a new scope (shadowing the outer function 'a') and then being discarded after the scope exits.  So the typechecker expects an int
-//      for the argument, not a string.
-            /*
-            a :: (b: string) -> {
-                print b;
-            }
-
-            {
-                a("dog");
-                a :: (b: int) -> none {
-                    if (b > 0) {
-                        a(b - 1);
-                    }
-                    print b;
-                }
-
-                a(5);
-            }
-
-            a("cat");*/
+//fix these two: 
+    //a: int; //declaring without defining - need to allow, or give error message
+    //b: int = b; //need to give error message (if b is defined in outer scope, this code is valid.  Already works fine)
 //Look up edges cases in Jlox book, and write tests to see if my code passes them - if not, then fix the bugs
-//Resolver - functions should capture closure during declaration - this should integrate the TypeChecker (instead of traversing the tree twice)
-//  could have the return be a struct of multiple values + a list of Resolver/TypeChecking errors (rather than using exceptions)
+//m_return_type in 
 //For Lexer, Parser, TypeChecker and Resolver: replace exceptions with error codes - exceptions just cause trouble
     //if more than one return is needed, create a struct that can be return.  Have funtions null out any info not need up higher,
     //and the pass the struct upwards
