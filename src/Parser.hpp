@@ -17,6 +17,7 @@ namespace zebra {
             //Note: doesn't check if return statement if valid (eg outside of function) - resolver should do that in next phase
             //Used for type checking for function and return
             Token m_return_type = Token(TokenType::NIL_TYPE, "init", 0);
+            bool m_had_return = false;
             class ParseError {
                 private:
                     Token m_token;
@@ -57,6 +58,7 @@ namespace zebra {
 
 
             std::shared_ptr<Stmt> return_statement() {
+                m_had_return = true;
                 Token name = previous();
                 std::shared_ptr<Expr> value = expression();
                 consume(TokenType::SEMICOLON, "Expect ';' after statement.");
@@ -118,15 +120,27 @@ namespace zebra {
                 match(TokenType::FUN_TYPE);
                 match(TokenType::NIL_TYPE);
                 m_return_type = previous(); 
+                m_had_return = false;
 
-                std::shared_ptr<Stmt> body = block_statement();
+                consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
+                std::vector<std::shared_ptr<Stmt>> statements;
+                while (!match(TokenType::RIGHT_BRACE)) {
+                    statements.push_back(statement());
+                }
+
+                if (m_return_type.m_type != TokenType::NIL_TYPE && !m_had_return) {
+                    throw ParseError(m_return_type, "Expect return statement of type " + m_return_type.to_string());
+                }
+
+                std::shared_ptr<Stmt> body = std::make_shared<Block>(statements);
 
                 return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
             }
 
             std::shared_ptr<Stmt> print_statement() {
+                Token name = previous();
                 std::shared_ptr<Expr> value = expression(); //this needs to go through recursive descent
-                std::shared_ptr<Stmt> ret = std::make_shared<Print>(value);
+                std::shared_ptr<Stmt> ret = std::make_shared<Print>(name, value);
                 consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
                 return ret;
             }

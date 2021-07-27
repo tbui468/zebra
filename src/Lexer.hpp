@@ -140,7 +140,7 @@ namespace zebra {
                         case 'r':
                             if (match("eturn")) {
                                 add_token(TokenType::RETURN);
-                                if (peek() == ';') {
+                                if (peek() == ';') { //this really should be here - parser should take care of this
                                     add_token(TokenType::NIL);
                                 }
                             }

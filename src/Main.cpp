@@ -18,14 +18,6 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Make Call into a statement that optionally can be wrapped in an expression
-//Make FunDecls into statements since they shouldn't return anything (anonymous functions can do that when they're implemented"
-//  current issue: Making FunDecls into statements breaks TypeChecker, since variables are stored as Expr* for type checking
-//      VarDecl, FunDecl and StructDecl all need to be stored eventually - VarDecl is an expression since we allow decl/assignments to return the value
-//          FunDecl and Struct Decl are pure statements with no return value (anonymous functions will be an expression)
-//      Need to store node pointers in TypeChecker.m_variables (and not just types) because FunDecl node parameters need to be type checked againt Call node arguments
-//  Structs will also be statements
-//  
 //Structs
 //      Dog :: struct {
 //          name: string = "default";

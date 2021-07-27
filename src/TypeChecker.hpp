@@ -80,6 +80,9 @@ namespace zebra {
 
             void visit(Print* stmt) {
                 TokenType type = evaluate(stmt->m_value.get());                
+                if (type == TokenType::NIL_TYPE) {
+                    throw TypeError(stmt->m_name, "Cannot print nil type.");
+                }
             }
             void visit(If* stmt) {
                 TokenType type = evaluate(stmt->m_condition.get());

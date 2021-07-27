@@ -58,11 +58,12 @@ namespace zebra {
 
     struct Print: public Stmt {
         public:
-            Print(std::shared_ptr<Expr> value): m_value(value) {}
+            Print(Token name, std::shared_ptr<Expr> value): m_name(name), m_value(value) {}
             ~Print() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
+            Token m_name;
             std::shared_ptr<Expr> m_value;
     };
 
