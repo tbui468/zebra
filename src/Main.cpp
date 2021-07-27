@@ -18,6 +18,12 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
+//Get structs compiling with Interpreter
+//Be able to access struct fields with dot notation - print to test
+//Be able to assign struct fields with dot notation - print before and after to check if field was successfully changed
+//Be able to declare and assign struct, eg dog1: Dog = dog2;
+//change VarDecl m_type field to m_data_type field.  m_type belongs to Token and is the token type
+//Allow numbers in IDENTIFIERS as long as the first character is alpha or _
 //Structs
 //      Dog :: struct {
 //          name: string = "default";
@@ -41,36 +47,38 @@
 //native cast functions - int(2.3), string(3), float("3.2"), float(3), bool("cat"), print("dog"), print(23.2) should be a native function too
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
+    if (argc < 2) {
         printf("Usage: zebra <script>");
     } else {
-        zebra::Lexer lexer(argv[1]); 
-        std::vector<zebra::Token> tokens = lexer.scan();
-      
-       /* 
-        lexer.print_source();
-        
-        for (zebra::Token t: tokens) {
-            std::cout << t.to_string() << std::endl;
-        }*/
+
+        for (int i = 1; i < argc; i++) {
+            zebra::Lexer lexer(argv[i]); 
+            std::vector<zebra::Token> tokens = lexer.scan();
+          
+            lexer.print_source();
+            
+            for (zebra::Token t: tokens) {
+                std::cout << t.to_string() << std::endl;
+            }
 
 
-        zebra::Parser parser(tokens);
-        std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
+            zebra::Parser parser(tokens);
+            std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
+    
+            zebra::AstPrinter printer;        
+            for(int i = 0; i < int(ast.size()); i++) {
+                printer.print(ast.at(i).get());
+            }
+
+            zebra::TypeChecker checker;
+            bool passed = checker.check(ast);
 /*
-        zebra::AstPrinter printer;        
-        for(int i = 0; i < int(ast.size()); i++) {
-            printer.print(ast.at(i).get());
-        }*/
-
-        zebra::TypeChecker checker;
-        bool passed = checker.check(ast);
-
-        if(passed) {
-            zebra::Interpreter interp(ast);
-            interp.run();
-        } else {
-            std::cout << "Type errors found.  Can not run code." << std::endl;
+            if(passed) {
+                zebra::Interpreter interp(ast);
+                interp.run();
+            } else {
+                std::cout << "Type errors found.  Can not run code." << std::endl;
+            }*/
         }
 
     }

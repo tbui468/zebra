@@ -12,12 +12,12 @@ namespace zebra {
     struct While;
     struct For;
     struct Return;
-//    struct ExprStmt;
     struct Assign;
     struct VarDecl;
     struct FunDecl;
     struct Call;
- //   struct StructDecl;
+    struct StructDecl;
+    struct StructInst;
 
     struct StmtStringVisitor {
         virtual std::string visit(Print* stmt) = 0;
@@ -26,12 +26,12 @@ namespace zebra {
         virtual std::string visit(While* stmt) = 0;
         virtual std::string visit(For* stmt) = 0;
         virtual std::string visit(Return* stmt) = 0;
- //       virtual std::string visit(ExprStmt* stmt) = 0;
         virtual std::string visit(Assign* stmt) = 0;
         virtual std::string visit(VarDecl* stmt) = 0;
         virtual std::string visit(FunDecl* stmt) = 0;
         virtual std::string visit(Call* stmt) = 0;
-        //virtual std::string visit(StructDecl* stmt) = 0;
+        virtual std::string visit(StructDecl* stmt) = 0;
+        virtual std::string visit(StructInst* stmt) = 0;
     };
     struct StmtVoidVisitor {
         virtual void visit(Print* stmt) = 0;
@@ -40,12 +40,12 @@ namespace zebra {
         virtual void visit(While* stmt) = 0;
         virtual void visit(For* stmt) = 0;
         virtual void visit(Return* stmt) = 0;
-  //      virtual void visit(ExprStmt* stmt) = 0;
         virtual void visit(Assign* stmt) = 0;
         virtual void visit(VarDecl* stmt) = 0;
         virtual void visit(FunDecl* stmt) = 0;
         virtual void visit(Call* stmt) = 0;
-        //virtual void visit(StructDecl* stmt) = 0;
+        virtual void visit(StructDecl* stmt) = 0;
+        virtual void visit(StructInst* stmt) = 0;
     };
 
 
@@ -133,17 +133,6 @@ namespace zebra {
             std::shared_ptr<Expr> m_value;
     };
 
-    //wrapper for unused expression results
-    /*
-    struct ExprStmt : public Stmt {
-        public:
-            ExprStmt(std::shared_ptr<Expr> expr): m_expr(expr) {}
-            ~ExprStmt() {}
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
-        public:
-            std::shared_ptr<Expr> m_expr;
-    };*/
 
     struct Assign: public Stmt {
         public:
@@ -199,16 +188,29 @@ namespace zebra {
             std::shared_ptr<Object> m_return {nullptr};
     };
 
-/*
-    struct StructDecl : public Stmt {
+    struct StructDecl: public Stmt {
         public:
-            StructDecl(std::vector<std::shared_ptr<Stmt>> fields): m_fields(fields) {}
+            StructDecl(Token name, std::vector<std::shared_ptr<VarDecl>> fields): m_name(name), m_fields(fields) {}
             ~StructDecl() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            std::vector<std::shared_ptr<Stmt>> m_fields;
-    };*/
+            Token m_name;
+            std::vector<std::shared_ptr<VarDecl>> m_fields;
+    };
+
+    struct StructInst: public Stmt {
+        public:
+            StructInst(Token name, Token struct_token, std::vector<std::shared_ptr<Expr>> arguments):
+                m_name(name), m_struct(struct_token), m_arguments(arguments) {}
+            ~StructInst() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            Token m_struct;
+            std::vector<std::shared_ptr<Expr>> m_arguments;
+    };
 
 
 }

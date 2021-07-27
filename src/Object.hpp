@@ -51,6 +51,20 @@ namespace zebra {
             Fun(Stmt* fun_decl): m_fun_decl(fun_decl) {}
     };
 
+    class Struct: public Object {
+        public:
+            Stmt* m_struct_decl;
+        public:
+            Struct(Stmt* struct_decl): m_struct_decl(struct_decl) {}
+    };
+
+    class StructInstance: public Object {
+        public:
+            std::unordered_map<std::string, std::shared_ptr<Object>> m_fields;
+        public:
+            StructInstance(std::unordered_map<std::string, std::shared_ptr<Object>> fields): m_fields(fields) {}
+    };
+
 }
 
 

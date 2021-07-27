@@ -174,6 +174,27 @@ namespace zebra {
                 }
             }
 
+            void visit(StructDecl* stmt) {
+                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
+            }
+
+            void visit(StructInst* stmt) {
+                Stmt* decl = get_decl(stmt->m_struct);
+                StructDecl* struct_decl = dynamic_cast<StructDecl*>(decl);
+
+                if (stmt->m_arguments.size() > 0 && stmt->m_arguments.size() != struct_decl->m_fields.size()) {
+                    throw TypeError(stmt->m_name, "Number of arguments for " + stmt->m_name.to_string() + " must be 0 or match the declaration.");
+                }
+
+                for (int i = 0; i < stmt->m_arguments.size(); i++) {
+                    TokenType arg_type = evaluate(stmt->m_arguments.at(i).get());
+                    TokenType field_type = struct_decl->m_fields.at(i)->m_type.m_type;
+                    if (arg_type != field_type) {
+                        throw TypeError(stmt->m_name, "Arguments for " + stmt->m_name.to_string() + " must match declaration.");
+                    }
+                }
+            }
+
 
             /*
              * Expressions

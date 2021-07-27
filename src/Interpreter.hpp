@@ -110,6 +110,11 @@ namespace zebra {
                 m_environment->define(stmt->m_name, fun);
             }
 
+            void visit(StructDecl* stmt) {
+                std::shared_ptr<Object> zebra_struct = std::make_shared<Struct>(stmt);
+                m_environment->define(stmt->m_name, zebra_struct);
+            }
+
             void visit(Call* stmt) {
                 std::shared_ptr<Object> obj = m_environment->get(stmt->m_name);
                 Fun* fun = dynamic_cast<Fun*>(obj.get());

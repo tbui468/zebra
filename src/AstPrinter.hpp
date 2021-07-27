@@ -85,13 +85,12 @@ namespace zebra {
                 return "Call";
             }
             
-            /*std::string visit(ExprStmt* stmt) override {
-                return "ExprStmt";
-            }*/
-            /*
             std::string visit(StructDecl* stmt) override {
                 return "StructDecl";
-            }*/
+            }
+            std::string visit(StructInst* stmt) override {
+                return "StructInst";
+            }
     };
 
 
