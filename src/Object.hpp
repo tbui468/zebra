@@ -5,7 +5,7 @@
 
 namespace zebra {
 
-    struct Expr;
+    struct Stmt;
 
     class Object {
         public:
@@ -46,9 +46,9 @@ namespace zebra {
     
     class Fun: public Object {
         public:
-            Expr* m_fun_decl;
+            Stmt* m_fun_decl;
         public:
-            Fun(Expr* fun_decl): m_fun_decl(fun_decl) {}
+            Fun(Stmt* fun_decl): m_fun_decl(fun_decl) {}
     };
 
 }

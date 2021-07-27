@@ -15,8 +15,7 @@ namespace zebra {
 
     class TypeChecker: public ExprTokenTypeVisitor, public StmtVoidVisitor {
         private:
-            //std::unordered_map<std::string, Expr*> m_variables;
-            std::vector<std::unordered_map<std::string, Expr*>> m_variables; //if not in current scope, check down the stack w/o popping
+            std::vector<std::unordered_map<std::string, Stmt*>> m_variables;
             class TypeError {
                 private:
                     Token m_token;
@@ -31,7 +30,7 @@ namespace zebra {
 
         public:
             TypeChecker() {
-                m_variables.emplace_back(std::unordered_map<std::string, Expr*>()); 
+                m_variables.emplace_back(std::unordered_map<std::string, Stmt*>()); 
             }
             ~TypeChecker() {}
             void execute(Stmt* stmt) {
@@ -51,7 +50,7 @@ namespace zebra {
             }
         private:
 
-            Expr* get_decl(Token& token) {
+            Stmt* get_decl(Token& token) {
                 for (int i = m_variables.size() - 1; i >= 0; i--) {
                     if(m_variables.at(i).count(token.m_lexeme) > 0) {
                         return m_variables.at(i)[token.m_lexeme];
@@ -62,11 +61,11 @@ namespace zebra {
             }
 
             TokenType get_type(Token& token) {
-                Expr* var = get_decl(token);
+                Stmt* var = get_decl(token);
 
-                if(dynamic_cast<VarDecl*>(var)) {
+                if (dynamic_cast<VarDecl*>(var)) {
                     return dynamic_cast<VarDecl*>(var)->m_type.m_type;
-                }else{
+                } else {
                     return dynamic_cast<FunDecl*>(var)->m_type.m_type;
                 }
             }
@@ -88,7 +87,7 @@ namespace zebra {
                 if(stmt->m_else_branch) execute(stmt->m_else_branch.get());
             }
             void visit(Block* stmt) {
-                m_variables.emplace_back(std::unordered_map<std::string, Expr*>());
+                m_variables.emplace_back(std::unordered_map<std::string, Stmt*>());
                 for(std::shared_ptr<Stmt> s: stmt->m_statements) {
                     execute(s.get());
                 }
@@ -121,9 +120,55 @@ namespace zebra {
                 }
             }
 
-            //Expression Statements throw away the evaluated expression
-            void visit(ExprStmt* stmt) {
-                evaluate(stmt->m_expr.get());
+            void visit(FunDecl* stmt) {
+                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
+                for(std::shared_ptr<Stmt> s: stmt->m_parameters) {
+                    VarDecl* var_decl = dynamic_cast<VarDecl*>(s.get());
+                    m_variables.back()[var_decl->m_name.m_lexeme] = s.get();
+                }
+
+                execute(stmt->m_body.get());
+            }
+
+            void visit(VarDecl* stmt) {
+                if(stmt->m_value) {
+                    TokenType expr_type = evaluate(stmt->m_value.get());
+                    if(stmt->m_type.m_type != expr_type) {
+                        throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
+                    }
+                } else {
+                    throw TypeError(stmt->m_name, stmt->m_name.to_string() + " must be defined at declaration.");
+                }
+
+                m_variables.back()[stmt->m_name.m_lexeme] = stmt; //put indentifier in env. variables
+            }
+
+            void visit(Assign* stmt) {
+                TokenType type = get_type(stmt->m_name);
+
+                TokenType expr_type = evaluate(stmt->m_value.get());
+
+                if(type != expr_type) {
+                    throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
+                }
+            }
+
+            void visit(Call* stmt) {
+                FunDecl* fun_decl = dynamic_cast<FunDecl*>(get_decl(stmt->m_name));
+
+                //check parameter/argument count
+                if(stmt->m_arity != fun_decl->m_arity) {
+                    throw TypeError(stmt->m_name, "Function call argument count must match declaration parameter count.");
+                }
+
+                //check parameter/argument type
+                for (int i = 0; i < stmt->m_arguments.size(); i++) {
+                    TokenType arg_type = evaluate(stmt->m_arguments.at(i).get());
+                    VarDecl* param = dynamic_cast<VarDecl*>(fun_decl->m_parameters.at(i).get());
+                    if(arg_type != get_type(param->m_name)) {
+                        throw TypeError(stmt->m_name, "Function call argument type must match declaration parameter type.");
+                    }
+                }
             }
 
 
@@ -200,71 +245,29 @@ namespace zebra {
                 throw TypeError(expr->m_op, "Inputs to logical operator must be of same type.");
             }
 
-
-
-            TokenType visit(VarDecl* expr) {
-                if(expr->m_value) {
-                    TokenType expr_type = evaluate(expr->m_value.get());
-                    if(expr->m_type.m_type != expr_type) {
-                        throw TypeError(expr->m_name, "Right hand expression must evaluate to type " + expr->m_name.to_string() + ".");
-                    }
-                } else {
-                    throw TypeError(expr->m_name, expr->m_name.to_string() + " must be defined at declaration.");
-                }
-
-                m_variables.back()[expr->m_name.m_lexeme] = expr; //put indentifier in env. variables
-
-                return expr->m_type.m_type;
-            }
-
-            TokenType visit(FunDecl* expr) {
-                m_variables.back()[expr->m_name.m_lexeme] = expr;
-                for(std::shared_ptr<Expr> s: expr->m_parameters) {
-                    VarDecl* var_decl = dynamic_cast<VarDecl*>(s.get());
-                    m_variables.back()[var_decl->m_name.m_lexeme] = s.get();
-                }
-
-                execute(expr->m_body.get());
-
-                return TokenType::FUN_TYPE;
-            }
-
-
-            TokenType visit(Assign* expr) {
-                TokenType type = get_type(expr->m_name);
-
-                TokenType expr_type = evaluate(expr->m_value.get());
-
-                if(type != expr_type) {
-                    throw TypeError(expr->m_name, "Right hand expression must evaluate to type " + expr->m_name.to_string() + ".");
-                }
-
-                return type;
-            }
-
             TokenType visit(Variable* expr) {
                 return get_type(expr->m_name);
             }
 
-            TokenType visit(Call* expr) {
-                FunDecl* fun_decl = dynamic_cast<FunDecl*>(get_decl(expr->m_name));
+            //Return the type of the assignment/declartion
+            TokenType visit(StmtExpr* expr) {
+                execute(expr->m_stmt.get());
 
-                //check parameter/argument count
-                if(expr->m_arity != fun_decl->m_arity) {
-                    throw TypeError(expr->m_name, "Function call argument count must match declaration parameter count.");
+                if (dynamic_cast<Assign*>(expr->m_stmt.get())) {
+                    return get_type(dynamic_cast<Assign*>(expr->m_stmt.get())->m_name);
                 }
 
-                //check parameter/argument type
-                for (int i = 0; i < expr->m_arguments.size(); i++) {
-                    TokenType arg_type = evaluate(expr->m_arguments.at(i).get());
-                    VarDecl* param = dynamic_cast<VarDecl*>(fun_decl->m_parameters.at(i).get());
-                    if(arg_type != get_type(param->m_name)) {
-                        throw TypeError(expr->m_name, "Function call argument type must match declaration parameter type.");
-                    }
+                if (dynamic_cast<VarDecl*>(expr->m_stmt.get())) {
+                    return get_type(dynamic_cast<VarDecl*>(expr->m_stmt.get())->m_name);
                 }
 
-                //check return type
-                return get_type(expr->m_name);                
+                if (dynamic_cast<FunDecl*>(expr->m_stmt.get())) {
+                    return get_type(dynamic_cast<FunDecl*>(expr->m_stmt.get())->m_name);
+                }
+
+                if (dynamic_cast<Call*>(expr->m_stmt.get())) {
+                    return get_type(dynamic_cast<Call*>(expr->m_stmt.get())->m_name);
+                }
             }
 
 

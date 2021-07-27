@@ -65,13 +65,63 @@ namespace zebra {
 
             //starts with identifier - declaration, assignment or function call with unused result
             std::shared_ptr<Stmt> identifier_statement() {
-                bool need_semicolon = true;
-                if(peek_two(TokenType::COLON_COLON)) need_semicolon = false;
-                //only require semicolons for assignments and variable declarations, and funciton calls
-                //no semicolons for function declarations
-                std::shared_ptr<Stmt> stmt = std::make_shared<ExprStmt>(expression());
-                if(need_semicolon) consume(TokenType::SEMICOLON, "Expect semicolon after expression.");
-                return stmt;
+                if (peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::LEFT_PAREN)) {
+                    return function_declaration();
+                } else { 
+                    //variable decl/assignment is a statement, but expression() wraps it inside an expression
+                    //so it needs to be unwrapped and only the member statement is returned
+                    std::shared_ptr<Expr> expr = expression();
+                    std::shared_ptr<Stmt> stmt = dynamic_cast<StmtExpr*>(expr.get())->m_stmt;
+                    consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
+                    return stmt;
+                }
+            }
+
+            std::shared_ptr<Stmt> function_declaration() {
+                match(TokenType::IDENTIFIER);
+                Token identifier = previous();
+                match(TokenType::COLON_COLON);
+
+                //parameter list
+                consume(TokenType::LEFT_PAREN, "Expect '(' before function parameters.");
+
+                std::vector<std::shared_ptr<Stmt>> parameters;
+                while(!match(TokenType::RIGHT_PAREN)) {
+                    match(TokenType::IDENTIFIER);
+                    Token name = previous();
+
+                    consume(TokenType::COLON, "Expect colon after variable identifier.");
+
+                    //TODO: this is ugly and error-prone - find a nicer way to do this
+                    match(TokenType::BOOL_TYPE);
+                    match(TokenType::INT_TYPE);
+                    match(TokenType::FLOAT_TYPE);
+                    match(TokenType::STRING_TYPE);
+                    match(TokenType::FUN_TYPE);
+                    Token type = previous();
+
+                    if (type.m_type == TokenType::COLON) {
+                        throw ParseError(type, "Invalid parameter type.");
+                    }
+
+                    parameters.emplace_back(std::make_shared<VarDecl>(name, type, nullptr));
+                    match(TokenType::COMMA);                    
+                }                
+
+                consume(TokenType::RIGHT_ARROW, "Expect '->' and return type after parameter declaration.");
+
+                //TODO: this is ugly and error-prone - find a nicer way to do this
+                match(TokenType::BOOL_TYPE);
+                match(TokenType::INT_TYPE);
+                match(TokenType::FLOAT_TYPE);
+                match(TokenType::STRING_TYPE);
+                match(TokenType::FUN_TYPE);
+                match(TokenType::NIL_TYPE);
+                m_return_type = previous(); 
+
+                std::shared_ptr<Stmt> body = block_statement();
+
+                return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
             }
 
             std::shared_ptr<Stmt> print_statement() {
@@ -149,87 +199,41 @@ namespace zebra {
 
             //using two peeks here since an IDENTIFIER may be a function call, which has highest precedence
             std::shared_ptr<Expr> declare_assign() {
-                if(peek_one(TokenType::IDENTIFIER)) {
-                    //variable/function assignment
-                    if (peek_two(TokenType::EQUAL)) {
-                        match(TokenType::IDENTIFIER);
-                        Token identifier = previous();
-                        match(TokenType::EQUAL);
-                        std::shared_ptr<Expr> value = declare_assign();
-                        return std::make_shared<Assign>(identifier, value);
-                    //variable declaration/assignment
-                    } else if (peek_two(TokenType::COLON)) {
-                        match(TokenType::IDENTIFIER);
-                        Token identifier = previous();
-                        match(TokenType::COLON);
-                        
-                        //TODO: this is ugly and error-prone - find a nicer way to do this
-                        match(TokenType::BOOL_TYPE);
-                        match(TokenType::INT_TYPE);
-                        match(TokenType::FLOAT_TYPE);
-                        match(TokenType::STRING_TYPE);
-                        match(TokenType::FUN_TYPE);
-                        Token type = previous();
+                //variable assignment
+                if (peek_two(TokenType::IDENTIFIER, TokenType::EQUAL)) {
+                    match(TokenType::IDENTIFIER);
+                    Token identifier = previous();
+                    match(TokenType::EQUAL);
+                    std::shared_ptr<Expr> value = declare_assign();
+                    std::shared_ptr<Stmt> assignment = std::make_shared<Assign>(identifier, value);
+                    return std::make_shared<StmtExpr>(assignment);
+                //variable declaration
+                } else if (peek_two(TokenType::IDENTIFIER, TokenType::COLON)) {
+                    match(TokenType::IDENTIFIER);
+                    Token identifier = previous();
+                    match(TokenType::COLON);
+                    
+                    //TODO: this is ugly and error-prone - find a nicer way to do this
+                    match(TokenType::BOOL_TYPE);
+                    match(TokenType::INT_TYPE);
+                    match(TokenType::FLOAT_TYPE);
+                    match(TokenType::STRING_TYPE);
+                    match(TokenType::FUN_TYPE);
+                    Token type = previous();
 
-                        if (type.m_type == TokenType::COLON) {
-                            throw ParseError(type, "Invalid data type.");
-                        }
-                        
-                        //check for possible assignment
-                        std::shared_ptr<Expr> value = nullptr;
-                        if(match(TokenType::EQUAL)) {
-                            value = expression();
-                        }
-
-                        return std::make_shared<VarDecl>(identifier, type, value);
-                    //function declaration/assignment
-                    } else if (peek_two(TokenType::COLON_COLON)) {
-                        match(TokenType::IDENTIFIER);
-                        Token identifier = previous();
-                        match(TokenType::COLON_COLON);
-
-                        //parameter list
-                        consume(TokenType::LEFT_PAREN, "Expect '(' before function parameters.");
-
-                        std::vector<std::shared_ptr<Expr>> parameters;
-                        while(!match(TokenType::RIGHT_PAREN)) {
-                            match(TokenType::IDENTIFIER);
-                            Token name = previous();
-
-                            consume(TokenType::COLON, "Expect colon after variable identifier.");
-
-                            //TODO: this is ugly and error-prone - find a nicer way to do this
-                            match(TokenType::BOOL_TYPE);
-                            match(TokenType::INT_TYPE);
-                            match(TokenType::FLOAT_TYPE);
-                            match(TokenType::STRING_TYPE);
-                            match(TokenType::FUN_TYPE);
-                            Token type = previous();
-
-                            if (type.m_type == TokenType::COLON) {
-                                throw ParseError(type, "Invalid parameter type.");
-                            }
-
-                            parameters.emplace_back(std::make_shared<VarDecl>(name, type, nullptr));
-                            match(TokenType::COMMA);                    
-                        }                
-
-                        consume(TokenType::RIGHT_ARROW, "Expect '->' and return type after parameter declaration.");
-
-                        //TODO: this is ugly and error-prone - find a nicer way to do this
-                        match(TokenType::BOOL_TYPE);
-                        match(TokenType::INT_TYPE);
-                        match(TokenType::FLOAT_TYPE);
-                        match(TokenType::STRING_TYPE);
-                        match(TokenType::FUN_TYPE);
-                        match(TokenType::NIL_TYPE);
-                        m_return_type = previous(); 
-
-                        std::shared_ptr<Stmt> body = block_statement();
-
-                        return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
-
+                    if (type.m_type == TokenType::COLON) {
+                        throw ParseError(type, "Invalid data type.");
                     }
+                    
+                    //check for possible assignment
+                    std::shared_ptr<Expr> value = nullptr;
+                    if(match(TokenType::EQUAL)) {
+                        value = expression();
+                    }
+
+                    std::shared_ptr<Stmt> var_decl = std::make_shared<VarDecl>(identifier, type, value);
+
+                    return std::make_shared<StmtExpr>(var_decl);
                 }
 
                 return logic_or();
@@ -340,7 +344,7 @@ namespace zebra {
                             arguments.emplace_back(expression());
                             match(TokenType::COMMA);
                         }
-                        return std::make_shared<Call>(identifier, arguments);
+                        return std::make_shared<StmtExpr>(std::make_shared<Call>(identifier, arguments));
                     } else {
                         return std::make_shared<Variable>(previous());
                     }
@@ -367,8 +371,12 @@ namespace zebra {
             bool peek_one(TokenType type) {
                 return m_tokens.at(m_current).m_type == type;
             }
-            bool peek_two(TokenType type) {
-                return m_tokens.at(m_current + 1).m_type == type;
+            bool peek_two(TokenType type1, TokenType type2) {
+                return peek_one(type1) && (m_tokens.at(m_current + 1).m_type == type2);
+            }
+
+            bool peek_three(TokenType type1, TokenType type2, TokenType type3) {
+                return peek_two(type1, type2) && (m_tokens.at(m_current + 2).m_type == type3);
             }
 
             const Token& previous() {

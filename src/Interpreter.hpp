@@ -35,11 +35,6 @@ namespace zebra {
                 return expr->accept(*this);
             }
 
-            //throw away result of expression
-            void visit(ExprStmt* stmt) {
-                evaluate(stmt->m_expr.get());
-            }
-
             void visit(Print* stmt) {
                 std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
 
@@ -99,6 +94,53 @@ namespace zebra {
                 std::shared_ptr<Object> ret = evaluate(stmt->m_value.get());
                 m_environment->set_return(ret);
             }
+
+            void visit(Assign* stmt) {
+                std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
+                m_environment->assign(stmt->m_name, value);
+            }
+
+            void visit(VarDecl* stmt) {
+                std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
+                m_environment->define(stmt->m_name, value);
+            }
+
+            void visit(FunDecl* stmt) {
+                std::shared_ptr<Object> fun = std::make_shared<Fun>(stmt);
+                m_environment->define(stmt->m_name, fun);
+            }
+
+            void visit(Call* stmt) {
+                std::shared_ptr<Object> obj = m_environment->get(stmt->m_name);
+                Fun* fun = dynamic_cast<Fun*>(obj.get());
+                FunDecl* fun_decl = dynamic_cast<FunDecl*>(fun->m_fun_decl);
+
+                //evaluate call arguments
+                std::vector<std::shared_ptr<Object>> arguments;
+                for (std::shared_ptr<Expr> e: stmt->m_arguments) {
+                    arguments.push_back(evaluate(e.get()));
+                }
+                
+                std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, true);
+                std::shared_ptr<Environment> closure = m_environment;
+                m_environment = block_env;
+
+                //declare and define parameters in FunDecl
+                //type checker should have already verified that parameter/argument types/counts match
+                for (int i = 0; i < fun_decl->m_parameters.size(); i++) {
+                    Token param_token = dynamic_cast<VarDecl*>(fun_decl->m_parameters.at(i).get())->m_name;
+                    std::shared_ptr<Object> param_value = arguments.at(i);
+                    m_environment->define(param_token, param_value);
+                }
+
+                execute(fun_decl->m_body.get()); //fun_decl->m_body is a Block, which will already create its own environment
+
+                std::shared_ptr<Object> return_value = m_environment->get_return();
+
+                m_environment = closure;   
+
+                stmt->m_return = return_value;
+            } 
 
 
             std::shared_ptr<Object> visit(Unary* expr) {
@@ -243,59 +285,29 @@ namespace zebra {
 
             }
 
-            std::shared_ptr<Object> visit(Assign* expr) {
-                std::shared_ptr<Object> value = evaluate(expr->m_value.get());
-                m_environment->assign(expr->m_name, value);
-                return value;
-            }
-
-            std::shared_ptr<Object> visit(VarDecl* expr) {
-                std::shared_ptr<Object> value = evaluate(expr->m_value.get());
-                m_environment->define(expr->m_name, value);
-                return value;
-            }
-
-            std::shared_ptr<Object> visit(FunDecl* expr) {
-                std::shared_ptr<Object> fun = std::make_shared<Fun>(expr);
-                m_environment->define(expr->m_name, fun);
-                return fun;
-            }
-
-            std::shared_ptr<Object> visit(Call* expr) {
-                std::shared_ptr<Object> obj = m_environment->get(expr->m_name);
-                Fun* fun = dynamic_cast<Fun*>(obj.get());
-                FunDecl* fun_decl = dynamic_cast<FunDecl*>(fun->m_fun_decl);
-
-                //evaluate call arguments
-                std::vector<std::shared_ptr<Object>> arguments;
-                for (std::shared_ptr<Expr> e: expr->m_arguments) {
-                    arguments.push_back(evaluate(e.get()));
-                }
-                
-                std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, true);
-                std::shared_ptr<Environment> closure = m_environment;
-                m_environment = block_env;
-
-                //declare and define parameters in FunDecl
-                //type checker should have already verified that parameter/argument types/counts match
-                for (int i = 0; i < fun_decl->m_parameters.size(); i++) {
-                    Token param_token = dynamic_cast<VarDecl*>(fun_decl->m_parameters.at(i).get())->m_name;
-                    std::shared_ptr<Object> param_value = arguments.at(i);
-                    m_environment->define(param_token, param_value);
-                }
-
-                execute(fun_decl->m_body.get()); //fun_decl->m_body is a Block, which will already create its own environment
-
-                std::shared_ptr<Object> return_value = m_environment->get_return();
-
-                m_environment = closure;   
-
-                return return_value;
-            } 
-
             std::shared_ptr<Object> visit(Variable* expr) {
                 return m_environment->get(expr->m_name);
             }
+
+            std::shared_ptr<Object> visit(StmtExpr* expr) {
+                execute(expr->m_stmt.get());
+                
+                Call* call = dynamic_cast<Call*>(expr->m_stmt.get());
+                if (call) {
+                    return call->m_return;
+                }
+
+                Assign* assignment = dynamic_cast<Assign*>(expr->m_stmt.get());
+                if (assignment) {
+                    return m_environment->get(assignment->m_name);
+                }
+
+                VarDecl* var_decl = dynamic_cast<VarDecl*>(expr->m_stmt.get());
+                if (var_decl) {
+                    return m_environment->get(var_decl->m_name);
+                }
+            }
+
 
 
     };

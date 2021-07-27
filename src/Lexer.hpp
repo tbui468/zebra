@@ -131,6 +131,7 @@ namespace zebra {
                             break;
                         case 'n':
                             if (match("il")) add_token(TokenType::NIL_TYPE);
+                            else read_identifier();
                             break;
                         case 'p':
                             if (match("rint")) add_token(TokenType::PRINT);
@@ -143,9 +144,11 @@ namespace zebra {
                                     add_token(TokenType::NIL);
                                 }
                             }
+                            else read_identifier();
                             break;
                         case 's':
                             if (match("tring")) add_token(TokenType::STRING_TYPE);
+                            else if (match("truct")) add_token(TokenType::STRUCT);
                             else read_identifier();
                             break;
                         case 't':

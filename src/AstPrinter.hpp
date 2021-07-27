@@ -34,14 +34,11 @@ namespace zebra {
             std::string visit(Logic* expr) override {
                 return "( " + expr->m_op.to_string() + " " + expr->m_left->accept(*this) + " " + expr->m_right->accept(*this) + " )";
             }
-            std::string visit(Assign* expr) override {
-                return "Assign";
-            }
             std::string visit(Variable* expr) override {
                 return "( " + expr->m_name.to_string() + " )";
             }
-            std::string visit(Call* expr) override {
-                return "Call";
+            std::string visit(StmtExpr* expr) override {
+                return "StmtExpr";
             }
 
             /*
@@ -65,14 +62,17 @@ namespace zebra {
                 }
                 return ret + " )";
             }
-            std::string visit(VarDecl* stmt) override {
-                return "VarDecl";
-            }
             std::string visit(While* stmt) override {
                 return "While";
             }
             std::string visit(For* stmt) override {
                 return "For";
+            }
+            std::string visit(Assign* stmt) override {
+                return "Assign";
+            }
+            std::string visit(VarDecl* stmt) override {
+                return "VarDecl";
             }
             std::string visit(FunDecl* stmt) override {
                 return "FunDecl";
@@ -80,9 +80,18 @@ namespace zebra {
             std::string visit(Return* stmt) override {
                 return "Return";
             }
-            std::string visit(ExprStmt* stmt) override {
-                return "ExprStmt";
+
+            std::string visit(Call* stmt) override {
+                return "Call";
             }
+            
+            /*std::string visit(ExprStmt* stmt) override {
+                return "ExprStmt";
+            }*/
+            /*
+            std::string visit(StructDecl* stmt) override {
+                return "StructDecl";
+            }*/
     };
 
 
