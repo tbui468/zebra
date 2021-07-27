@@ -15,7 +15,8 @@ namespace zebra {
 
     class TypeChecker: public ExprTokenTypeVisitor, public StmtVoidVisitor {
         private:
-            std::unordered_map<std::string, Expr*> m_variables;
+            //std::unordered_map<std::string, Expr*> m_variables;
+            std::vector<std::unordered_map<std::string, Expr*>> m_variables; //if not in current scope, check down the stack w/o popping
             class TypeError {
                 private:
                     Token m_token;
@@ -29,7 +30,9 @@ namespace zebra {
             };
 
         public:
-            TypeChecker() {}
+            TypeChecker() {
+                m_variables.emplace_back(std::unordered_map<std::string, Expr*>()); 
+            }
             ~TypeChecker() {}
             void execute(Stmt* stmt) {
                 stmt->accept(*this);
@@ -48,8 +51,18 @@ namespace zebra {
             }
         private:
 
+            Expr* get_decl(const std::string& lexeme) {
+                for (int i = m_variables.size() - 1; i >= 0; i--) {
+                    if(m_variables.at(i).count(lexeme) > 0) {
+                        return m_variables.at(i)[lexeme];
+                    }
+                }
+                return nullptr;
+            }
+
             TokenType get_type(const std::string& lexeme) {
-                Expr* var = m_variables[lexeme];
+                Expr* var = get_decl(lexeme);
+
                 if(dynamic_cast<VarDecl*>(var)) {
                     return dynamic_cast<VarDecl*>(var)->m_type.m_type;
                 }else{
@@ -74,9 +87,11 @@ namespace zebra {
                 if(stmt->m_else_branch) execute(stmt->m_else_branch.get());
             }
             void visit(Block* stmt) {
+                m_variables.emplace_back(std::unordered_map<std::string, Expr*>());
                 for(std::shared_ptr<Stmt> s: stmt->m_statements) {
                     execute(s.get());
                 }
+                m_variables.pop_back();
             }
 
             void visit(While* stmt) {
@@ -187,7 +202,7 @@ namespace zebra {
 
 
             TokenType visit(VarDecl* expr) {
-                m_variables[expr->m_name.m_lexeme] = expr;
+                m_variables.back()[expr->m_name.m_lexeme] = expr;
                 if(expr->m_value) {
                     TokenType expr_type = evaluate(expr->m_value.get());
                     if(expr->m_type.m_type != expr_type) {
@@ -199,10 +214,10 @@ namespace zebra {
             }
 
             TokenType visit(FunDecl* expr) {
-                m_variables[expr->m_name.m_lexeme] = expr;
+                m_variables.back()[expr->m_name.m_lexeme] = expr;
                 for(std::shared_ptr<Expr> s: expr->m_parameters) {
                     VarDecl* var_decl = dynamic_cast<VarDecl*>(s.get());
-                    m_variables[var_decl->m_name.m_lexeme] = s.get();
+                    m_variables.back()[var_decl->m_name.m_lexeme] = s.get();
                 }
 
                 execute(expr->m_body.get());
@@ -228,7 +243,7 @@ namespace zebra {
             }
 
             TokenType visit(Call* expr) {
-                FunDecl* fun_decl = dynamic_cast<FunDecl*>(m_variables[expr->m_name.m_lexeme]);
+                FunDecl* fun_decl = dynamic_cast<FunDecl*>(get_decl(expr->m_name.m_lexeme));
 
                 //check parameter/argument count
                 if(expr->m_arity != fun_decl->m_arity) {
