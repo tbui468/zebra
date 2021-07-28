@@ -60,6 +60,7 @@ namespace zebra {
                 throw TypeError(token, token.to_string() + " not declared.");
             }
 
+            //getting declaration type (variable or function return type)
             TokenType get_type(Token& token) {
                 Stmt* var = get_decl(token);
 
@@ -179,6 +180,7 @@ namespace zebra {
             }
 
             void visit(StructInst* stmt) {
+                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
                 Stmt* decl = get_decl(stmt->m_struct);
                 StructDecl* struct_decl = dynamic_cast<StructDecl*>(decl);
 
@@ -292,6 +294,22 @@ namespace zebra {
                 if (dynamic_cast<Call*>(expr->m_stmt.get())) {
                     return get_type(dynamic_cast<Call*>(expr->m_stmt.get())->m_name);
                 }
+            }
+
+            TokenType visit(Access* expr) {
+                //return type of expr->m_field.m_lexeme (look for the match lexeme in struct decl)
+                //this is how structInst checks field types
+                //get the instance StructInst*
+                StructInst* inst = dynamic_cast<StructInst*>(get_decl(expr->m_instance)); //has vector of expr (m_arguments)
+                StructDecl* decl = dynamic_cast<StructDecl*>(get_decl(inst->m_struct)); //get struct declaration (has vector of VarDecls)
+
+                for (std::shared_ptr<VarDecl> var_decl: decl->m_fields) {
+                    if (var_decl->m_name.m_lexeme == expr->m_field.m_lexeme) {
+                        return var_decl->m_type.m_type;
+                    }
+                }
+
+                throw TypeError(expr->m_instance, "Struct " + decl->m_name.to_string() + " has does not have a field " + expr->m_field.to_string());
             }
 
 

@@ -40,6 +40,9 @@ namespace zebra {
             std::string visit(StmtExpr* expr) override {
                 return "StmtExpr";
             }
+            std::string visit(Access* expr) override {
+                return "Access";
+            }
 
             /*
              * Statements

@@ -392,6 +392,13 @@ namespace zebra {
                     return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::NIL)) {
                     return std::make_shared<Literal>(previous());
+                }else if(peek_three(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER)) {
+                    match(TokenType::IDENTIFIER);
+                    Token instance = previous();
+                    match(TokenType::DOT);
+                    match(TokenType::IDENTIFIER);
+                    Token field = previous();
+                    return std::make_shared<Access>(instance, field);
                 }else if(peek_two(TokenType::IDENTIFIER, TokenType::LEFT_PAREN)) {
                     match(TokenType::IDENTIFIER);
                     Token identifier = previous();

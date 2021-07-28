@@ -17,6 +17,7 @@ namespace zebra {
     struct Logic;
     struct Variable;
     struct StmtExpr;
+    struct Access;
 
     struct ExprStringVisitor {
         virtual std::string visit(Unary* expr) = 0;
@@ -26,6 +27,7 @@ namespace zebra {
         virtual std::string visit(Logic* expr) = 0;
         virtual std::string visit(Variable* expr) = 0;
         virtual std::string visit(StmtExpr* expr) = 0;
+        virtual std::string visit(Access* expr) = 0;
     };
 
     struct ExprObjectVisitor {
@@ -36,6 +38,7 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(Logic* expr) = 0;
         virtual std::shared_ptr<Object> visit(Variable* expr) = 0;
         virtual std::shared_ptr<Object> visit(StmtExpr* expr) = 0;
+        virtual std::shared_ptr<Object> visit(Access* expr) = 0;
     };
 
     struct ExprTokenTypeVisitor {
@@ -46,6 +49,7 @@ namespace zebra {
         virtual TokenType visit(Logic* expr) = 0;
         virtual TokenType visit(Variable* expr) = 0;
         virtual TokenType visit(StmtExpr* expr) = 0;
+        virtual TokenType visit(Access* expr) = 0;
     };
 
     //Expressions
@@ -141,6 +145,18 @@ namespace zebra {
             TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             std::shared_ptr<Stmt> m_stmt;
+    };
+
+    struct Access: public Expr {
+        public:
+            Access(Token instance, Token field): m_instance(instance), m_field(field) {}
+            ~Access() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_instance;
+            Token m_field;
     };
 
 }

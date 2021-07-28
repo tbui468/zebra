@@ -18,13 +18,16 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Be able to access struct fields with dot notation - print to test
 //Be able to assign struct fields with dot notation - print before and after to check if field was successfully changed
-//Be able to declare and assign struct, eg dog1: Dog = dog2;
+//  Could do assignment by modifying Assign node to take in optional instance field, or make a unique one
+//Be able to declare and assign struct to a different struct, eg dog1: Dog = dog2;
+//Write tests for struct getters and setters
+//Allow numbers in IDENTIFIERS as long as the first character is alpha or _.  Currently 'my_var12' is not allowed as identifier (and it should be)
+//'consume' in parser should return a Token - do this instead of calling match and previous a bunch of times
 //change VarDecl m_type field to m_data_type field.  m_type belongs to Token and is the token type
+//Dealing with return types in Parser is freaking messy with a lot of parser states - can this be simplified?
 //How can the TypeChecker check custom types?  (Such as structs) - all instances have to keep a copy of the Token or lexeme of the declaration
     //but then is breaks from the way we use TokenTypes to type check now....
-//Allow numbers in IDENTIFIERS as long as the first character is alpha or _
 //Structs
 //      Dog :: struct {
 //          name: string = "default";
@@ -58,18 +61,19 @@ int main(int argc, char** argv) {
           
 //            lexer.print_source();
             
-//            for (zebra::Token t: tokens) {
- //               std::cout << t.to_string() << std::endl;
-  //          }
+            for (zebra::Token t: tokens) {
+                std::cout << t.to_string() << std::endl;
+            }
 
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
-/*    
+
+
             zebra::AstPrinter printer;        
             for(int i = 0; i < int(ast.size()); i++) {
                 printer.print(ast.at(i).get());
-            }*/
+            }
 
             zebra::TypeChecker checker;
             bool passed = checker.check(ast);

@@ -317,6 +317,11 @@ namespace zebra {
                 return m_environment->get(expr->m_name);
             }
 
+            std::shared_ptr<Object> visit(Access* expr) {
+                StructInstance* inst = dynamic_cast<StructInstance*>(m_environment->get(expr->m_instance).get());
+                return inst->m_fields[expr->m_field.m_lexeme];
+            }
+
             std::shared_ptr<Object> visit(StmtExpr* expr) {
                 execute(expr->m_stmt.get());
                 
