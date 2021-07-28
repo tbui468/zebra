@@ -111,8 +111,31 @@ namespace zebra {
             }
 
             void visit(StructDecl* stmt) {
-                std::shared_ptr<Object> zebra_struct = std::make_shared<Struct>(stmt);
-                m_environment->define(stmt->m_name, zebra_struct);
+                std::shared_ptr<Object> struct_def = std::make_shared<StructDefinition>(stmt);
+                m_environment->define(stmt->m_name, struct_def);
+            }
+
+            void visit(StructInst* stmt) {
+                StructDefinition* def = dynamic_cast<StructDefinition*>(m_environment->get(stmt->m_struct).get());
+                std::unordered_map<std::string, std::shared_ptr<Object>> fields;
+                if (!(stmt->m_arguments.empty())) {
+                    for (int i = 0; i < def->m_node->m_fields.size(); i++) {
+                        //get lexeme from declaration
+                        std::string lexeme = def->m_node->m_fields.at(i)->m_name.m_lexeme;
+                        //get value from argument evaluation
+                        std::shared_ptr<Object> value = evaluate(stmt->m_arguments.at(i).get());
+                        fields[lexeme] = value;
+                    }
+                } else { //use default values in struct definition
+                    for (std::shared_ptr<VarDecl> var_decl: def->m_node->m_fields) {
+                        std::string lexeme = var_decl->m_name.m_lexeme;
+                        std::shared_ptr<Object> value = evaluate(var_decl->m_value.get());
+                        fields[lexeme] = value;
+                    }
+                }
+
+                std::shared_ptr<Object> struct_instance = std::make_shared<StructInstance>(fields);
+                m_environment->define(stmt->m_name, struct_instance);
             }
 
             void visit(Call* stmt) {

@@ -19,10 +19,16 @@
 
 //TODO: 
 //Get structs compiling with Interpreter
+//  StructDefinition should not store a pointer to a StructDecl node - it should create all the data it needs inside the StructDefinition class instance itself
+//  bc when we reach a StructInst node, it should read directly from the environment variables to create an instance.
+//  This instance should then be saved to the environment for later reference
+//  Think about this some more.  
 //Be able to access struct fields with dot notation - print to test
 //Be able to assign struct fields with dot notation - print before and after to check if field was successfully changed
 //Be able to declare and assign struct, eg dog1: Dog = dog2;
 //change VarDecl m_type field to m_data_type field.  m_type belongs to Token and is the token type
+//How can the TypeChecker check custom types?  (Such as structs) - all instances have to keep a copy of the Token or lexeme of the declaration
+    //but then is breaks from the way we use TokenTypes to type check now....
 //Allow numbers in IDENTIFIERS as long as the first character is alpha or _
 //Structs
 //      Dog :: struct {
@@ -72,13 +78,13 @@ int main(int argc, char** argv) {
 
             zebra::TypeChecker checker;
             bool passed = checker.check(ast);
-/*
+
             if(passed) {
                 zebra::Interpreter interp(ast);
                 interp.run();
             } else {
                 std::cout << "Type errors found.  Can not run code." << std::endl;
-            }*/
+            }
         }
 
     }

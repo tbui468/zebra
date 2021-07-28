@@ -6,6 +6,8 @@
 namespace zebra {
 
     struct Stmt;
+    struct StructDecl;
+    struct VarDecl;
 
     class Object {
         public:
@@ -51,18 +53,19 @@ namespace zebra {
             Fun(Stmt* fun_decl): m_fun_decl(fun_decl) {}
     };
 
-    class Struct: public Object {
+    class StructDefinition: public Object {
         public:
-            Stmt* m_struct_decl;
+            StructDecl* m_node;
         public:
-            Struct(Stmt* struct_decl): m_struct_decl(struct_decl) {}
+            StructDefinition(StructDecl* node): m_node(node) {}
     };
 
     class StructInstance: public Object {
         public:
             std::unordered_map<std::string, std::shared_ptr<Object>> m_fields;
         public:
-            StructInstance(std::unordered_map<std::string, std::shared_ptr<Object>> fields): m_fields(fields) {}
+            StructInstance(std::unordered_map<std::string, std::shared_ptr<Object>> fields)
+                : m_fields(fields) {}
     };
 
 }
