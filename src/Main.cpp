@@ -18,11 +18,6 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Get structs compiling with Interpreter
-//  StructDefinition should not store a pointer to a StructDecl node - it should create all the data it needs inside the StructDefinition class instance itself
-//  bc when we reach a StructInst node, it should read directly from the environment variables to create an instance.
-//  This instance should then be saved to the environment for later reference
-//  Think about this some more.  
 //Be able to access struct fields with dot notation - print to test
 //Be able to assign struct fields with dot notation - print before and after to check if field was successfully changed
 //Be able to declare and assign struct, eg dog1: Dog = dog2;
@@ -61,20 +56,20 @@ int main(int argc, char** argv) {
             zebra::Lexer lexer(argv[i]); 
             std::vector<zebra::Token> tokens = lexer.scan();
           
-            lexer.print_source();
+//            lexer.print_source();
             
-            for (zebra::Token t: tokens) {
-                std::cout << t.to_string() << std::endl;
-            }
+//            for (zebra::Token t: tokens) {
+ //               std::cout << t.to_string() << std::endl;
+  //          }
 
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
-    
+/*    
             zebra::AstPrinter printer;        
             for(int i = 0; i < int(ast.size()); i++) {
                 printer.print(ast.at(i).get());
-            }
+            }*/
 
             zebra::TypeChecker checker;
             bool passed = checker.check(ast);

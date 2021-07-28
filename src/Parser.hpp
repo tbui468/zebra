@@ -53,11 +53,19 @@ namespace zebra {
                 if (peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::STRUCT))       return struct_declaration();
                 if (peek_three(TokenType::IDENTIFIER, TokenType::COLON, TokenType::IDENTIFIER))         return struct_instantiation();
                 if (peek_two(TokenType::IDENTIFIER, TokenType::COLON))                                  return variable_declaration();
+                if (peek_two(TokenType::IDENTIFIER, TokenType::LEFT_PAREN))                             return call_statement();
                 if (match(TokenType::WHILE))            return while_statement();
                 if (match(TokenType::FOR))              return for_statement();
                 if (match(TokenType::RETURN))           return return_statement();
                 
                 throw ParseError(previous(), "Invalid token");
+            }
+
+            std::shared_ptr<Stmt> call_statement() {
+                std::shared_ptr<Expr> expr = expression();
+                std::shared_ptr<Stmt> stmt = dynamic_cast<StmtExpr*>(expr.get())->m_stmt;
+                consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
+                return stmt;
             }
 
 
