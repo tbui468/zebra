@@ -24,7 +24,7 @@ namespace zebra {
         RETURN, STRUCT,
         //types
         INT_TYPE, FLOAT_TYPE, STRING_TYPE,
-        BOOL_TYPE, FUN_TYPE, NIL_TYPE,
+        BOOL_TYPE, FUN_TYPE, NIL_TYPE, STRUCT_TYPE,
         /*
         ELIF, //new stuff
         BREAK,

@@ -78,6 +78,8 @@ namespace zebra {
 
                 if (dynamic_cast<VarDecl*>(var)) {
                     return dynamic_cast<VarDecl*>(var)->m_type.m_type;
+                } else if (dynamic_cast<StructInst*>(var)) {
+                    return TokenType::STRUCT_TYPE;                     
                 } else {
                     return dynamic_cast<FunDecl*>(var)->m_type.m_type;
                 }

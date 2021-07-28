@@ -21,11 +21,6 @@
 //  Type checker breaks when assigning one struct to another
 //      Be able to declare and assign struct to a different struct, eg dog1: Dog = dog2;  also allow assignment only dog1 = dog2;
 //      how to type check this?  Could just check that lexeme of stuct is same in both (is the struct data saved in instances? - YES, called m_struct)
-//  Assignment is bugged - the pointers are copied rather than creating a new copy of the struct instance, so changing one instance effects the other
-//      since both instance pointers reference the same memory location
-//      Could try changing StructInstance unordered_map to hold an object instead of a pointer to and object.  But this clashes with Interpreter needing pointers
-//      Why are we using pointers for the Interpreter to pass objects anyway?  Couldn't we just pass copies of the Objects (most are really small anyway)
-//          let's commit, then try changing all Object pointers to Objects
 //Should change name of Access to AccessField for clarity (Expr.hpp)
 //Should change name of Fun to FunctionDefinition (Object.hpp)
 //Write tests for struct getters and setters, assignments
@@ -67,26 +62,25 @@ int main(int argc, char** argv) {
             std::vector<zebra::Token> tokens = lexer.scan();
           
 //            lexer.print_source();
-            
+           /* 
             for (zebra::Token t: tokens) {
                 std::cout << t.to_string() << std::endl;
-            }
+            }*/
 
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
 
-
+/*
             zebra::AstPrinter printer;        
             for(int i = 0; i < int(ast.size()); i++) {
                 printer.print(ast.at(i).get());
-            }
+            }*/
 
-            //zebra::TypeChecker checker;
-            //bool passed = checker.check(ast);
+            zebra::TypeChecker checker;
+            bool passed = checker.check(ast);
 
-            //if(passed) {
-            if(true) {
+            if(passed) {
                 zebra::Interpreter interp(ast);
                 interp.run();
             } else {

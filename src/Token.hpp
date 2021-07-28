@@ -68,6 +68,7 @@ namespace zebra {
                     case TokenType::BOOL_TYPE: return "BOOL_TYPE";
                     case TokenType::FUN_TYPE: return "FUN_TYPE";
                     case TokenType::NIL_TYPE: return "NIL_TYPE";
+                    case TokenType::STRUCT_TYPE: return "STRUCT_TYPE";
                     //other
                     case TokenType::SLASH_SLASH: return "SLASH_SLASH";
                     case TokenType::EOFILE: return "EOFILE";
