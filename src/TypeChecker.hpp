@@ -49,6 +49,18 @@ namespace zebra {
                 return true;
             }
         private:
+            TokenType get_field_type_from_instance(Token inst_name, Token field) {
+                StructInst* inst = dynamic_cast<StructInst*>(get_decl(inst_name));
+                StructDecl* decl = dynamic_cast<StructDecl*>(get_decl(inst->m_struct)); 
+
+                for (std::shared_ptr<VarDecl> var_decl: decl->m_fields) {
+                    if (var_decl->m_name.m_lexeme == field.m_lexeme) {
+                        return var_decl->m_type.m_type;
+                    }
+                }
+
+                throw TypeError(inst_name, "Struct " + decl->m_name.to_string() + " has does not have a field " + field.to_string());
+            }
 
             Stmt* get_decl(Token& token) {
                 for (int i = m_variables.size() - 1; i >= 0; i--) {
@@ -154,6 +166,15 @@ namespace zebra {
 
                 if(type != expr_type) {
                     throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
+                }
+            }
+
+            void visit(AssignField* stmt) {
+                TokenType field_type = get_field_type_from_instance(stmt->m_instance, stmt->m_field);
+                TokenType value_t = evaluate(stmt->m_value.get());
+
+                if (field_type != value_t) {
+                    throw TypeError(stmt->m_instance, stmt->m_field.to_string() + " type does not match assignment type.");
                 }
             }
 
@@ -283,6 +304,11 @@ namespace zebra {
                     return get_type(dynamic_cast<Assign*>(expr->m_stmt.get())->m_name);
                 }
 
+                if (dynamic_cast<AssignField*>(expr->m_stmt.get())) {
+                    AssignField* stmt = dynamic_cast<AssignField*>(expr->m_stmt.get());
+                    return get_field_type_from_instance(stmt->m_instance, stmt->m_field);
+                }
+
                 if (dynamic_cast<VarDecl*>(expr->m_stmt.get())) {
                     return get_type(dynamic_cast<VarDecl*>(expr->m_stmt.get())->m_name);
                 }
@@ -296,20 +322,9 @@ namespace zebra {
                 }
             }
 
+
             TokenType visit(Access* expr) {
-                //return type of expr->m_field.m_lexeme (look for the match lexeme in struct decl)
-                //this is how structInst checks field types
-                //get the instance StructInst*
-                StructInst* inst = dynamic_cast<StructInst*>(get_decl(expr->m_instance)); //has vector of expr (m_arguments)
-                StructDecl* decl = dynamic_cast<StructDecl*>(get_decl(inst->m_struct)); //get struct declaration (has vector of VarDecls)
-
-                for (std::shared_ptr<VarDecl> var_decl: decl->m_fields) {
-                    if (var_decl->m_name.m_lexeme == expr->m_field.m_lexeme) {
-                        return var_decl->m_type.m_type;
-                    }
-                }
-
-                throw TypeError(expr->m_instance, "Struct " + decl->m_name.to_string() + " has does not have a field " + expr->m_field.to_string());
+                return get_field_type_from_instance(expr->m_instance, expr->m_field);
             }
 
 

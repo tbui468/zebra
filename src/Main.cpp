@@ -20,8 +20,10 @@
 //TODO: 
 //Be able to assign struct fields with dot notation - print before and after to check if field was successfully changed
 //  Could do assignment by modifying Assign node to take in optional instance field, or make a unique one
-//Be able to declare and assign struct to a different struct, eg dog1: Dog = dog2;
-//Write tests for struct getters and setters
+//Should change name of Access to AccessField for clarity
+//Be able to declare and assign struct to a different struct, eg dog1: Dog = dog2;  also allow assignment only dog1 = dog2;
+//  how to type check this?  Could just check that lexeme of stuct is same in both (is the struct data saved in instances? - YES, called m_struct)
+//Write tests for struct getters and setters, assignments
 //Allow numbers in IDENTIFIERS as long as the first character is alpha or _.  Currently 'my_var12' is not allowed as identifier (and it should be)
 //'consume' in parser should return a Token - do this instead of calling match and previous a bunch of times
 //change VarDecl m_type field to m_data_type field.  m_type belongs to Token and is the token type

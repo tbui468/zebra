@@ -13,6 +13,7 @@ namespace zebra {
     struct For;
     struct Return;
     struct Assign;
+    struct AssignField;
     struct VarDecl;
     struct FunDecl;
     struct Call;
@@ -27,6 +28,7 @@ namespace zebra {
         virtual std::string visit(For* stmt) = 0;
         virtual std::string visit(Return* stmt) = 0;
         virtual std::string visit(Assign* stmt) = 0;
+        virtual std::string visit(AssignField* stmt) = 0;
         virtual std::string visit(VarDecl* stmt) = 0;
         virtual std::string visit(FunDecl* stmt) = 0;
         virtual std::string visit(Call* stmt) = 0;
@@ -41,6 +43,7 @@ namespace zebra {
         virtual void visit(For* stmt) = 0;
         virtual void visit(Return* stmt) = 0;
         virtual void visit(Assign* stmt) = 0;
+        virtual void visit(AssignField* stmt) = 0;
         virtual void visit(VarDecl* stmt) = 0;
         virtual void visit(FunDecl* stmt) = 0;
         virtual void visit(Call* stmt) = 0;
@@ -142,6 +145,18 @@ namespace zebra {
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
+            std::shared_ptr<Expr> m_value;
+    };
+
+    struct AssignField: public Stmt {
+        public:
+            AssignField(Token instance, Token field, std::shared_ptr<Expr> value): m_instance(instance), m_field(field), m_value(value) {}
+            ~AssignField() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_instance;
+            Token m_field;
             std::shared_ptr<Expr> m_value;
     };
 

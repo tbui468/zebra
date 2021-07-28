@@ -100,6 +100,11 @@ namespace zebra {
                 m_environment->assign(stmt->m_name, value);
             }
 
+            void visit(AssignField* stmt) {
+                StructInstance* inst = dynamic_cast<StructInstance*>(m_environment->get(stmt->m_instance).get());
+                inst->m_fields[stmt->m_field.m_lexeme] = evaluate(stmt->m_value.get());
+            }
+
             void visit(VarDecl* stmt) {
                 std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
                 m_environment->define(stmt->m_name, value);

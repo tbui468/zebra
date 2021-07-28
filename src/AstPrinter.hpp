@@ -74,6 +74,9 @@ namespace zebra {
             std::string visit(Assign* stmt) override {
                 return "Assign";
             }
+            std::string visit(AssignField* stmt) override {
+                return "Assign";
+            }
             std::string visit(VarDecl* stmt) override {
                 return "VarDecl";
             }
