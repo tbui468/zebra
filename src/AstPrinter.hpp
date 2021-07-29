@@ -47,9 +47,6 @@ namespace zebra {
             /*
              * Statements
              */
-            std::string visit(Print* stmt) override {
-                return "( Print " + stmt->m_value->accept(*this) + " )";
-            }
             std::string visit(If* stmt) override {
                 std::string ret = "( If " + stmt->m_condition->accept(*this) + " then " + stmt->m_then_branch->accept(*this);
                 if (stmt->m_else_branch) {

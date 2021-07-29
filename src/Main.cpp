@@ -16,9 +16,7 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//print() function - make this an identifier in Lexer.  Then the lexeme/functiondecl should be put into interpreter just like any other function
-//  FunDef is not even being used - it's just a wrapper for FunDecl.  Same problem with StructDefinition.  Why are we creating
-//  Objects just to reference a statement node???  What's the point of FunDef and StructDef?
+//Use new FunDef to create instances of new functions to call - start with print()
 //clock() function
 //  how to add this function to global scope???
 //Allow copy constructors for structs.  dog: Dog(d); //will construct a new Dog 'dog' by copying Dog 'd'
@@ -55,17 +53,18 @@ int main(int argc, char** argv) {
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
-/*
 
+/*
             zebra::AstPrinter printer;        
             for(int i = 0; i < int(ast.size()); i++) {
                 printer.print(ast.at(i).get());
             }*/
 
-            zebra::TypeChecker checker;
-            bool passed = checker.check(ast);
+//            zebra::TypeChecker checker;
+//            bool passed = checker.check(ast);
 
-            if(passed) {
+            //if(passed) {
+            if(true) {
                 zebra::Interpreter interp(ast);
                 interp.run();
             } else {

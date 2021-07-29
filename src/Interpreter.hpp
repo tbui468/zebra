@@ -21,7 +21,6 @@ namespace zebra {
             void run();
             void execute(Stmt* stmt);
             std::shared_ptr<Object> evaluate(Expr* expr);
-            void visit(Print* stmt);
             void visit(If* stmt);
             void visit(Block* stmt);
             void visit(While* stmt);

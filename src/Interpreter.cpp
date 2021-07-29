@@ -5,6 +5,36 @@ namespace zebra {
 
     Interpreter::Interpreter(const std::vector<std::shared_ptr<Stmt>> statements): m_statements(statements) {
         m_environment = std::make_shared<Environment>();
+
+        class Print: public Callable {
+            public:
+                Print() = default;
+                virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override {
+                    std::shared_ptr<Object> value = arguments.at(0);
+
+                    if(dynamic_cast<Bool*>(value.get())) {
+                        std::cout << dynamic_cast<Bool*>(value.get())->m_value << std::endl;
+                    }
+                    if(dynamic_cast<Int*>(value.get())) {
+                        std::cout << dynamic_cast<Int*>(value.get())->m_value << std::endl;
+                    }
+                    if(dynamic_cast<Float*>(value.get())) {
+                        std::cout << dynamic_cast<Float*>(value.get())->m_value << std::endl;
+                    }
+                    if(dynamic_cast<String*>(value.get())) {
+                        std::cout << dynamic_cast<String*>(value.get())->m_value << std::endl;
+                    }
+
+                    return std::make_shared<Nil>();
+                }
+                std::shared_ptr<Object> clone() override {
+                    return std::make_shared<Print>(*this);
+                }
+        };
+
+        std::shared_ptr<Object> fun = std::make_shared<Print>();
+
+        m_environment->define(Token(TokenType::FUN_TYPE, "print", 0), fun); //TODO: functions needs own type
     }
 
     Interpreter::~Interpreter() {}
@@ -23,23 +53,6 @@ namespace zebra {
 
     std::shared_ptr<Object> Interpreter::evaluate(Expr* expr) {
         return expr->accept(*this);
-    }
-
-    void Interpreter::visit(Print* stmt) {
-        std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
-
-        if(dynamic_cast<Bool*>(value.get())) {
-            std::cout << dynamic_cast<Bool*>(value.get())->m_value << std::endl;
-        }
-        if(dynamic_cast<Int*>(value.get())) {
-            std::cout << dynamic_cast<Int*>(value.get())->m_value << std::endl;
-        }
-        if(dynamic_cast<Float*>(value.get())) {
-            std::cout << dynamic_cast<Float*>(value.get())->m_value << std::endl;
-        }
-        if(dynamic_cast<String*>(value.get())) {
-            std::cout << dynamic_cast<String*>(value.get())->m_value << std::endl;
-        }
     }
 
     void Interpreter::visit(If* stmt) {
@@ -136,7 +149,7 @@ namespace zebra {
     //FunDef is not even being used - it's just a wrapper for FunDecl
     void Interpreter::visit(Call* stmt) {
         std::shared_ptr<Object> obj = m_environment->get(stmt->m_name);
-        FunDef* fun = dynamic_cast<FunDef*>(obj.get());
+        Callable* fun = dynamic_cast<Callable*>(obj.get());
 
         //evaluate call arguments
         std::vector<std::shared_ptr<Object>> arguments;
@@ -151,24 +164,6 @@ namespace zebra {
         std::shared_ptr<Object> return_value = fun->call(arguments, this);
 
         m_environment = closure;
-        /*
-        //create new env                
-        std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, true);
-        std::shared_ptr<Environment> closure = m_environment;
-        m_environment = block_env;
-
-        //declare and define parameters in FunDef
-        for (int i = 0; i < fun->m_parameters.size(); i++) {
-        Token param_token = dynamic_cast<VarDecl*>(fun->m_parameters.at(i).get())->m_name;
-        std::shared_ptr<Object> param_value = arguments.at(i);
-        m_environment->define(param_token, param_value);
-        }
-
-        execute(fun->m_body.get()); //fun_decl->m_body is a Block, which will already create its own environment
-
-        std::shared_ptr<Object> return_value = m_environment->get_return();
-
-        m_environment = closure;   */
 
         stmt->m_return = return_value;
     } 

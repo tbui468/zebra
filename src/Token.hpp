@@ -50,7 +50,6 @@ namespace zebra {
                     case TokenType::IDENTIFIER: return "IDENTIFIER [" + m_lexeme + "]"; break;
                     case TokenType::NIL: return "NIL";
                     //keywords
-                    case TokenType::PRINT: return "PRINT"; break;
                     case TokenType::IF: return "IF"; break;
                     case TokenType::ELSE: return "ELSE"; break;
                     case TokenType::TRUE: return "TRUE"; break;

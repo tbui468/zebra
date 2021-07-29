@@ -18,7 +18,7 @@ namespace zebra {
         //literals
         INT, FLOAT, STRING, IDENTIFIER, NIL,
         //keywords
-        PRINT, IF, ELSE, WHILE, FOR,
+        IF, ELSE, WHILE, FOR,
         TRUE, FALSE,
         AND, OR,
         RETURN, STRUCT,

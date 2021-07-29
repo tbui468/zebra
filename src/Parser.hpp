@@ -46,7 +46,6 @@ namespace zebra {
             }
 
             std::shared_ptr<Stmt> statement() {
-                if (match(TokenType::PRINT))            return print_statement();
                 if (match(TokenType::IF))               return if_statement();
                 if (peek_one(TokenType::LEFT_BRACE))    return block_statement();
                 if (peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::LEFT_PAREN))   return function_declaration();
@@ -171,14 +170,6 @@ namespace zebra {
                 std::shared_ptr<Stmt> body = std::make_shared<Block>(statements);
 
                 return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
-            }
-
-            std::shared_ptr<Stmt> print_statement() {
-                Token name = previous();
-                std::shared_ptr<Expr> value = expression(); //this needs to go through recursive descent
-                std::shared_ptr<Stmt> ret = std::make_shared<Print>(name, value);
-                consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
-                return ret;
             }
 
             std::shared_ptr<Stmt> if_statement() {

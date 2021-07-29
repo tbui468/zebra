@@ -64,8 +64,13 @@ namespace zebra {
             Nil(const Nil& obj);
             virtual std::shared_ptr<Object> clone() override;
     };
+
+    class Callable: public Object {
+        public:
+            virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) = 0;
+    };
     
-    class FunDef: public Object {
+    class FunDef: public Callable {
         public:
             std::vector<std::shared_ptr<Stmt>> m_parameters;
             std::shared_ptr<Stmt> m_body;
@@ -73,7 +78,7 @@ namespace zebra {
             FunDef(std::vector<std::shared_ptr<Stmt>> parameters, std::shared_ptr<Stmt> body);
             FunDef(const FunDef& obj);
             virtual std::shared_ptr<Object> clone() override;
-            std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp);
+            virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override;
     };
 
     class StructDef: public Object {

@@ -9,7 +9,6 @@ namespace zebra {
     struct Expr;
     class Object;
 
-    struct Print;
     struct If;
     struct Block;
     struct While;
@@ -24,7 +23,6 @@ namespace zebra {
     struct StructInst;
 
     struct StmtStringVisitor {
-        virtual std::string visit(Print* stmt) = 0;
         virtual std::string visit(If* stmt) = 0;
         virtual std::string visit(Block* stmt) = 0;
         virtual std::string visit(While* stmt) = 0;
@@ -39,7 +37,6 @@ namespace zebra {
         virtual std::string visit(StructInst* stmt) = 0;
     };
     struct StmtVoidVisitor {
-        virtual void visit(Print* stmt) = 0;
         virtual void visit(If* stmt) = 0;
         virtual void visit(Block* stmt) = 0;
         virtual void visit(While* stmt) = 0;
@@ -62,16 +59,6 @@ namespace zebra {
         virtual void accept(StmtVoidVisitor& visitor) = 0;
     };
 
-    struct Print: public Stmt {
-        public:
-            Print(Token name, std::shared_ptr<Expr> value): m_name(name), m_value(value) {}
-            ~Print() {}
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
-        public:
-            Token m_name;
-            std::shared_ptr<Expr> m_value;
-    };
 
     struct If: public Stmt {
         public:
