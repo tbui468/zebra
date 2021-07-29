@@ -303,26 +303,13 @@ namespace zebra {
             TokenType visit(StmtExpr* expr) {
                 execute(expr->m_stmt.get());
 
-                if (dynamic_cast<Assign*>(expr->m_stmt.get())) {
-                    return get_type(dynamic_cast<Assign*>(expr->m_stmt.get())->m_name);
-                }
 
                 if (dynamic_cast<AssignField*>(expr->m_stmt.get())) {
                     AssignField* stmt = dynamic_cast<AssignField*>(expr->m_stmt.get());
                     return get_field_type_from_instance(stmt->m_instance, stmt->m_field);
                 }
 
-                if (dynamic_cast<VarDecl*>(expr->m_stmt.get())) {
-                    return get_type(dynamic_cast<VarDecl*>(expr->m_stmt.get())->m_name);
-                }
-
-                if (dynamic_cast<FunDecl*>(expr->m_stmt.get())) {
-                    return get_type(dynamic_cast<FunDecl*>(expr->m_stmt.get())->m_name);
-                }
-
-                if (dynamic_cast<Call*>(expr->m_stmt.get())) {
-                    return get_type(dynamic_cast<Call*>(expr->m_stmt.get())->m_name);
-                }
+                return get_type(expr->m_stmt->m_name);
             }
 
 

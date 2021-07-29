@@ -63,7 +63,6 @@ namespace zebra {
                 std::shared_ptr<Stmt> stmt = dynamic_cast<StmtExpr*>(expr.get())->m_stmt;
                 consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
                 return stmt;
-
             }
 
             std::shared_ptr<Stmt> import_statement() {
@@ -76,6 +75,8 @@ namespace zebra {
                 if (lib.m_lexeme == "io") {
                     std::shared_ptr<Object> fun = std::make_shared<Print>();
                     functions["print"] = fun;
+                    std::shared_ptr<Object> input = std::make_shared<Input>();
+                    functions["input"] = input;
                 } else if (lib.m_lexeme == "time") {
                     std::shared_ptr<Object> fun = std::make_shared<Clock>();
                     functions["clock"] = fun;
@@ -179,6 +180,8 @@ namespace zebra {
                     consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
                 }
 
+                Token name = previous(); //block name
+
                 //setting flag to default false, will be set to true if return statement in body
                 m_had_return = false;
 
@@ -191,12 +194,13 @@ namespace zebra {
                     throw ParseError(identifier, "Expect return statement.");
                 }
 
-                std::shared_ptr<Stmt> body = std::make_shared<Block>(statements);
+                std::shared_ptr<Stmt> body = std::make_shared<Block>(name, statements);
 
                 return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
             }
 
             std::shared_ptr<Stmt> if_statement() {
+                Token name = previous();
                 consume(TokenType::LEFT_PAREN, "Expect '(' after keyword 'if'.");
                 std::shared_ptr<Expr> condition = expression();
                 consume(TokenType::RIGHT_PAREN, "Expect ')' after condition.");
@@ -206,17 +210,18 @@ namespace zebra {
                 if(match(TokenType::ELSE)) {
                     else_branch = block_statement();
                 }
-                return std::make_shared<If>(condition, then_branch, else_branch);
+                return std::make_shared<If>(name, condition, then_branch, else_branch);
             }
 
             std::shared_ptr<Stmt> block_statement() {
                 consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
+                Token name = previous();
                 std::vector<std::shared_ptr<Stmt>> statements;
                 while (!match(TokenType::RIGHT_BRACE)) {
                     statements.push_back(statement());
                 }
 
-                return std::make_shared<Block>(statements);
+                return std::make_shared<Block>(name, statements);
             }
 
 
@@ -410,7 +415,7 @@ namespace zebra {
                     Token field = previous();
 
                     if(match(TokenType::EQUAL)) {
-                        return std::make_shared<StmtExpr>(std::make_shared<AssignField>(instance, field, expression()));
+                        return std::make_shared<StmtExpr>(std::make_shared<AssignField>(instance, instance, field, expression()));
                     } else {
                         return std::make_shared<Access>(instance, field);
                     }

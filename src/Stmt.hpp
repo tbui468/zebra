@@ -58,16 +58,18 @@ namespace zebra {
 
     //Statements
     struct Stmt {
+        Stmt(Token name): m_name(name) {}
         virtual ~Stmt() {}
         virtual std::string accept(StmtStringVisitor& visitor) = 0;
         virtual void accept(StmtVoidVisitor& visitor) = 0;
+        Token m_name;
     };
 
 
     struct If: public Stmt {
         public:
-            If(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> then_branch, std::shared_ptr<Stmt> else_branch): 
-                m_condition(condition), m_then_branch(then_branch), m_else_branch(else_branch) {}
+            If(Token name, std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> then_branch, std::shared_ptr<Stmt> else_branch): 
+                Stmt(name), m_condition(condition), m_then_branch(then_branch), m_else_branch(else_branch) {}
             ~If() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
@@ -79,7 +81,7 @@ namespace zebra {
 
     struct Block: public Stmt {
         public:
-            Block(std::vector<std::shared_ptr<Stmt>> statements): m_statements(statements) {}
+            Block(Token name, std::vector<std::shared_ptr<Stmt>> statements): Stmt(name), m_statements(statements) {}
             ~Block() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
@@ -92,12 +94,11 @@ namespace zebra {
     struct While: public Stmt {
         public:
             While(Token name, std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body): 
-                m_name(name), m_condition(condition), m_body(body) {}
+                Stmt(name), m_condition(condition), m_body(body) {}
             ~While() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             std::shared_ptr<Expr> m_condition;
             std::shared_ptr<Stmt> m_body;
     };
@@ -105,12 +106,11 @@ namespace zebra {
     struct For: public Stmt {
         public:
             For(Token name, std::shared_ptr<Stmt> initializer, std::shared_ptr<Expr> condition, std::shared_ptr<Expr> update, std::shared_ptr<Stmt> body): 
-                m_name(name), m_initializer(initializer), m_condition(condition), m_update(update), m_body(body) {}
+                Stmt(name), m_initializer(initializer), m_condition(condition), m_update(update), m_body(body) {}
             ~For() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             std::shared_ptr<Stmt> m_initializer; //this is messy in parser since statments expect a semicolon
             std::shared_ptr<Expr> m_condition;
             std::shared_ptr<Expr> m_update;
@@ -120,12 +120,12 @@ namespace zebra {
 
     struct Return: public Stmt {
         public:
-            Return(Token name, TokenType return_type, std::shared_ptr<Expr> value): m_name(name), m_return_type(return_type), m_value(value) {}
+            Return(Token name, TokenType return_type, std::shared_ptr<Expr> value): 
+                Stmt(name), m_return_type(return_type), m_value(value) {}
             ~Return() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             TokenType m_return_type;
             std::shared_ptr<Expr> m_value;
     };
@@ -133,18 +133,18 @@ namespace zebra {
 
     struct Assign: public Stmt {
         public:
-            Assign(Token name, std::shared_ptr<Expr> value): m_name(name), m_value(value) {}
+            Assign(Token name, std::shared_ptr<Expr> value): Stmt(name), m_value(value) {}
             ~Assign() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             std::shared_ptr<Expr> m_value;
     };
 
     struct AssignField: public Stmt {
         public:
-            AssignField(Token instance, Token field, std::shared_ptr<Expr> value): m_instance(instance), m_field(field), m_value(value) {}
+            AssignField(Token name, Token instance, Token field, std::shared_ptr<Expr> value): 
+                Stmt(name), m_instance(instance), m_field(field), m_value(value) {}
             ~AssignField() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
@@ -157,12 +157,12 @@ namespace zebra {
 
     struct VarDecl: public Stmt {
         public:
-            VarDecl(Token name, Token type, std::shared_ptr<Expr> value): m_name(name), m_type(type), m_value(value) {}
+            VarDecl(Token name, Token type, std::shared_ptr<Expr> value): 
+                Stmt(name), m_type(type), m_value(value) {}
             ~VarDecl() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             Token m_type;
             std::shared_ptr<Expr> m_value;
     };
@@ -171,12 +171,11 @@ namespace zebra {
     struct FunDecl: public Stmt {
         public:
             FunDecl(Token name, std::vector<std::shared_ptr<Stmt>> parameters, TokenType type, std::shared_ptr<Stmt> body): 
-                m_name(name), m_parameters(parameters), m_return_type(type), m_body(body), m_arity(parameters.size()) {}
+                Stmt(name), m_parameters(parameters), m_return_type(type), m_body(body), m_arity(parameters.size()) {}
             ~FunDecl() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             std::vector<std::shared_ptr<Stmt>> m_parameters;
             TokenType m_return_type;
             std::shared_ptr<Stmt> m_body;
@@ -186,12 +185,12 @@ namespace zebra {
 
     struct Call: public Stmt {
         public:
-            Call(Token name, std::vector<std::shared_ptr<Expr>> arguments): m_name(name), m_arguments(arguments), m_arity(arguments.size()) {}
+            Call(Token name, std::vector<std::shared_ptr<Expr>> arguments): 
+                Stmt(name), m_arguments(arguments), m_arity(arguments.size()) {}
             ~Call() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             std::vector<std::shared_ptr<Expr>> m_arguments;
             int m_arity;
             std::shared_ptr<Object> m_return {nullptr};
@@ -199,24 +198,23 @@ namespace zebra {
 
     struct StructDecl: public Stmt {
         public:
-            StructDecl(Token name, std::vector<std::shared_ptr<VarDecl>> fields): m_name(name), m_fields(fields) {}
+            StructDecl(Token name, std::vector<std::shared_ptr<VarDecl>> fields): 
+                Stmt(name), m_fields(fields) {}
             ~StructDecl() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             std::vector<std::shared_ptr<VarDecl>> m_fields;
     };
 
     struct StructInst: public Stmt {
         public:
             StructInst(Token name, Token struct_token, std::vector<std::shared_ptr<Expr>> arguments):
-                m_name(name), m_struct(struct_token), m_arguments(arguments) {}
+                Stmt(name), m_struct(struct_token), m_arguments(arguments) {}
             ~StructInst() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             Token m_struct;
             std::vector<std::shared_ptr<Expr>> m_arguments;
     };
@@ -224,12 +222,11 @@ namespace zebra {
     struct Import: public Stmt {
         public:
             Import(Token name, std::unordered_map<std::string, std::shared_ptr<Object>> functions):
-                m_name(name), m_functions(functions) {}
+                Stmt(name), m_functions(functions) {}
             ~Import() {}
             std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
             void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
         public:
-            Token m_name;
             std::unordered_map<std::string, std::shared_ptr<Object>> m_functions;
     };
 

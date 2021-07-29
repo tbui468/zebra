@@ -160,7 +160,7 @@ namespace zebra {
                 return std::make_shared<Int>(-dynamic_cast<Int*>(right.get())->m_value);
             }
         }else if(expr->m_op.m_type == TokenType::BANG) {
-            return std::make_shared<Bool>(dynamic_cast<Bool*>(right.get())->m_value);
+            return std::make_shared<Bool>(!dynamic_cast<Bool*>(right.get())->m_value);
         }
 
     }

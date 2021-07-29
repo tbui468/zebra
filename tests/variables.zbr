@@ -1,11 +1,17 @@
+import io;
+
 //booleans
 {
     a: bool = true;
     b: bool = false;
-    if (a and !b)
-        print "Variable - booleans: Passed";
+    if (a and !b) {
+        print(a);
+        print(!b);
+        print("Variable - booleans: Passed");
     } else {
-        print "Variable - booleans: Failed";
+        print(a);
+        print(!b);
+        print("Variable - booleans: Failed");
     }
         
 }
@@ -26,9 +32,9 @@
         a % b == 1 and 
         b % a == 2) 
     {
-        print "Variable - integer arithmetic: Passed";     
+        print("Variable - integer arithmetic: Passed");     
     } else {
-        print "Variable - integer arithmetic: Failed";     
+        print("Variable - integer arithmetic: Failed");     
     }
 }
 

@@ -16,11 +16,11 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
+//Need to rewrite tests to use print() instead of print
+//when input() is used in a while loop with an assignment, the string isn't in the variable when entering loop body
+//  see test.zbr for this.  The variable 'line' prints 1 (for some reason)
 //Typechecker can't check import currently - functions are saved as nodes in m_variables, not function objects (which the functions are saved as)
 //  need to redo entire typechecker to make it simplier too
-//import io
-//  print() //print
-//  input() //read string
 //import cast
 //  string(), int(), float(), bool()
 //import system
@@ -61,20 +61,18 @@ int main(int argc, char** argv) {
                 std::cout << t.to_string() << std::endl;
             }*/
 
-
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
-
 
             zebra::AstPrinter printer;        
             for(int i = 0; i < int(ast.size()); i++) {
                 printer.print(ast.at(i).get());
             }
-/*
-            zebra::TypeChecker checker;
-            bool passed = checker.check(ast);
-*/
-            //if(passed) {
+
+ //           zebra::TypeChecker checker;
+//            bool passed = checker.check(ast);
+
+//            if(passed) {
             if(true) {
                 zebra::Interpreter interp(ast);
                 interp.run();

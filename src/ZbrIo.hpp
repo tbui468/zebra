@@ -33,6 +33,20 @@ namespace zebra {
             }
     };
 
+    class Input: public Callable {
+        public:
+            Input() = default;
+            virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override {
+                std::string line;
+                std::getline(std::cin, line);
+
+                return std::make_shared<String>(line);
+            }
+            std::shared_ptr<Object> clone() override {
+                return std::make_shared<Input>(*this);
+            }
+    };
+
 }
 
 #endif // ZEBRA_IO_H
