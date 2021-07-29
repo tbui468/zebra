@@ -4,11 +4,11 @@
 #include <string>
 #include <memory>
 #include "Token.hpp"
-#include "Object.hpp"
 
 namespace zebra {
 
     struct Stmt;
+    class Object;
 
     struct Unary;
     struct Binary;

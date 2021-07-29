@@ -1,5 +1,8 @@
 set(Sources
     Main.cpp
+    Interpreter.cpp
+    Environment.cpp
+    Object.cpp
     )
 
 set(Headers
@@ -11,10 +14,10 @@ set(Headers
     Parser.hpp
     AstPrinter.hpp
     TypeChecker.hpp
-    #Interpreter.hpp
-    #Object.hpp
-    #Environment.hpp
-    #RuntimeError.hpp
+    Interpreter.hpp
+    Object.hpp
+    Environment.hpp
+    RuntimeError.hpp
     )
 
 add_executable(

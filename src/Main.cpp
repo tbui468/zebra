@@ -1,9 +1,7 @@
 #include <vector>
 #include <unordered_map>
-#include "TokenType.hpp"
 #include "Token.hpp"
 #include "Lexer.hpp"
-#include "Stmt.hpp"
 #include "Parser.hpp"
 #include "AstPrinter.hpp"
 #include "TypeChecker.hpp"
@@ -18,10 +16,13 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//For procedures (functions with nil return type), shouldn't require to write '-> nil'.  
+//print() function - make this an identifier in Lexer.  Then the lexeme/functiondecl should be put into interpreter just like any other function
+//  FunDef is not even being used - it's just a wrapper for FunDecl.  Same problem with StructDefinition.  Why are we creating
+//  Objects just to reference a statement node???  What's the point of FunDef and StructDef?
+//clock() function
+//  how to add this function to global scope???
 //Allow copy constructors for structs.  dog: Dog(d); //will construct a new Dog 'dog' by copying Dog 'd'
 //How to allow custom types as parameters into functions?? (And as return types)
-//clock() function
 //Should change name of Access to AccessField for clarity (Expr.hpp)
 //Should change name of Fun to FunctionDefinition (Object.hpp)
 //Allow numbers in IDENTIFIERS as long as the first character is alpha or _.  Currently 'my_var12' is not allowed as identifier (and it should be)

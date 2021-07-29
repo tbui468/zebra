@@ -2,9 +2,12 @@
 #define ZEBRA_STMT_H
 
 #include <vector>
-#include "Expr.hpp"
 
 namespace zebra {
+
+    //foward declarations
+    struct Expr;
+    class Object;
 
     struct Print;
     struct If;
