@@ -81,7 +81,7 @@ namespace zebra {
                 } else if (dynamic_cast<StructInst*>(var)) {
                     return TokenType::STRUCT_TYPE;                     
                 } else {
-                    return dynamic_cast<FunDecl*>(var)->m_type.m_type;
+                    return dynamic_cast<FunDecl*>(var)->m_return_type;
                 }
             }
 
@@ -133,7 +133,7 @@ namespace zebra {
 
             void visit(Return* stmt) {
                 TokenType expr_type = evaluate(stmt->m_value.get());
-                if(expr_type != stmt->m_return_type.m_type) {
+                if(expr_type != stmt->m_return_type) {
                     throw TypeError(stmt->m_name, "Return type must match return type in function declaration.");
                 }
             }

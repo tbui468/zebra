@@ -1,0 +1,48 @@
+{
+    Dog :: {
+        name: string = "Mittens";
+        age: int = 5;
+    }
+
+    d: Dog();
+    if (d.name == "Mittens" and d.age == 5) {
+        print "Structs - default intializer: Passed";     
+    } else {
+        print "Structs - default intializer: Failed";     
+    }
+
+    dd: Dog("Timmy", 0);
+    if (dd.name == "Timmy" and dd.age == 0) {
+        print "Structs - custom intializer: Passed";     
+    } else {
+        print "Structs - custom intializer: Failed";     
+    }
+
+    dd.name = "Bobby";
+    dd.age = 10;
+    if (dd.name == "Bobby" and dd.age == 10) {
+        print "Structs - data field setter: Passed";     
+    } else {
+        print "Structs - data field setter: Failed";     
+    }
+
+    a: Dog("Apple", 1);
+    b: Dog("Box", 2);
+    a = b;
+    b.name = "Cat";
+    b.age = 3;
+    if (a.name == "Box" and a.age == 2 and b.name == "Cat" and b.age == 3) {
+        print "Structs - assignment: Passed";     
+    } else {
+        print "Structs - assignment: Failed";     
+    }
+
+    f: Dog("Frog", -1);
+    g: Dog(f.name, f.age + 1);    
+    if (g.name == "Frog" and g.age == 0) {
+        print "Structs - constructor argument expressions: Passed";     
+    } else {
+        print "Structs - constructor argument expressions: Failed";     
+    }
+
+}

@@ -20,7 +20,7 @@ if (a() == "test" and
 }
 
 //nil return function tests
-g :: () -> nil {
+g :: () {
     print "Functions - nil return: Passed";
 }
 

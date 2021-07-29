@@ -18,32 +18,16 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//  Type checker breaks when assigning one struct to another
-//      Be able to declare and assign struct to a different struct, eg dog1: Dog = dog2;  also allow assignment only dog1 = dog2;
-//      how to type check this?  Could just check that lexeme of stuct is same in both (is the struct data saved in instances? - YES, called m_struct)
+//For procedures (functions with nil return type), shouldn't require to write '-> nil'.  
+//Allow copy constructors for structs.  dog: Dog(d); //will construct a new Dog 'dog' by copying Dog 'd'
+//How to allow custom types as parameters into functions?? (And as return types)
+//clock() function
 //Should change name of Access to AccessField for clarity (Expr.hpp)
 //Should change name of Fun to FunctionDefinition (Object.hpp)
-//Write tests for struct getters and setters, assignments
 //Allow numbers in IDENTIFIERS as long as the first character is alpha or _.  Currently 'my_var12' is not allowed as identifier (and it should be)
 //'consume' in parser should return a Token - do this instead of calling match and previous a bunch of times
 //change VarDecl m_type field to m_data_type field.  m_type belongs to Token and is the token type
 //Dealing with return types in Parser is freaking messy with a lot of parser states - can this be simplified?
-//How can the TypeChecker check custom types?  (Such as structs) - all instances have to keep a copy of the Token or lexeme of the declaration
-    //but then is breaks from the way we use TokenTypes to type check now....
-//Structs
-//      Dog :: struct {
-//          name: string = "default";
-//          age: int = 2;
-//          height: float = 23.2;
-//      }
-//
-//      d1: Dog("mittens", 3, 2.3);
-//      d1.age = 20;
-//      print d1.name;
-//
-//      d2: Dog("bubbles", 1, 32.);
-//      d2 = d1;
-//FunDecls (unlike VarDecls) shouldn't return anything - change them from expressions to statements.  The same as structs;
 //Look up edges cases in Jlox book, and write tests to see if my code passes them - if not, then fix the bugs
 //For Lexer, Parser, TypeChecker and Resolver: replace exceptions with error codes - exceptions just cause trouble
     //if more than one return is needed, create a struct that can be return.  Have funtions null out any info not need up higher,
@@ -70,8 +54,8 @@ int main(int argc, char** argv) {
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
-
 /*
+
             zebra::AstPrinter printer;        
             for(int i = 0; i < int(ast.size()); i++) {
                 printer.print(ast.at(i).get());

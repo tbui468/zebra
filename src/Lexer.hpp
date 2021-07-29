@@ -148,7 +148,6 @@ namespace zebra {
                             break;
                         case 's':
                             if (match("tring")) add_token(TokenType::STRING_TYPE);
-                            else if (match("truct")) add_token(TokenType::STRUCT);
                             else read_identifier();
                             break;
                         case 't':

@@ -16,7 +16,7 @@ namespace zebra {
             int m_current;
             //Note: doesn't check if return statement if valid (eg outside of function) - resolver should do that in next phase
             //Used for type checking for function and return
-            Token m_return_type = Token(TokenType::NIL_TYPE, "init", 0);
+            TokenType m_return_type = TokenType::NIL_TYPE;
             bool m_had_return = false;
             class ParseError {
                 private:
@@ -50,10 +50,8 @@ namespace zebra {
                 if (match(TokenType::IF))               return if_statement();
                 if (peek_one(TokenType::LEFT_BRACE))    return block_statement();
                 if (peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::LEFT_PAREN))   return function_declaration();
-                if (peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::STRUCT))       return struct_declaration();
+                if (peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::LEFT_BRACE))   return struct_declaration();
                 if (peek_three(TokenType::IDENTIFIER, TokenType::COLON, TokenType::IDENTIFIER))         return struct_instantiation();
-                //if (peek_two(TokenType::IDENTIFIER, TokenType::COLON))                                  return variable_declaration();
-                //if (peek_two(TokenType::IDENTIFIER, TokenType::LEFT_PAREN))                             return call_statement();
                 if (match(TokenType::WHILE))            return while_statement();
                 if (match(TokenType::FOR))              return for_statement();
                 if (match(TokenType::RETURN))           return return_statement();
@@ -63,16 +61,7 @@ namespace zebra {
                 consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
                 return stmt;
 
-                //throw ParseError(previous(), "Invalid token");
             }
-/*
-            std::shared_ptr<Stmt> call_statement() {
-                std::shared_ptr<Expr> expr = expression();
-                std::shared_ptr<Stmt> stmt = dynamic_cast<StmtExpr*>(expr.get())->m_stmt;
-                consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
-                return stmt;
-            }*/
-
 
             std::shared_ptr<Stmt> return_statement() {
                 m_had_return = true;
@@ -82,13 +71,6 @@ namespace zebra {
                 return std::make_shared<Return>(name, m_return_type, value);
             }
 
-/*
-            std::shared_ptr<Stmt> variable_declaration() {
-                std::shared_ptr<Expr> expr = expression();
-                std::shared_ptr<Stmt> stmt = dynamic_cast<StmtExpr*>(expr.get())->m_stmt;
-                consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
-                return stmt;
-            }*/
 
             std::shared_ptr<Stmt> struct_instantiation() {
                 match(TokenType::IDENTIFIER);
@@ -113,7 +95,6 @@ namespace zebra {
                 match(TokenType::IDENTIFIER);
                 Token name = previous();
                 match(TokenType::COLON_COLON);
-                match(TokenType::STRUCT);
                 match(TokenType::LEFT_BRACE);
 
                 std::vector<std::shared_ptr<VarDecl>> fields;
@@ -146,6 +127,7 @@ namespace zebra {
                     match(TokenType::FLOAT_TYPE);
                     match(TokenType::STRING_TYPE);
                     match(TokenType::FUN_TYPE);
+                    match(TokenType::STRUCT_TYPE);
                     Token type = previous();
 
                     if (type.m_type == TokenType::COLON) {
@@ -156,26 +138,34 @@ namespace zebra {
                     match(TokenType::COMMA);                    
                 }                
 
-                consume(TokenType::RIGHT_ARROW, "Expect '->' and return type after parameter declaration.");
+                //if procedure
+                if (match(TokenType::LEFT_BRACE)) {
+                    m_return_type = TokenType::NIL_TYPE;
+                } else {
+                    consume(TokenType::RIGHT_ARROW, "Expect '->' and return type after parameter declaration.");
 
-                //TODO: this is ugly and error-prone - find a nicer way to do this
-                match(TokenType::BOOL_TYPE);
-                match(TokenType::INT_TYPE);
-                match(TokenType::FLOAT_TYPE);
-                match(TokenType::STRING_TYPE);
-                match(TokenType::FUN_TYPE);
-                match(TokenType::NIL_TYPE);
-                m_return_type = previous(); 
+                    //TODO: this is ugly and error-prone - find a nicer way to do this
+                    match(TokenType::BOOL_TYPE);
+                    match(TokenType::INT_TYPE);
+                    match(TokenType::FLOAT_TYPE);
+                    match(TokenType::STRING_TYPE);
+                    match(TokenType::FUN_TYPE);
+                    match(TokenType::STRUCT_TYPE);
+                    m_return_type = previous().m_type; 
+
+                    consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
+                }
+
+                //setting flag to default false, will be set to true if return statement in body
                 m_had_return = false;
 
-                consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
                 std::vector<std::shared_ptr<Stmt>> statements;
                 while (!match(TokenType::RIGHT_BRACE)) {
                     statements.push_back(statement());
                 }
 
-                if (m_return_type.m_type != TokenType::NIL_TYPE && !m_had_return) {
-                    throw ParseError(m_return_type, "Expect return statement of type " + m_return_type.to_string());
+                if (m_return_type != TokenType::NIL_TYPE && !m_had_return) {
+                    throw ParseError(identifier, "Expect return statement.");
                 }
 
                 std::shared_ptr<Stmt> body = std::make_shared<Block>(statements);
