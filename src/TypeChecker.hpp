@@ -214,6 +214,13 @@ namespace zebra {
                 }
             }
 
+            void visit(Import* stmt) {
+                /*
+                for (std::pair<std::string, std::shared_ptr<Object>> p: stmt->m_functions) {
+                    
+                }*/
+            }
+
 
             /*
              * Expressions

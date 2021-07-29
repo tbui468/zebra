@@ -94,6 +94,9 @@ namespace zebra {
             std::string visit(StructInst* stmt) override {
                 return "StructInst";
             }
+            std::string visit(Import* stmt) override {
+                return "Import";
+            }
     };
 
 

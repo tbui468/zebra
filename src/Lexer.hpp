@@ -123,6 +123,7 @@ namespace zebra {
                         case 'i':
                             if (match("f")) add_token(TokenType::IF);
                             else if(match("nt")) add_token(TokenType::INT_TYPE);
+                            else if(match("mport")) add_token(TokenType::IMPORT);
                             else read_identifier();
                             break;
                         case 'o':

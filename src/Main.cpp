@@ -16,9 +16,20 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Use new FunDef to create instances of new functions to call - start with print()
-//clock() function
-//  how to add this function to global scope???
+//Typechecker can't check import currently - functions are saved as nodes in m_variables, not function objects (which the functions are saved as)
+//  need to redo entire typechecker to make it simplier too
+//import io
+//  print() //print
+//  input() //read string
+//import cast
+//  string(), int(), float(), bool()
+//import system
+//  clock()
+//import file
+//  read()
+//  write()
+//import list - will need classes for this.  my_list: List(int);  my_list.add(1) - or at least arrays
+//String manipulation - split(string, delimiter)  need lists for this
 //Allow copy constructors for structs.  dog: Dog(d); //will construct a new Dog 'dog' by copying Dog 'd'
 //How to allow custom types as parameters into functions?? (And as return types)
 //Should change name of Access to AccessField for clarity (Expr.hpp)
@@ -54,15 +65,15 @@ int main(int argc, char** argv) {
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
 
-/*
+
             zebra::AstPrinter printer;        
             for(int i = 0; i < int(ast.size()); i++) {
                 printer.print(ast.at(i).get());
-            }*/
-
-//            zebra::TypeChecker checker;
-//            bool passed = checker.check(ast);
-
+            }
+/*
+            zebra::TypeChecker checker;
+            bool passed = checker.check(ast);
+*/
             //if(passed) {
             if(true) {
                 zebra::Interpreter interp(ast);

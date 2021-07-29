@@ -18,6 +18,9 @@ set(Headers
     Object.hpp
     Environment.hpp
     RuntimeError.hpp
+    #libraries
+    ZbrIo.hpp
+    ZbrTime.hpp
     )
 
 add_executable(

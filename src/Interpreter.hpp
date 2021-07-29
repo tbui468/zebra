@@ -33,6 +33,7 @@ namespace zebra {
             void visit(StructDecl* stmt);
             void visit(StructInst* stmt);
             void visit(Call* stmt);
+            void visit(Import* stmt);
             std::shared_ptr<Object> visit(Unary* expr);
             std::shared_ptr<Object> visit(Binary* expr);
             std::shared_ptr<Object> visit(Group* expr);

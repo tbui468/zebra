@@ -6,6 +6,8 @@
 #include "Token.hpp"
 #include "Expr.hpp"
 #include "Stmt.hpp"
+#include "ZbrIo.hpp"
+#include "ZbrTime.hpp"
 
 namespace zebra {
 
@@ -29,6 +31,7 @@ namespace zebra {
                         std::cout << "[Line " << m_token.m_line << "] Parsing Error: " << m_message << std::endl;
                     }
             };
+
         public:
             Parser(const std::vector<Token>& tokens): m_tokens(tokens), m_current(0) {}
 
@@ -54,12 +57,33 @@ namespace zebra {
                 if (match(TokenType::WHILE))            return while_statement();
                 if (match(TokenType::FOR))              return for_statement();
                 if (match(TokenType::RETURN))           return return_statement();
+                if (match(TokenType::IMPORT))           return import_statement();
 
                 std::shared_ptr<Expr> expr = expression();
                 std::shared_ptr<Stmt> stmt = dynamic_cast<StmtExpr*>(expr.get())->m_stmt;
                 consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
                 return stmt;
 
+            }
+
+            std::shared_ptr<Stmt> import_statement() {
+                Token name = previous();
+                match(TokenType::IDENTIFIER);
+                Token lib = previous();
+
+                std::unordered_map<std::string, std::shared_ptr<Object>> functions;
+
+                if (lib.m_lexeme == "io") {
+                    std::shared_ptr<Object> fun = std::make_shared<Print>();
+                    functions["print"] = fun;
+                } else if (lib.m_lexeme == "time") {
+                    std::shared_ptr<Object> fun = std::make_shared<Clock>();
+                    functions["clock"] = fun;
+                }
+
+                consume(TokenType::SEMICOLON, "Expect ';' after statement.");
+
+                return std::make_shared<Import>(name, functions);
             }
 
             std::shared_ptr<Stmt> return_statement() {

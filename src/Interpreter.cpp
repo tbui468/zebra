@@ -5,36 +5,6 @@ namespace zebra {
 
     Interpreter::Interpreter(const std::vector<std::shared_ptr<Stmt>> statements): m_statements(statements) {
         m_environment = std::make_shared<Environment>();
-
-        class Print: public Callable {
-            public:
-                Print() = default;
-                virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override {
-                    std::shared_ptr<Object> value = arguments.at(0);
-
-                    if(dynamic_cast<Bool*>(value.get())) {
-                        std::cout << dynamic_cast<Bool*>(value.get())->m_value << std::endl;
-                    }
-                    if(dynamic_cast<Int*>(value.get())) {
-                        std::cout << dynamic_cast<Int*>(value.get())->m_value << std::endl;
-                    }
-                    if(dynamic_cast<Float*>(value.get())) {
-                        std::cout << dynamic_cast<Float*>(value.get())->m_value << std::endl;
-                    }
-                    if(dynamic_cast<String*>(value.get())) {
-                        std::cout << dynamic_cast<String*>(value.get())->m_value << std::endl;
-                    }
-
-                    return std::make_shared<Nil>();
-                }
-                std::shared_ptr<Object> clone() override {
-                    return std::make_shared<Print>(*this);
-                }
-        };
-
-        std::shared_ptr<Object> fun = std::make_shared<Print>();
-
-        m_environment->define(Token(TokenType::FUN_TYPE, "print", 0), fun); //TODO: functions needs own type
     }
 
     Interpreter::~Interpreter() {}
@@ -167,6 +137,17 @@ namespace zebra {
 
         stmt->m_return = return_value;
     } 
+
+    
+    void Interpreter::visit(Import* stmt) {
+        for (std::pair<std::string, std::shared_ptr<Object>> p: stmt->m_functions) {
+            m_environment->define(Token(TokenType::FUN_TYPE, p.first, 1), p.second);    
+        }
+    }
+
+    /*
+     * Expressions
+     */
 
 
     std::shared_ptr<Object> Interpreter::visit(Unary* expr) {

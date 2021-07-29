@@ -2,6 +2,7 @@
 #define ZEBRA_STMT_H
 
 #include <vector>
+#include <unordered_map>
 
 namespace zebra {
 
@@ -21,6 +22,7 @@ namespace zebra {
     struct Call;
     struct StructDecl;
     struct StructInst;
+    struct Import;
 
     struct StmtStringVisitor {
         virtual std::string visit(If* stmt) = 0;
@@ -35,6 +37,7 @@ namespace zebra {
         virtual std::string visit(Call* stmt) = 0;
         virtual std::string visit(StructDecl* stmt) = 0;
         virtual std::string visit(StructInst* stmt) = 0;
+        virtual std::string visit(Import* stmt) = 0;
     };
     struct StmtVoidVisitor {
         virtual void visit(If* stmt) = 0;
@@ -49,6 +52,7 @@ namespace zebra {
         virtual void visit(Call* stmt) = 0;
         virtual void visit(StructDecl* stmt) = 0;
         virtual void visit(StructInst* stmt) = 0;
+        virtual void visit(Import* stmt) = 0;
     };
 
 
@@ -215,6 +219,18 @@ namespace zebra {
             Token m_name;
             Token m_struct;
             std::vector<std::shared_ptr<Expr>> m_arguments;
+    };
+
+    struct Import: public Stmt {
+        public:
+            Import(Token name, std::unordered_map<std::string, std::shared_ptr<Object>> functions):
+                m_name(name), m_functions(functions) {}
+            ~Import() {}
+            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
+            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::unordered_map<std::string, std::shared_ptr<Object>> m_functions;
     };
 
 

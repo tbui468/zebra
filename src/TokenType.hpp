@@ -21,7 +21,7 @@ namespace zebra {
         IF, ELSE, WHILE, FOR,
         TRUE, FALSE,
         AND, OR,
-        RETURN, STRUCT,
+        RETURN, STRUCT, IMPORT,
         //types
         INT_TYPE, FLOAT_TYPE, STRING_TYPE,
         BOOL_TYPE, FUN_TYPE, NIL_TYPE, STRUCT_TYPE,
