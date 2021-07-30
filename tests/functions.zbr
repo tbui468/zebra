@@ -1,3 +1,5 @@
+import io;
+
 //String return functions tests
 a :: () -> string {
     return "test"; 
@@ -14,14 +16,14 @@ d :: (e: string, f: string) -> string {
 if (a() == "test" and 
     b("te") == "test" and 
     d("te", "st") == "test") {
-    print "Functions - string return: Passed"; 
+    print("Functions - string return: Passed");
 } else {
-    print "Functions - string return: Failed"; 
+    print("Functions - string return: Failed"); 
 }
 
 //nil return function tests
 g :: () {
-    print "Functions - nil return: Passed";
+    print("Functions - nil return: Passed");
 }
 
 g();
@@ -32,9 +34,9 @@ h :: () -> float {
 }
 
 if(h() <= 1.01 and h() >= 0.99) {
-    print "Functions - float return: Passed"; 
+    print("Functions - float return: Passed"); 
 }else{
-    print "Functions - float return: Failed"; 
+    print("Functions - float return: Failed"); 
 }
 
 //bool returns
@@ -43,9 +45,9 @@ boolean :: () -> bool {
 }
 
 if (boolean()) {
-    print "Functions - boolean return: Passed"; 
+    print("Functions - boolean return: Passed"); 
 } else {
-    print "Functions - boolean return: Failed"; 
+    print("Functions - boolean return: Failed"); 
 }
 
 //recursion
@@ -58,9 +60,9 @@ i :: (j: int) -> int {
 }
 
 if (i(10) == 10) {
-    print "Functions - single call recursion: Passed"; 
+    print("Functions - single call recursion: Passed"); 
 } else {
-    print "Functions - single call recursion: Failed"; 
+    print("Functions - single call recursion: Failed"); 
 }
 
 k :: (l: int) -> int {
@@ -72,7 +74,7 @@ k :: (l: int) -> int {
 }
 
 if (k(4) == 8) {
-    print "Functions - double call recursion: Passed"; 
+    print("Functions - double call recursion: Passed"); 
 } else {
-    print "Functions - double call recursion: Failed"; 
+    print("Functions - double call recursion: Failed"); 
 }

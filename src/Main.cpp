@@ -17,6 +17,8 @@
 
 //TODO: 
 //Need to rewrite tests to use print() instead of print
+//  all tests are crashing now
+//For typechecking native functions, could have Callable class hold parameter types and return type
 //when input() is used in a while loop with an assignment, the string isn't in the variable when entering loop body
 //  see test.zbr for this.  The variable 'line' prints 1 (for some reason)
 //Typechecker can't check import currently - functions are saved as nodes in m_variables, not function objects (which the functions are saved as)
