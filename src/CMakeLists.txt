@@ -18,6 +18,7 @@ set(Headers
     Object.hpp
     Environment.hpp
     RuntimeError.hpp
+    ResultCode.hpp
     #libraries
     ZbrIo.hpp
     ZbrTime.hpp

@@ -8,8 +8,15 @@
 #include "Stmt.hpp"
 #include "ZbrIo.hpp"
 #include "ZbrTime.hpp"
+#include "ResultCode.hpp"
 
 namespace zebra {
+
+    struct ParseError {
+        Token m_token;
+        std::string m_message;
+        ParseError(Token token, const std::string& message): m_token(token), m_message(message) {}
+    };
 
 
     class Parser {
@@ -20,32 +27,40 @@ namespace zebra {
             //Used for type checking for function and return
             TokenType m_return_type = TokenType::NIL_TYPE;
             bool m_had_return = false;
-            class ParseError {
-                private:
-                    Token m_token;
-                    std::string m_message;
-                public:
-                    ParseError(Token token, const std::string& message): m_token(token), m_message(message){}
-                    ~ParseError() {}
-                    void print() {
-                        std::cout << "[Line " << m_token.m_line << "] Parsing Error: " << m_message << std::endl;
-                    }
-            };
+            std::vector<ParseError> m_errors;
+
+            bool m_error_flag {false};
 
         public:
             Parser(const std::vector<Token>& tokens): m_tokens(tokens), m_current(0) {}
 
-            std::vector<std::shared_ptr<Stmt>> parse() {
-                std::vector<std::shared_ptr<Stmt>> sl;
-                try {
-                    while(!match(TokenType::EOFILE)) {
-                        sl.push_back(statement());
+            ResultCode parse(std::vector<std::shared_ptr<Stmt>>& ast) {
+                while(!match(TokenType::EOFILE)) {
+                    std::shared_ptr<Stmt> stmt = statement();
+                    if (!m_error_flag) {
+                        ast.push_back(stmt);
+                    } else {
+                        synchronize();
+                        m_error_flag = false;
                     }
-                } catch (ParseError& error) {
-                    error.print();
                 }
 
-                return sl;
+                if (m_errors.empty()) {
+                    return ResultCode::SUCCESS;
+                } else {
+                    return ResultCode::FAILED;
+                }
+            }
+
+            std::vector<ParseError> get_errors() const {
+                return m_errors;
+            }
+
+        private:
+
+            void add_error(Token token, const std::string& message) {
+                m_errors.emplace_back(token, message);
+                m_error_flag = true;
             }
 
             std::shared_ptr<Stmt> statement() {
@@ -60,9 +75,21 @@ namespace zebra {
                 if (match(TokenType::IMPORT))           return import_statement();
 
                 std::shared_ptr<Expr> expr = expression();
-                std::shared_ptr<Stmt> stmt = dynamic_cast<StmtExpr*>(expr.get())->m_stmt;
-                consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
-                return stmt;
+
+                StmtExpr* stmt_expr = dynamic_cast<StmtExpr*>(expr.get());
+
+                if (!stmt_expr) {
+                    add_error(previous(), "Invalid statement.");
+                    return nullptr;
+                }
+
+                if(expr) {
+                    std::shared_ptr<Stmt> stmt = stmt_expr->m_stmt;
+                    consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
+                    return stmt;
+                } 
+                
+                return nullptr;
             }
 
             std::shared_ptr<Stmt> import_statement() {
@@ -155,7 +182,7 @@ namespace zebra {
                     Token type = previous();
 
                     if (type.m_type == TokenType::COLON) {
-                        throw ParseError(type, "Invalid parameter type.");
+                        add_error(type, "Invalid parameter type.");
                     }
 
                     parameters.emplace_back(std::make_shared<VarDecl>(name, type, nullptr));
@@ -191,7 +218,7 @@ namespace zebra {
                 }
 
                 if (m_return_type != TokenType::NIL_TYPE && !m_had_return) {
-                    throw ParseError(identifier, "Expect return statement.");
+                    add_error(identifier, "Expect return statement.");
                 }
 
                 std::shared_ptr<Stmt> body = std::make_shared<Block>(name, statements);
@@ -270,7 +297,7 @@ namespace zebra {
                 Token type = previous();
 
                 if (type.m_type == TokenType::COLON) {
-                    throw ParseError(type, "Invalid data type.");
+                    add_error(type, "Invalid data type.");
                 }
                 
                 //check for possible assignment
@@ -441,8 +468,8 @@ namespace zebra {
                     return std::make_shared<Group>(t, expr);
                 }
 
-                std::cout << m_tokens.at(m_current).to_string() << std::endl;
-                throw ParseError(previous(), "Expecting an expression.");
+                add_error(previous(), "Expecting an expression.");
+                return nullptr;
             }
 
 
@@ -455,13 +482,16 @@ namespace zebra {
             }
 
             bool peek_one(TokenType type) {
+                if (m_current >= m_tokens.size()) return false;
                 return m_tokens.at(m_current).m_type == type;
             }
             bool peek_two(TokenType type1, TokenType type2) {
+                if (m_current + 1 >= m_tokens.size()) return false;
                 return peek_one(type1) && (m_tokens.at(m_current + 1).m_type == type2);
             }
 
             bool peek_three(TokenType type1, TokenType type2, TokenType type3) {
+                if (m_current + 2 >= m_tokens.size()) return false;
                 return peek_two(type1, type2) && (m_tokens.at(m_current + 2).m_type == type3);
             }
 
@@ -472,7 +502,16 @@ namespace zebra {
             void consume(TokenType type, const std::string& message) {
                 if (!match(type)) {
                     Token t = previous();
-                    throw ParseError(t, message);
+                    add_error(t, message);
+                }
+            }
+
+            void synchronize() {
+                while (!peek_one(TokenType::EOFILE)) {
+                    if (match(TokenType::RIGHT_BRACE) || match(TokenType::SEMICOLON)) {
+                        break;
+                    }
+                    m_current++;
                 }
             }
 

@@ -6,19 +6,32 @@
 #include "Expr.hpp"
 #include "Stmt.hpp"
 #include "Environment.hpp"
+#include "ResultCode.hpp"
 
 namespace zebra {
 
     class Object;
 
+
+    struct RuntimeError {
+        Token m_token;
+        std::string m_message;
+        RuntimeError(Token token, const std::string& message): m_token(token), m_message(message) {}
+    };
+
+
     class Interpreter: public StmtVoidVisitor, public ExprObjectVisitor {
+        private:
+            bool m_error_flag;
+            std::vector<RuntimeError> m_errors;
         public:
-            std::vector<std::shared_ptr<Stmt>> m_statements;
             std::shared_ptr<Environment> m_environment;
         public:
-            Interpreter(const std::vector<std::shared_ptr<Stmt>> statements);
+            Interpreter();
             ~Interpreter();
-            void run();
+            ResultCode run(const std::vector<std::shared_ptr<Stmt>> statements);
+            std::vector<RuntimeError> get_errors() const;
+            void add_error(Token token, const std::string& message);
             void execute(Stmt* stmt);
             std::shared_ptr<Object> evaluate(Expr* expr);
             void visit(If* stmt);

@@ -3,17 +3,32 @@
 
 namespace zebra {
 
-    Interpreter::Interpreter(const std::vector<std::shared_ptr<Stmt>> statements): m_statements(statements) {
+    Interpreter::Interpreter() {
         m_environment = std::make_shared<Environment>();
     }
 
     Interpreter::~Interpreter() {}
 
-    void Interpreter::run() {
-        for(std::shared_ptr<Stmt> s: m_statements) {
+    ResultCode Interpreter::run(const std::vector<std::shared_ptr<Stmt>> statements) {
+        for(std::shared_ptr<Stmt> s: statements) {
             execute(s.get());
         }
+
+        if(!m_error_flag) {
+            return ResultCode::SUCCESS;
+        } else {
+            return ResultCode::FAILED;
+        }
     }
+
+    std::vector<RuntimeError> Interpreter::get_errors() const {
+        return m_errors;
+    }
+
+    void Interpreter::add_error(Token token, const std::string& message) {
+        m_errors.emplace_back(token, message);
+    }
+
     void Interpreter::execute(Stmt* stmt) {
         if (m_environment->get_return()) {
             return;
@@ -318,6 +333,8 @@ namespace zebra {
         if (var_decl) {
             return m_environment->get(var_decl->m_name);
         }
+        
+        add_error(expr->m_stmt->m_name, "Invalid StmtExpr");
     }
 
 

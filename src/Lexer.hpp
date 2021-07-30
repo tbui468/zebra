@@ -8,13 +8,9 @@
 #include <assert.h>
 
 #include "Token.hpp"
+#include "ResultCode.hpp"
 
 namespace zebra {
-
-    enum class ResultCode {
-        SUCCESS,
-        FAILED
-    };
 
 
     struct SyntaxError {
@@ -29,6 +25,12 @@ namespace zebra {
             int m_current = 0;
             int m_line = 1;
             std::vector<SyntaxError> m_errors;
+        public:
+            static void print_tokens(const std::vector<Token>& tokens) {
+                for (Token t: tokens) {
+                    std::cout << t.to_string() << std::endl;
+                }
+            }
 
         public:
             Lexer(const char* file_path) {
@@ -183,7 +185,6 @@ namespace zebra {
                                 if (!is_at_end() && peek() != '.') {
                                     int len = m_current - start;
                                     add_token(tokens, TokenType::INT, m_source.substr(start, len));
-                                    return;
                                 } else {
                                     if (!is_at_end() && peek() == '.') {
                                         next();               
