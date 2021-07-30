@@ -65,21 +65,30 @@ int main(int argc, char** argv) {
 
         for (int i = 1; i < argc; i++) {
             zebra::Lexer lexer(argv[i]); 
-            std::vector<zebra::Token> tokens = lexer.scan();
+            std::vector<zebra::Token> tokens;
+            zebra::ResultCode code = lexer.scan(tokens); //this should return a result code
+
+            if (code != zebra::ResultCode::SUCCESS) {
+                std::vector<zebra::SyntaxError> errors = lexer.get_errors();
+                for (zebra::SyntaxError error: errors) {
+                    std::cout << "[" << error.m_line << "]" << error.m_message << std::endl;
+                }
+                return 0;
+            }
           
 //            lexer.print_source();
-           /* 
+           /*
             for (zebra::Token t: tokens) {
                 std::cout << t.to_string() << std::endl;
             }*/
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Stmt>> ast = parser.parse();
-
+/*
             zebra::AstPrinter printer;        
             for(int i = 0; i < int(ast.size()); i++) {
                 printer.print(ast.at(i).get());
-            }
+            }*/
 
  //           zebra::TypeChecker checker;
 //            bool passed = checker.check(ast);
