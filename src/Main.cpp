@@ -16,8 +16,18 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Need to rewrite tests to use print() instead of print
-//  all tests are crashing now
+//Redo TypeChecker
+//  for easier test, should replace exceptions with return codes (or class data field that holds list of accrued errors)
+//      try this with Lexer - have a list of errors that print out once lexer is done
+//
+//
+//This code is bugged: line is not printing correctly (it's a 1 instead of the user input)
+//  line: string = "dog";
+//  print(line);
+//  while ( line = input() != "") {
+//     print(line);
+//  }
+//
 //For typechecking native functions, could have Callable class hold parameter types and return type
 //when input() is used in a while loop with an assignment, the string isn't in the variable when entering loop body
 //  see test.zbr for this.  The variable 'line' prints 1 (for some reason)

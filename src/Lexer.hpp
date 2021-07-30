@@ -193,7 +193,7 @@ namespace zebra {
 
             void read_identifier() {
                 int start = m_current - 1;
-                while(!is_at_end() && is_alpha(peek())) {
+                while(!is_at_end() && is_alpha_numeric(peek())) {
                     next();
                 }
 
