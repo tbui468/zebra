@@ -4,6 +4,7 @@
 #include <string>
 #include "Expr.hpp"
 #include "Stmt.hpp"
+#include "ResultCode.hpp"
 
 namespace zebra {
 
@@ -11,10 +12,17 @@ namespace zebra {
         public:
             AstPrinter() {}
             ~AstPrinter() {}
-            void print(Stmt* stmt) {
-                std::cout << stmt->accept(*this) << std::endl;
+            ResultCode print(std::vector<std::shared_ptr<Stmt>> ast) {
+                for (std::shared_ptr<Stmt> stmt: ast) {
+                    std::cout << to_string(stmt.get()) << std::endl;
+                }
+
+                return ResultCode::SUCCESS;
             }
         private:
+            std::string to_string(Stmt* stmt) {
+                return stmt->accept(*this); 
+            }
 
             /*
              * Expressions

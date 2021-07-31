@@ -5,12 +5,8 @@ import io;
     a: bool = true;
     b: bool = false;
     if (a and !b) {
-        print(a);
-        print(!b);
         print("Variable - booleans: Passed");
     } else {
-        print(a);
-        print(!b);
         print("Variable - booleans: Failed");
     }
         

@@ -16,12 +16,39 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Add Errors to Interpreter
-//  check for some runtime errors just in case Typer can't find them
 //Redo TypeChecker
 //  Rename to Typer - more concise
 //  replace exceptions with return codes (or class data field that holds list of accrued errors)
 //  Typechecker needs to deal with three types of data: primitive types, functions and structs
+//
+//Classes - need keyword before {} to allow anonymous classes
+//
+//  Dog :: class < Animal {
+//      this.name: string = "Jimmy";
+//      this.age: int = 3;
+//
+//      //constructor - can't be called manually
+//      Dog :: (name: string, age: int) -> this {
+//          super(name); //calling parent constructor
+//          this.name = name;
+//          this.age = age;
+//      }
+//
+//      run :: () {
+//          super.run();
+//      }
+//
+//      bark :: () -> string {
+//          return this.name;
+//      }
+//  }
+//
+//  Then gotta add 
+//
+//Infer types when declaring:
+//a := 6; //int
+//b := "dog"; //string
+//c := Dog(); //dog instance.  This also allows instatiating for use as an argument
 //
 //
 //This code is bugged: line is not printing correctly (it's a 1 instead of the user input)
@@ -80,7 +107,7 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            zebra::Lexer::print_tokens(tokens);
+//            zebra::Lexer::print_tokens(tokens);
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Stmt>> ast;
@@ -94,11 +121,8 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            //rewrite ASTPrinter to make print_ast() a static function
-            /*zebra::AstPrinter printer;        
-            for(int i = 0; i < int(ast.size()); i++) {
-                printer.print(ast.at(i).get());
-            }*/
+//            zebra::AstPrinter printer;        
+//            printer.print(ast);
 
  //           zebra::TypeChecker checker;
 //            bool passed = checker.check(ast);
