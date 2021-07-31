@@ -1,22 +1,22 @@
-import io;
+import io
 
 //booleans
 {
-    a: bool = true;
-    b: bool = false;
-    if (a and !b) {
-        print("Variable - booleans: Passed");
+    a: bool = true
+    b: bool = false
+    if a and !b {
+        print("Variable - booleans: Passed")
     } else {
-        print("Variable - booleans: Failed");
+        print("Variable - booleans: Failed")
     }
         
 }
 
 //integer arithmetic
 {
-    a: int = 5;
-    b: int = 2;
-    if (
+    a: int = 5
+    b: int = 2
+    if 
         a + b == 7 and 
         b + a == 7 and 
         a - b == 3 and 
@@ -26,11 +26,11 @@ import io;
         a / b == 2 and
         b / a == 0 and
         a % b == 1 and 
-        b % a == 2) 
+        b % a == 2 
     {
-        print("Variable - integer arithmetic: Passed");     
+        print("Variable - integer arithmetic: Passed")     
     } else {
-        print("Variable - integer arithmetic: Failed");     
+        print("Variable - integer arithmetic: Failed")     
     }
 }
 

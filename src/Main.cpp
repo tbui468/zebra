@@ -16,10 +16,29 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Rewrite to make everything an expression - rewrite Parser.cpp using Pratt parsing technique
-//  rewrite libraries (particulary print()) to use new expressions - then get rid of PRINT expression
-//  How to do classes?
+//What should classes look like?
 //
+//Animal :: class {
+//  color: string
+//}
+//
+//Dog :: class < Animal {
+//  this.name: string
+//  this.age: int
+//
+//  Dog :: (name: string, age: int) -> this {
+//      super(???
+//      this.name = name
+//      this.age = age
+//  }
+//
+//  bark :: () -> string {
+//      -> this.name
+//  }
+//}
+//
+//my_dog: Dog = Dog()
+//update Struct tests / add class tests
 //Redo TypeChecker
 //  replace exceptions with return codes (or class data field that holds list of accrued errors)
 //  Typechecker needs to deal with three types of data: primitive types, functions and structs
@@ -83,29 +102,27 @@ int main(int argc, char** argv) {
             zebra::ResultCode scan_result = lexer.scan(tokens); //this should return a result code
 
             if (scan_result != zebra::ResultCode::SUCCESS) {
-                std::vector<zebra::SyntaxError> errors = lexer.get_errors();
-                for (zebra::SyntaxError error: errors) {
-                    std::cout << "[" << error.m_line << "]" << error.m_message << std::endl;
+                for (zebra::SyntaxError error: lexer.get_errors()) {
+                    error.print();
                 }
                 return 1;
             }
 
-            zebra::Lexer::print_tokens(tokens);
+//            zebra::Lexer::print_tokens(tokens);
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Expr>> ast;
             zebra::ResultCode parse_result = parser.parse(ast);
 
             if (parse_result != zebra::ResultCode::SUCCESS) {
-                std::vector<zebra::ParseError> errors = parser.get_errors();
-                for (zebra::ParseError error: errors) {
-                    std::cout << "[" << error.m_token.to_string() << "]" << error.m_message << std::endl;
+                for (zebra::ParseError error: parser.get_errors()) {
+                    error.print();
                 }
                 return 1;
             }
 
-            zebra::AstPrinter printer;        
-            printer.print(ast);
+ //           zebra::AstPrinter printer;        
+  //          printer.print(ast);
 
 /*            
             zebra::Typer typer;
@@ -123,9 +140,8 @@ int main(int argc, char** argv) {
             zebra::ResultCode run_result = interp.run(ast);
 
             if (run_result != zebra::ResultCode::SUCCESS) {
-                std::vector<zebra::RuntimeError> errors = interp.get_errors();
-                for (zebra::RuntimeError error: errors) {
-                    std::cout << "[" << error.m_token.to_string() << "]" << error.m_message << std::endl;
+                for (zebra::RuntimeError error: interp.get_errors()) {
+                    error.print();
                 }
                 return 1;
             }

@@ -1,51 +1,51 @@
-import io;
+import io
 
 //variable scope
-a: int = 1;
+a: int = 1
 {
-    if (a == 1) {
-        print("Scope - accessing outer variable, one level: Passed");
+    if a == 1 {
+        print("Scope - accessing outer variable, one level: Passed")
     } else {
-        print("Scope - accessing outer variable, one level: Failed");
+        print("Scope - accessing outer variable, one level: Failed")
     }
 
-    a: int = 2;
+    a: int = 2
 
-    if (a == 2) {
-        print("Scope - shadowing outer variable, one level: Passed");
+    if a == 2 {
+        print("Scope - shadowing outer variable, one level: Passed")
     } else {
-        print("Scope - shadowing outer variable, one level: Failed");
+        print("Scope - shadowing outer variable, one level: Failed")
     }
 }
 
-if (a == 1) {
-    print("Scope - discarding inner shadowing variable: Passed");
+if a == 1 {
+    print("Scope - discarding inner shadowing variable: Passed")
 } else {
-    print("Scope - discarding inner shadowing variable: Failed");
+    print("Scope - discarding inner shadowing variable: Failed")
 }
 
 
 //function scope
 c :: (d: int) -> int {
-    return d;
+    -> d
 }
 
 {
-    c(1);
+    c(1)
     c :: (d: int) -> int {
-        return d * 2;
+        -> d * 2
     }
-    if (c(1) == 2) {
-        print("Scope - shadowing outer function, one level: Passed");
+    if c(1) == 2 {
+        print("Scope - shadowing outer function, one level: Passed")
     } else {
-        print("Scope - shadowing outer function, one level: Failed");
+        print("Scope - shadowing outer function, one level: Failed")
     }
 
-    c(1);
+    c(1)
 }
 
-if (c(1) == 1) {
-    print("Scope - discarding inner shadowing function: Passed");
+if c(1) == 1 {
+    print("Scope - discarding inner shadowing function: Passed")
 } else {
-    print("Scope - discarding inner shadowing function: Failed");
+    print("Scope - discarding inner shadowing function: Failed")
 }

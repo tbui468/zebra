@@ -17,6 +17,9 @@ namespace zebra {
         int m_line;
         std::string m_message;
         SyntaxError(int line, const std::string& message): m_line(line), m_message(message) {}
+        void print() {
+            std::cout << "[Line " << m_line << "] Syntax Error: " << m_message << std::endl;
+        }
     };
 
     class Lexer {

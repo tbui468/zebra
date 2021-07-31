@@ -16,6 +16,9 @@ namespace zebra {
         Token m_token;
         std::string m_message;
         ParseError(Token token, const std::string& message): m_token(token), m_message(message) {}
+        void print() {
+            std::cout << "[Line " << m_token.m_line << "] Parsing Error: " << m_message << std::endl;
+        }
     };
 
 
@@ -36,7 +39,6 @@ namespace zebra {
 
             ResultCode parse(std::vector<std::shared_ptr<Expr>>& ast) {
                 while(!match(TokenType::EOFILE)) {
-                    //std::shared_ptr<Stmt> stmt = statement();
                     std::shared_ptr<Expr> expr = expression();
                     if (!m_error_flag) {
                         ast.push_back(expr);
@@ -62,67 +64,6 @@ namespace zebra {
             void add_error(Token token, const std::string& message) {
                 m_errors.emplace_back(token, message);
                 m_error_flag = true;
-            }
-
-            std::shared_ptr<Stmt> statement() {
-                if (match(TokenType::IF))               return if_statement();
-                if (peek_one(TokenType::LEFT_BRACE))    return block_statement();
-                if (peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::LEFT_PAREN))   return function_declaration();
-                if (peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::LEFT_BRACE))   return struct_declaration();
-                if (peek_three(TokenType::IDENTIFIER, TokenType::COLON, TokenType::IDENTIFIER))         return struct_instantiation();
-                if (match(TokenType::WHILE))            return while_statement();
-                if (match(TokenType::FOR))              return for_statement();
-                if (match(TokenType::RETURN))           return return_statement();
-                if (match(TokenType::IMPORT))           return import_statement();
-
-                std::shared_ptr<Expr> expr = expression();
-
-                StmtExpr* stmt_expr = dynamic_cast<StmtExpr*>(expr.get());
-
-                if (!stmt_expr) {
-                    add_error(previous(), "Invalid statement.");
-                    return nullptr;
-                }
-
-                if(expr) {
-                    std::shared_ptr<Stmt> stmt = stmt_expr->m_stmt;
-                    return stmt;
-                } 
-                
-                return nullptr;
-            }
-
-            std::shared_ptr<Stmt> import_statement() {
-                return nullptr;
-                /*
-                Token name = previous();
-                match(TokenType::IDENTIFIER);
-                Token lib = previous();
-
-                std::unordered_map<std::string, std::shared_ptr<Object>> functions;
-
-                if (lib.m_lexeme == "io") {
-                    //std::shared_ptr<Object> fun = std::make_shared<Print>();
-                    //functions["print"] = fun;
-                    std::shared_ptr<Object> input = std::make_shared<Input>();
-                    functions["input"] = input;
-                } else if (lib.m_lexeme == "time") {
-                    std::shared_ptr<Object> fun = std::make_shared<Clock>();
-                    functions["clock"] = fun;
-                }
-
-
-                return std::make_shared<Import>(name, functions);
-                */
-            }
-
-            std::shared_ptr<Stmt> return_statement() {
-                return nullptr;
-                /*
-                m_had_return_flag = true;
-                Token name = previous();
-                std::shared_ptr<Expr> value = expression();
-                return std::make_shared<Return>(name, m_return_type, value);*/
             }
 
 
@@ -161,167 +102,6 @@ namespace zebra {
                 return std::make_shared<StructDecl>(name, fields);*/
             }
 
-            std::shared_ptr<Stmt> function_declaration() {
-                return nullptr;
-                /*
-                match(TokenType::IDENTIFIER);
-                Token identifier = previous();
-                match(TokenType::COLON_COLON);
-
-                //parameter list
-                consume(TokenType::LEFT_PAREN, "Expect '(' before function parameters.");
-
-                std::vector<std::shared_ptr<Stmt>> parameters;
-                while(!match(TokenType::RIGHT_PAREN)) {
-                    match(TokenType::IDENTIFIER);
-                    Token name = previous();
-
-                    consume(TokenType::COLON, "Expect colon after variable identifier.");
-
-                    //TODO: this is ugly and error-prone - find a nicer way to do this
-                    match(TokenType::BOOL_TYPE);
-                    match(TokenType::INT_TYPE);
-                    match(TokenType::FLOAT_TYPE);
-                    match(TokenType::STRING_TYPE);
-                    match(TokenType::FUN_TYPE);
-                    match(TokenType::STRUCT_TYPE);
-                    Token type = previous();
-
-                    if (type.m_type == TokenType::COLON) {
-                        add_error(type, "Invalid parameter type.");
-                    }
-
-                    parameters.emplace_back(std::make_shared<VarDecl>(name, type, nullptr));
-                    match(TokenType::COMMA);                    
-                }                
-
-                //if procedure
-                if (match(TokenType::LEFT_BRACE)) {
-                    m_return_type = TokenType::NIL_TYPE;
-                } else {
-                    consume(TokenType::RIGHT_ARROW, "Expect '->' and return type after parameter declaration.");
-
-                    //TODO: this is ugly and error-prone - find a nicer way to do this
-                    match(TokenType::BOOL_TYPE);
-                    match(TokenType::INT_TYPE);
-                    match(TokenType::FLOAT_TYPE);
-                    match(TokenType::STRING_TYPE);
-                    match(TokenType::FUN_TYPE);
-                    match(TokenType::STRUCT_TYPE);
-                    m_return_type = previous().m_type; 
-
-                    consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
-                }
-
-                Token name = previous(); //block name
-
-                //setting flag to default false, will be set to true if return statement in body
-                m_had_return = false;
-
-                std::vector<std::shared_ptr<Stmt>> statements;
-                while (!match(TokenType::RIGHT_BRACE)) {
-                    statements.push_back(statement());
-                }
-
-                if (m_return_type != TokenType::NIL_TYPE && !m_had_return) {
-                    add_error(identifier, "Expect return statement.");
-                }
-
-                std::shared_ptr<Stmt> body = std::make_shared<Block>(name, statements);
-
-                return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);*/
-            }
-
-            std::shared_ptr<Stmt> if_statement() {
-                return nullptr;
-                /*
-                Token name = previous();
-                consume(TokenType::LEFT_PAREN, "Expect '(' after keyword 'if'.");
-                std::shared_ptr<Expr> condition = expression();
-                consume(TokenType::RIGHT_PAREN, "Expect ')' after condition.");
-                std::shared_ptr<Stmt> then_branch = block_statement();
-
-                std::shared_ptr<Stmt> else_branch = nullptr;
-                if(match(TokenType::ELSE)) {
-                    else_branch = block_statement();
-                }
-                return std::make_shared<If>(name, condition, then_branch, else_branch);*/
-            }
-
-            std::shared_ptr<Stmt> block_statement() {
-                return nullptr;
-                /*
-                consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
-                Token name = previous();
-                std::vector<std::shared_ptr<Stmt>> statements;
-                while (!match(TokenType::RIGHT_BRACE)) {
-                    statements.push_back(statement());
-                }
-
-                return std::make_shared<Block>(name, statements);*/
-            }
-
-
-
-            std::shared_ptr<Stmt> while_statement() {
-                return nullptr;
-                /*
-                Token name = previous();
-                consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
-                std::shared_ptr<Expr> condition = expression();
-                consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
-                std::shared_ptr<Stmt> body = block_statement();
-                return std::make_shared<While>(name, condition, body);*/
-            }
-
-            std::shared_ptr<Stmt> for_statement() {
-                return nullptr;
-                /*
-                Token name = previous();
-                consume(TokenType::LEFT_PAREN, "Expect '(' after 'for'.");
-                std::shared_ptr<Stmt> initializer;
-                if(!match(TokenType::SEMICOLON)) {
-                    initializer = statement(); //statement consumes ';'
-                }
-                std::shared_ptr<Expr> condition;
-                if(!match(TokenType::SEMICOLON)) {
-                    condition = expression();
-                    consume(TokenType::SEMICOLON, "Expect semicolon after condition.");
-                }
-                std::shared_ptr<Expr> update;
-                if(!match(TokenType::RIGHT_PAREN)) {
-                    update = expression();
-                    consume(TokenType::RIGHT_PAREN, "Expect ')' after for loop initialization.");
-                }
-                std::shared_ptr<Stmt> body = block_statement();
-                return std::make_shared<For>(name, initializer, condition, update, body);*/
-            }
-/*
-            std::shared_ptr<Stmt> declare_var_statement() {
-                match(TokenType::IDENTIFIER);
-                Token identifier = previous();
-                match(TokenType::COLON);
-                
-                //TODO: this is ugly and error-prone - find a nicer way to do this
-                match(TokenType::BOOL_TYPE);
-                match(TokenType::INT_TYPE);
-                match(TokenType::FLOAT_TYPE);
-                match(TokenType::STRING_TYPE);
-                match(TokenType::FUN_TYPE);
-                Token type = previous();
-
-                if (type.m_type == TokenType::COLON) {
-                    add_error(type, "Invalid data type.");
-                }
-                
-                //check for possible assignment
-                std::shared_ptr<Expr> value = nullptr;
-                if(match(TokenType::EQUAL)) {
-                    value = expression();
-                }
-
-                return std::make_shared<VarDecl>(identifier, type, value);
-            }*/
 
 
 

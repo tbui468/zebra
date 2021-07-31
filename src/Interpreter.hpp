@@ -17,6 +17,9 @@ namespace zebra {
         Token m_token;
         std::string m_message;
         RuntimeError(Token token, const std::string& message): m_token(token), m_message(message) {}
+        void print() {
+            std::cout << "[Line " << m_token.m_line << "] Runtime Error: " << m_message << std::endl;
+        }
     };
 
 
