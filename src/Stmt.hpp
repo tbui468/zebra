@@ -11,7 +11,6 @@ namespace zebra {
     class Object;
 
     struct If;
-    struct Block;
     struct While;
     struct For;
     struct Return;
@@ -24,7 +23,6 @@ namespace zebra {
 
     struct StmtStringVisitor {
         virtual std::string visit(If* stmt) = 0;
-        virtual std::string visit(Block* stmt) = 0;
         virtual std::string visit(While* stmt) = 0;
         virtual std::string visit(For* stmt) = 0;
         virtual std::string visit(Return* stmt) = 0;
@@ -37,7 +35,6 @@ namespace zebra {
     };
     struct StmtVoidVisitor {
         virtual void visit(If* stmt) = 0;
-        virtual void visit(Block* stmt) = 0;
         virtual void visit(While* stmt) = 0;
         virtual void visit(For* stmt) = 0;
         virtual void visit(Return* stmt) = 0;
@@ -72,17 +69,6 @@ namespace zebra {
             std::shared_ptr<Stmt> m_then_branch;
             std::shared_ptr<Stmt> m_else_branch;
     };
-
-    struct Block: public Stmt {
-        public:
-            Block(Token name, std::vector<std::shared_ptr<Stmt>> statements): Stmt(name), m_statements(statements) {}
-            ~Block() {}
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
-        public:
-            std::vector<std::shared_ptr<Stmt>> m_statements;
-    };
-
 
 
     struct While: public Stmt {

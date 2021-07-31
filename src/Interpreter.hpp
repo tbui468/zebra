@@ -35,7 +35,6 @@ namespace zebra {
             void execute(Stmt* stmt);
             std::shared_ptr<Object> evaluate(Expr* expr);
             void visit(If* stmt);
-            void visit(Block* stmt);
             void visit(While* stmt);
             void visit(For* stmt);
             void visit(Return* stmt);
@@ -55,6 +54,7 @@ namespace zebra {
             std::shared_ptr<Object> visit(StmtExpr* expr);
             std::shared_ptr<Object> visit(VarDecl* expr);
             std::shared_ptr<Object> visit(Assign* expr);
+            std::shared_ptr<Object> visit(Block* expr);
             std::shared_ptr<Object> visit(Print* expr);
 
     };

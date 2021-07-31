@@ -242,6 +242,8 @@ namespace zebra {
             }
 
             std::shared_ptr<Stmt> block_statement() {
+                return nullptr;
+                /*
                 consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
                 Token name = previous();
                 std::vector<std::shared_ptr<Stmt>> statements;
@@ -249,7 +251,7 @@ namespace zebra {
                     statements.push_back(statement());
                 }
 
-                return std::make_shared<Block>(name, statements);
+                return std::make_shared<Block>(name, statements);*/
             }
 
 
@@ -492,6 +494,14 @@ namespace zebra {
 
                     consume(TokenType::RIGHT_PAREN, "Expect closing parenthesis");
                     return std::make_shared<Group>(t, expr);
+                }else if(match(TokenType::LEFT_BRACE)) {
+                    Token name = previous();
+                    std::vector<std::shared_ptr<Expr>> expressions;
+                    while (!match(TokenType::RIGHT_BRACE)) {
+                        expressions.push_back(expression());
+                    }
+
+                    return std::make_shared<Block>(name, expressions);
                 }
 
                 add_error(previous(), "Expecting an expression.");

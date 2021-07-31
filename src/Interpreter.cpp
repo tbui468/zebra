@@ -49,18 +49,6 @@ namespace zebra {
         }
     }
 
-    void Interpreter::visit(Block* stmt) {
-        std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, false);
-        std::shared_ptr<Environment> closure = m_environment;
-        m_environment = block_env;
-        for(std::shared_ptr<Stmt> s: stmt->m_statements) {
-            execute(s.get());  
-            if( dynamic_cast<Return*>(s.get())) {
-                break;
-            }
-        } 
-        m_environment = closure;   
-    }
 
     void Interpreter::visit(While* stmt) {
         std::shared_ptr<Expr> condition = stmt->m_condition;
@@ -336,6 +324,24 @@ namespace zebra {
     std::shared_ptr<Object> Interpreter::visit(Assign* expr) {
         std::shared_ptr<Object> value = evaluate(expr->m_value.get());
         m_environment->assign(expr->m_name, value);
+        return value;
+    }
+
+    std::shared_ptr<Object> Interpreter::visit(Block* expr) {
+        std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, false);
+        std::shared_ptr<Environment> closure = m_environment;
+        m_environment = block_env;
+
+        std::shared_ptr<Object> value;
+        for(std::shared_ptr<Expr> e: expr->m_expressions) {
+            value = evaluate(e.get());  
+            if( dynamic_cast<Return*>(e.get())) {
+                break;
+            }
+        } 
+
+        m_environment = closure;   
+
         return value;
     }
 

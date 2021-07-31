@@ -52,6 +52,14 @@ namespace zebra {
             std::string visit(VarDecl* expr) override {
                 return "VarDecl";
             }
+
+            std::string visit(Block* expr) override {
+                std::string ret = "( Block ";
+                for(std::shared_ptr<Expr> e: expr->m_expressions) {
+                    ret += e->accept(*this) + ", ";
+                }
+                return ret + " )";
+            }
             std::string visit(Print* expr) override {
                 return "( Print " + to_string(expr->m_value.get()) + " )";
             }
@@ -65,13 +73,6 @@ namespace zebra {
                     ret += " else " + stmt->m_else_branch->accept(*this);
                 }
 
-                return ret + " )";
-            }
-            std::string visit(Block* stmt) override {
-                std::string ret = "( Block ";
-                for(std::shared_ptr<Stmt> s: stmt->m_statements) {
-                    ret += s->accept(*this) + ", ";
-                }
                 return ret + " )";
             }
             std::string visit(While* stmt) override {

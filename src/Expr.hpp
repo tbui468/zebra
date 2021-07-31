@@ -20,6 +20,7 @@ namespace zebra {
     struct Access;
     struct VarDecl;
     struct Assign;
+    struct Block;
     struct Print; //TODO: remove later - just to test during refactor of expressions
 
     struct ExprStringVisitor {
@@ -33,6 +34,7 @@ namespace zebra {
         virtual std::string visit(Access* expr) = 0;
         virtual std::string visit(VarDecl* expr) = 0;
         virtual std::string visit(Assign* expr) = 0;
+        virtual std::string visit(Block* expr) = 0;
         virtual std::string visit(Print* expr) = 0;
     };
 
@@ -47,6 +49,7 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(Access* expr) = 0;
         virtual std::shared_ptr<Object> visit(VarDecl* expr) = 0;
         virtual std::shared_ptr<Object> visit(Assign* expr) = 0;
+        virtual std::shared_ptr<Object> visit(Block* expr) = 0;
         virtual std::shared_ptr<Object> visit(Print* expr) = 0;
     };
 
@@ -61,6 +64,7 @@ namespace zebra {
         virtual TokenType visit(Access* expr) = 0;
         virtual TokenType visit(VarDecl* expr) = 0;
         virtual TokenType visit(Assign* expr) = 0;
+        virtual TokenType visit(Block* expr) = 0;
         virtual TokenType visit(Print* expr) = 0;
     };
 
@@ -210,6 +214,19 @@ namespace zebra {
             Token m_name;
             std::shared_ptr<Expr> m_value;
     };
+
+    struct Block: public Expr {
+        public:
+            Block(Token name, std::vector<std::shared_ptr<Expr>> expressions): m_name(name), m_expressions(expressions) {}
+            ~Block() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::vector<std::shared_ptr<Expr>> m_expressions;
+    };
+
 
 }
 
