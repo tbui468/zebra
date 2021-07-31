@@ -22,6 +22,8 @@ namespace zebra {
     struct Assign;
     struct Block;
     struct If;
+    struct For;
+    struct While;
     struct Print; //TODO: remove later - just to test during refactor of expressions
 
     struct ExprStringVisitor {
@@ -37,6 +39,8 @@ namespace zebra {
         virtual std::string visit(Assign* expr) = 0;
         virtual std::string visit(Block* expr) = 0;
         virtual std::string visit(If* expr) = 0;
+        virtual std::string visit(For* expr) = 0;
+        virtual std::string visit(While* expr) = 0;
         virtual std::string visit(Print* expr) = 0;
     };
 
@@ -53,6 +57,8 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(Assign* expr) = 0;
         virtual std::shared_ptr<Object> visit(Block* expr) = 0;
         virtual std::shared_ptr<Object> visit(If* expr) = 0;
+        virtual std::shared_ptr<Object> visit(For* expr) = 0;
+        virtual std::shared_ptr<Object> visit(While* expr) = 0;
         virtual std::shared_ptr<Object> visit(Print* expr) = 0;
     };
 
@@ -69,6 +75,8 @@ namespace zebra {
         virtual TokenType visit(Assign* expr) = 0;
         virtual TokenType visit(Block* expr) = 0;
         virtual TokenType visit(If* expr) = 0;
+        virtual TokenType visit(For* expr) = 0;
+        virtual TokenType visit(While* expr) = 0;
         virtual TokenType visit(Print* expr) = 0;
     };
 
@@ -246,7 +254,36 @@ namespace zebra {
             std::shared_ptr<Expr> m_else_branch;
     };
 
+    struct For: public Expr {
+        public:
+            For(Token name, std::shared_ptr<Expr> initializer, std::shared_ptr<Expr> condition, std::shared_ptr<Expr> update, std::shared_ptr<Expr> body): 
+                m_name(name), m_initializer(initializer), m_condition(condition), m_update(update), m_body(body) {}
+            ~For() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_initializer;
+            std::shared_ptr<Expr> m_condition;
+            std::shared_ptr<Expr> m_update;
+            std::shared_ptr<Expr> m_body;
+    };
 
+
+    struct While: public Expr {
+        public:
+            While(Token name, std::shared_ptr<Expr> condition, std::shared_ptr<Expr> body): 
+                m_name(name), m_condition(condition), m_body(body) {}
+            ~While() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_condition;
+            std::shared_ptr<Expr> m_body;
+    };
 
 
 }

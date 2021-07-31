@@ -259,15 +259,19 @@ namespace zebra {
 
 
             std::shared_ptr<Stmt> while_statement() {
+                return nullptr;
+                /*
                 Token name = previous();
                 consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
                 std::shared_ptr<Expr> condition = expression();
                 consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
                 std::shared_ptr<Stmt> body = block_statement();
-                return std::make_shared<While>(name, condition, body);
+                return std::make_shared<While>(name, condition, body);*/
             }
 
             std::shared_ptr<Stmt> for_statement() {
+                return nullptr;
+                /*
                 Token name = previous();
                 consume(TokenType::LEFT_PAREN, "Expect '(' after 'for'.");
                 std::shared_ptr<Stmt> initializer;
@@ -285,7 +289,7 @@ namespace zebra {
                     consume(TokenType::RIGHT_PAREN, "Expect ')' after for loop initialization.");
                 }
                 std::shared_ptr<Stmt> body = block_statement();
-                return std::make_shared<For>(name, initializer, condition, update, body);
+                return std::make_shared<For>(name, initializer, condition, update, body);*/
             }
 /*
             std::shared_ptr<Stmt> declare_var_statement() {
@@ -514,6 +518,34 @@ namespace zebra {
                         else_branch = expression();
                     }
                     return std::make_shared<If>(name, condition, then_branch, else_branch);
+                } else if(match(TokenType::FOR)) {
+                    Token name = previous();
+
+                    std::shared_ptr<Expr> initializer;
+                    if(!match(TokenType::COMMA)) {
+                        initializer = expression();
+                        consume(TokenType::COMMA, "Expecting comma after initializer.");
+                    }
+
+                    std::shared_ptr<Expr> condition;
+                    if(!match(TokenType::COMMA)) {
+                        condition = expression();
+                        consume(TokenType::COMMA, "Expecting comma after condition.");
+                    }
+
+                    std::shared_ptr<Expr> update;
+                    if(!match(TokenType::LEFT_BRACE)) {
+                        update = expression();
+                    }
+
+                    std::shared_ptr<Expr> body = expression();
+
+                    return std::make_shared<For>(name, initializer, condition, update, body);
+                } else if(match(TokenType::WHILE)) {
+                    Token name = previous();
+                    std::shared_ptr<Expr> condition = expression();
+                    std::shared_ptr<Expr> body = expression();
+                    return std::make_shared<While>(name, condition, body);
                 }
 
                 add_error(previous(), "Expecting an expression.");

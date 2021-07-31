@@ -34,8 +34,6 @@ namespace zebra {
             void add_error(Token token, const std::string& message);
             void execute(Stmt* stmt);
             std::shared_ptr<Object> evaluate(Expr* expr);
-            void visit(While* stmt);
-            void visit(For* stmt);
             void visit(Return* stmt);
             void visit(AssignField* stmt);
             void visit(FunDecl* stmt);
@@ -55,6 +53,8 @@ namespace zebra {
             std::shared_ptr<Object> visit(Assign* expr);
             std::shared_ptr<Object> visit(Block* expr);
             std::shared_ptr<Object> visit(If* expr);
+            std::shared_ptr<Object> visit(For* expr);
+            std::shared_ptr<Object> visit(While* expr);
             std::shared_ptr<Object> visit(Print* expr);
 
     };

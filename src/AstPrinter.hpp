@@ -68,6 +68,12 @@ namespace zebra {
 
                 return ret + " )";
             }
+            std::string visit(For* expr) override {
+                return "( For )";
+            }
+            std::string visit(While* expr) override {
+                return "While";
+            }
             std::string visit(Print* expr) override {
                 return "( Print " + to_string(expr->m_value.get()) + " )";
             }
@@ -75,12 +81,6 @@ namespace zebra {
             /*
              * Statements
              */
-            std::string visit(While* stmt) override {
-                return "While";
-            }
-            std::string visit(For* stmt) override {
-                return "For";
-            }
             std::string visit(Assign* stmt) override {
                 return "( Assign " + stmt->m_name.to_string() + " " + stmt->m_value->accept(*this) + " )";
             }

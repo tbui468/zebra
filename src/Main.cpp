@@ -17,11 +17,9 @@
 
 //TODO: 
 //Rewrite to make everything an expression - rewrite using Pratt parsing technique
-//  for / while loops
-//  just throw out the result if not needed - this will make everything easier - no need for both statements and expressions
-//  remove () for flow control
-//  remove ; since statements aren't a thing anymore
-//  loops and if/else will return the last evaluate expression (which allows assigning variables to results of those)
+//  functions - including new return symbol and function Calls
+//  How to do classes?
+//  rewrite libraries (particulary print()) to use new expressions - then get rid of PRINT expression
 //
 //a: int = 3
 //b: int = 2
@@ -36,15 +34,6 @@
 //    }
 //}
 //
-//for i: int = 0, i < 10, i = i + 1 {
-//    //returns last evaluated expression
-//}
-//
-//k: int = 0
-//while k < 10 {
-//    k = k + 1
-//    //returns last evaluated expression
-//}
 //
 //
 //Redo TypeChecker

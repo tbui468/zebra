@@ -10,8 +10,6 @@ namespace zebra {
     struct Expr;
     class Object;
 
-    struct While;
-    struct For;
     struct Return;
     struct AssignField;
     struct FunDecl;
@@ -21,8 +19,6 @@ namespace zebra {
     struct Import;
 
     struct StmtStringVisitor {
-        virtual std::string visit(While* stmt) = 0;
-        virtual std::string visit(For* stmt) = 0;
         virtual std::string visit(Return* stmt) = 0;
         virtual std::string visit(AssignField* stmt) = 0;
         virtual std::string visit(FunDecl* stmt) = 0;
@@ -32,8 +28,6 @@ namespace zebra {
         virtual std::string visit(Import* stmt) = 0;
     };
     struct StmtVoidVisitor {
-        virtual void visit(While* stmt) = 0;
-        virtual void visit(For* stmt) = 0;
         virtual void visit(Return* stmt) = 0;
         virtual void visit(AssignField* stmt) = 0;
         virtual void visit(FunDecl* stmt) = 0;
@@ -51,33 +45,6 @@ namespace zebra {
         virtual std::string accept(StmtStringVisitor& visitor) = 0;
         virtual void accept(StmtVoidVisitor& visitor) = 0;
         Token m_name;
-    };
-
-
-    struct While: public Stmt {
-        public:
-            While(Token name, std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body): 
-                Stmt(name), m_condition(condition), m_body(body) {}
-            ~While() {}
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
-        public:
-            std::shared_ptr<Expr> m_condition;
-            std::shared_ptr<Stmt> m_body;
-    };
-
-    struct For: public Stmt {
-        public:
-            For(Token name, std::shared_ptr<Stmt> initializer, std::shared_ptr<Expr> condition, std::shared_ptr<Expr> update, std::shared_ptr<Stmt> body): 
-                Stmt(name), m_initializer(initializer), m_condition(condition), m_update(update), m_body(body) {}
-            ~For() {}
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
-        public:
-            std::shared_ptr<Stmt> m_initializer; //this is messy in parser since statments expect a semicolon
-            std::shared_ptr<Expr> m_condition;
-            std::shared_ptr<Expr> m_update;
-            std::shared_ptr<Stmt> m_body;
     };
 
 

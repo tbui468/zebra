@@ -40,22 +40,6 @@ namespace zebra {
         return expr->accept(*this);
     }
 
-    void Interpreter::visit(While* stmt) {
-        std::shared_ptr<Expr> condition = stmt->m_condition;
-        while(dynamic_cast<Bool*>(evaluate(condition.get()).get())->m_value) {
-            execute(stmt->m_body.get());
-        }
-    }
-
-    void Interpreter::visit(For* stmt) {
-        execute(stmt->m_initializer.get());
-        std::shared_ptr<Expr> condition = stmt->m_condition;
-        while(dynamic_cast<Bool*>(evaluate(condition.get()).get())->m_value) {
-            execute(stmt->m_body.get());
-            evaluate(stmt->m_update.get()); //not using result of expression
-        }
-    }
-
     void Interpreter::visit(Return* stmt) {
         std::shared_ptr<Object> ret = evaluate(stmt->m_value.get());
         m_environment->set_return(ret);
@@ -343,6 +327,32 @@ namespace zebra {
             return evaluate(expr->m_else_branch.get());
         }
     }
+
+    std::shared_ptr<Object> Interpreter::visit(For* expr) {
+        if(expr->m_initializer) evaluate(expr->m_initializer.get());
+
+        std::shared_ptr<Object> value;
+        while(expr->m_condition && dynamic_cast<Bool*>(evaluate(expr->m_condition.get()).get())->m_value) {
+            value = evaluate(expr->m_body.get());
+            if(expr->m_update) evaluate(expr->m_update.get()); //not using result of expression
+        }
+
+        if (!value) {
+            return std::make_shared<Nil>();
+        }
+
+        return value;
+    }
+
+    std::shared_ptr<Object> Interpreter::visit(While* expr) {
+        std::shared_ptr<Object> value;
+        while(dynamic_cast<Bool*>(evaluate(expr->m_condition.get()).get())->m_value) {
+            value = evaluate(expr->m_body.get());
+        }
+
+        return value;
+    }
+
 
 
     std::shared_ptr<Object> Interpreter::visit(Print* expr) {
