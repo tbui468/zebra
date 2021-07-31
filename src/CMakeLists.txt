@@ -13,11 +13,10 @@ set(Headers
     Lexer.hpp
     Parser.hpp
     AstPrinter.hpp
-    TypeChecker.hpp
+    #Typer.hpp
     Interpreter.hpp
     Object.hpp
     Environment.hpp
-    RuntimeError.hpp
     ResultCode.hpp
     #libraries
     ZbrIo.hpp

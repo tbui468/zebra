@@ -61,6 +61,7 @@ namespace zebra {
                     case TokenType::RETURN: return "RETURN";
                     case TokenType::STRUCT: return "STRUCT";
                     case TokenType::IMPORT: return "IMPORT";
+                    case TokenType::PRINT: return "PRINT";
                     //types
                     case TokenType::INT_TYPE: return "INT_TYPE";
                     case TokenType::FLOAT_TYPE: return "FLOAT_TYPE";

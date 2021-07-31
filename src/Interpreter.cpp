@@ -9,9 +9,9 @@ namespace zebra {
 
     Interpreter::~Interpreter() {}
 
-    ResultCode Interpreter::run(const std::vector<std::shared_ptr<Stmt>> statements) {
-        for(std::shared_ptr<Stmt> s: statements) {
-            execute(s.get());
+    ResultCode Interpreter::run(const std::vector<std::shared_ptr<Expr>> expressions) {
+        for(std::shared_ptr<Expr> expr: expressions) {
+            evaluate(expr.get());
         }
 
         if(!m_error_flag) {
@@ -83,19 +83,9 @@ namespace zebra {
         m_environment->set_return(ret);
     }
 
-    void Interpreter::visit(Assign* stmt) {
-        std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
-        m_environment->assign(stmt->m_name, value);
-    }
-
     void Interpreter::visit(AssignField* stmt) {
         StructInstance* inst = dynamic_cast<StructInstance*>(m_environment->get(stmt->m_instance).get());
         inst->m_fields[stmt->m_field.m_lexeme] = evaluate(stmt->m_value.get());
-    }
-
-    void Interpreter::visit(VarDecl* stmt) {
-        std::shared_ptr<Object> value = evaluate(stmt->m_value.get());
-        m_environment->define(stmt->m_name, value);
     }
 
     void Interpreter::visit(FunDecl* stmt) {
@@ -335,6 +325,37 @@ namespace zebra {
         }
         
         add_error(expr->m_stmt->m_name, "Invalid StmtExpr");
+    }
+
+    std::shared_ptr<Object> Interpreter::visit(VarDecl* expr) {
+        std::shared_ptr<Object> value = evaluate(expr->m_value.get());
+        m_environment->define(expr->m_name, value);
+        return value;
+    }
+
+    std::shared_ptr<Object> Interpreter::visit(Assign* expr) {
+        std::shared_ptr<Object> value = evaluate(expr->m_value.get());
+        m_environment->assign(expr->m_name, value);
+        return value;
+    }
+
+    std::shared_ptr<Object> Interpreter::visit(Print* expr) {
+        std::shared_ptr<Object> value = evaluate(expr->m_value.get());
+
+        if(dynamic_cast<Bool*>(value.get())) {
+            std::cout << dynamic_cast<Bool*>(value.get())->m_value << std::endl;
+        }
+        if(dynamic_cast<Int*>(value.get())) {
+            std::cout << dynamic_cast<Int*>(value.get())->m_value << std::endl;
+        }
+        if(dynamic_cast<Float*>(value.get())) {
+            std::cout << dynamic_cast<Float*>(value.get())->m_value << std::endl;
+        }
+        if(dynamic_cast<String*>(value.get())) {
+            std::cout << dynamic_cast<String*>(value.get())->m_value << std::endl;
+        }
+
+        return value;
     }
 
 

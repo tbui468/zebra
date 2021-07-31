@@ -15,9 +15,7 @@ namespace zebra {
     struct While;
     struct For;
     struct Return;
-    struct Assign;
     struct AssignField;
-    struct VarDecl;
     struct FunDecl;
     struct Call;
     struct StructDecl;
@@ -30,9 +28,7 @@ namespace zebra {
         virtual std::string visit(While* stmt) = 0;
         virtual std::string visit(For* stmt) = 0;
         virtual std::string visit(Return* stmt) = 0;
-        virtual std::string visit(Assign* stmt) = 0;
         virtual std::string visit(AssignField* stmt) = 0;
-        virtual std::string visit(VarDecl* stmt) = 0;
         virtual std::string visit(FunDecl* stmt) = 0;
         virtual std::string visit(Call* stmt) = 0;
         virtual std::string visit(StructDecl* stmt) = 0;
@@ -45,9 +41,7 @@ namespace zebra {
         virtual void visit(While* stmt) = 0;
         virtual void visit(For* stmt) = 0;
         virtual void visit(Return* stmt) = 0;
-        virtual void visit(Assign* stmt) = 0;
         virtual void visit(AssignField* stmt) = 0;
-        virtual void visit(VarDecl* stmt) = 0;
         virtual void visit(FunDecl* stmt) = 0;
         virtual void visit(Call* stmt) = 0;
         virtual void visit(StructDecl* stmt) = 0;
@@ -130,17 +124,6 @@ namespace zebra {
             std::shared_ptr<Expr> m_value;
     };
 
-
-    struct Assign: public Stmt {
-        public:
-            Assign(Token name, std::shared_ptr<Expr> value): Stmt(name), m_value(value) {}
-            ~Assign() {}
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
-        public:
-            std::shared_ptr<Expr> m_value;
-    };
-
     struct AssignField: public Stmt {
         public:
             AssignField(Token name, Token instance, Token field, std::shared_ptr<Expr> value): 
@@ -155,17 +138,6 @@ namespace zebra {
     };
 
 
-    struct VarDecl: public Stmt {
-        public:
-            VarDecl(Token name, Token type, std::shared_ptr<Expr> value): 
-                Stmt(name), m_type(type), m_value(value) {}
-            ~VarDecl() {}
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
-        public:
-            Token m_type;
-            std::shared_ptr<Expr> m_value;
-    };
 
 
     struct FunDecl: public Stmt {

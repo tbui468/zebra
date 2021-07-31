@@ -149,6 +149,10 @@ namespace zebra {
                             if (match("r")) add_token(tokens, TokenType::OR);
                             else add_token(tokens, TokenType::IDENTIFIER, read_identifier());
                             break;
+                        case 'p':
+                            if (match("rint")) add_token(tokens, TokenType::PRINT);
+                            else add_token(tokens, TokenType::IDENTIFIER, read_identifier());
+                            break;
                         case 'n':
                             if (match("il")) add_token(tokens, TokenType::NIL_TYPE);
                             else add_token(tokens, TokenType::IDENTIFIER, read_identifier());
@@ -181,8 +185,10 @@ namespace zebra {
                                     next();
                                 }
 
-                                //integer
-                                if (!is_at_end() && peek() != '.') {
+                                if (is_at_end()) {
+                                    int len = m_current - start;
+                                    add_token(tokens, TokenType::INT, m_source.substr(start, len));
+                                } else if (!is_at_end() && peek() != '.') {
                                     int len = m_current - start;
                                     add_token(tokens, TokenType::INT, m_source.substr(start, len));
                                 } else {

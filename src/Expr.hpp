@@ -18,6 +18,9 @@ namespace zebra {
     struct Variable;
     struct StmtExpr;
     struct Access;
+    struct VarDecl;
+    struct Assign;
+    struct Print; //TODO: remove later - just to test during refactor of expressions
 
     struct ExprStringVisitor {
         virtual std::string visit(Unary* expr) = 0;
@@ -28,6 +31,9 @@ namespace zebra {
         virtual std::string visit(Variable* expr) = 0;
         virtual std::string visit(StmtExpr* expr) = 0;
         virtual std::string visit(Access* expr) = 0;
+        virtual std::string visit(VarDecl* expr) = 0;
+        virtual std::string visit(Assign* expr) = 0;
+        virtual std::string visit(Print* expr) = 0;
     };
 
     struct ExprObjectVisitor {
@@ -39,6 +45,9 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(Variable* expr) = 0;
         virtual std::shared_ptr<Object> visit(StmtExpr* expr) = 0;
         virtual std::shared_ptr<Object> visit(Access* expr) = 0;
+        virtual std::shared_ptr<Object> visit(VarDecl* expr) = 0;
+        virtual std::shared_ptr<Object> visit(Assign* expr) = 0;
+        virtual std::shared_ptr<Object> visit(Print* expr) = 0;
     };
 
     struct ExprTokenTypeVisitor {
@@ -50,6 +59,9 @@ namespace zebra {
         virtual TokenType visit(Variable* expr) = 0;
         virtual TokenType visit(StmtExpr* expr) = 0;
         virtual TokenType visit(Access* expr) = 0;
+        virtual TokenType visit(VarDecl* expr) = 0;
+        virtual TokenType visit(Assign* expr) = 0;
+        virtual TokenType visit(Print* expr) = 0;
     };
 
     //Expressions
@@ -157,6 +169,46 @@ namespace zebra {
         public:
             Token m_instance;
             Token m_field;
+    };
+
+
+    struct VarDecl: public Expr {
+        public:
+            VarDecl(Token name, std::shared_ptr<Expr> value): 
+                m_name(name), m_value(value) {}
+            ~VarDecl() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_value;
+    };
+
+    struct Assign: public Expr {
+        public:
+            Assign(Token name, std::shared_ptr<Expr> value): m_name(name), m_value(value) {}
+            ~Assign() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_value;
+    };
+
+
+    struct Print: public Expr {
+        public:
+            Print(Token name, std::shared_ptr<Expr> value): 
+                m_name(name), m_value(value) {}
+            ~Print() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_value;
     };
 
 }

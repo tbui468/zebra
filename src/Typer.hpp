@@ -9,34 +9,37 @@
 #include "Token.hpp"
 #include "Expr.hpp"
 #include "Stmt.hpp"
+#include "ResultCode.hpp"
 
 namespace zebra {
 
 
-    class TypeChecker: public ExprTokenTypeVisitor, public StmtVoidVisitor {
+    class TypeError {
+        private:
+            Token m_token;
+            std::string m_message;
+        public:
+            TypeError(Token token, const std::string& message): m_token(token), m_message(message){}
+            ~TypeError() {}
+            void print() {
+                std::cout << "[Line " << m_token.m_line << "] Type Error: " << m_message << std::endl;
+            }
+    };
+
+
+    class Typer: public ExprTokenTypeVisitor, public StmtVoidVisitor {
         private:
             std::vector<std::unordered_map<std::string, Stmt*>> m_variables;
-            class TypeError {
-                private:
-                    Token m_token;
-                    std::string m_message;
-                public:
-                    TypeError(Token token, const std::string& message): m_token(token), m_message(message){}
-                    ~TypeError() {}
-                    void print() {
-                        std::cout << "[Line " << m_token.m_line << "] Type Error: " << m_message << std::endl;
-                    }
-            };
-
+            std::vector<TypeError> m_errors;
+            bool m_error_flag {false};
         public:
             TypeChecker() {
                 m_variables.emplace_back(std::unordered_map<std::string, Stmt*>()); 
             }
+
             ~TypeChecker() {}
-            void execute(Stmt* stmt) {
-                stmt->accept(*this);
-            }
-            bool check(const std::vector<std::shared_ptr<Stmt>>& ast) {
+
+            ResultCode type(const std::vector<std::shared_ptr<Stmt>>& ast) {
                 try {
                     for(std::shared_ptr<Stmt> s: ast) {
                         execute(s.get());
@@ -46,9 +49,22 @@ namespace zebra {
                     return false;
                 }
 
-                return true;
+                if (m_errors.empty()) {
+                    return ResultCode::SUCCESS;
+                } else {
+                    return ResultCode::FAILED;
+                }
             }
+
         private:
+            void execute(Stmt* stmt) {
+                stmt->accept(*this);
+            }
+
+            TokenType evaluate(Expr* expr) {
+                return expr->accept(*this);
+            }
+
             TokenType get_field_type_from_instance(Token inst_name, Token field) {
                 StructInst* inst = dynamic_cast<StructInst*>(get_decl(inst_name));
                 StructDecl* decl = dynamic_cast<StructDecl*>(get_decl(inst->m_struct)); 
@@ -85,9 +101,6 @@ namespace zebra {
                 }
             }
 
-            TokenType evaluate(Expr* expr) {
-                return expr->accept(*this);
-            }
 
             /*
              * Statements

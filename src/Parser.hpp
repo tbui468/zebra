@@ -34,11 +34,12 @@ namespace zebra {
         public:
             Parser(const std::vector<Token>& tokens): m_tokens(tokens), m_current(0) {}
 
-            ResultCode parse(std::vector<std::shared_ptr<Stmt>>& ast) {
+            ResultCode parse(std::vector<std::shared_ptr<Expr>>& ast) {
                 while(!match(TokenType::EOFILE)) {
-                    std::shared_ptr<Stmt> stmt = statement();
+                    //std::shared_ptr<Stmt> stmt = statement();
+                    std::shared_ptr<Expr> expr = expression();
                     if (!m_error_flag) {
-                        ast.push_back(stmt);
+                        ast.push_back(expr);
                     } else {
                         synchronize();
                         m_error_flag = false;
@@ -85,7 +86,6 @@ namespace zebra {
 
                 if(expr) {
                     std::shared_ptr<Stmt> stmt = stmt_expr->m_stmt;
-                    consume(TokenType::SEMICOLON, "Expect semicolon after statement.");
                     return stmt;
                 } 
                 
@@ -100,8 +100,8 @@ namespace zebra {
                 std::unordered_map<std::string, std::shared_ptr<Object>> functions;
 
                 if (lib.m_lexeme == "io") {
-                    std::shared_ptr<Object> fun = std::make_shared<Print>();
-                    functions["print"] = fun;
+                    //std::shared_ptr<Object> fun = std::make_shared<Print>();
+                    //functions["print"] = fun;
                     std::shared_ptr<Object> input = std::make_shared<Input>();
                     functions["input"] = input;
                 } else if (lib.m_lexeme == "time") {
@@ -109,7 +109,6 @@ namespace zebra {
                     functions["clock"] = fun;
                 }
 
-                consume(TokenType::SEMICOLON, "Expect ';' after statement.");
 
                 return std::make_shared<Import>(name, functions);
             }
@@ -118,7 +117,6 @@ namespace zebra {
                 m_had_return = true;
                 Token name = previous();
                 std::shared_ptr<Expr> value = expression();
-                consume(TokenType::SEMICOLON, "Expect ';' after statement.");
                 return std::make_shared<Return>(name, m_return_type, value);
             }
 
@@ -137,12 +135,14 @@ namespace zebra {
                     match(TokenType::COMMA);
                 }
 
-                consume(TokenType::SEMICOLON, "Expect ';' at end of statement.");
 
                 return std::make_shared<StructInst>(name, struct_name, arguments);
             }
 
+            //TODO: NEed to redo this
             std::shared_ptr<Stmt> struct_declaration() {
+                return nullptr; //TODO: TEmp short circuitin to redo VarDecl
+                /*
                 match(TokenType::IDENTIFIER);
                 Token name = previous();
                 match(TokenType::COLON_COLON);
@@ -151,13 +151,14 @@ namespace zebra {
                 std::vector<std::shared_ptr<VarDecl>> fields;
                 while (!match(TokenType::RIGHT_BRACE)) {
                     fields.push_back(std::dynamic_pointer_cast<VarDecl>(declare_var_statement()));
-                    consume(TokenType::SEMICOLON, "Expect semicolon after data field declaration/assignment."); 
                 }
 
-                return std::make_shared<StructDecl>(name, fields);
+                return std::make_shared<StructDecl>(name, fields);*/
             }
 
             std::shared_ptr<Stmt> function_declaration() {
+                return nullptr;
+                /*
                 match(TokenType::IDENTIFIER);
                 Token identifier = previous();
                 match(TokenType::COLON_COLON);
@@ -223,7 +224,7 @@ namespace zebra {
 
                 std::shared_ptr<Stmt> body = std::make_shared<Block>(name, statements);
 
-                return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
+                return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);*/
             }
 
             std::shared_ptr<Stmt> if_statement() {
@@ -282,7 +283,7 @@ namespace zebra {
                 std::shared_ptr<Stmt> body = block_statement();
                 return std::make_shared<For>(name, initializer, condition, update, body);
             }
-
+/*
             std::shared_ptr<Stmt> declare_var_statement() {
                 match(TokenType::IDENTIFIER);
                 Token identifier = previous();
@@ -307,7 +308,7 @@ namespace zebra {
                 }
 
                 return std::make_shared<VarDecl>(identifier, type, value);
-            }
+            }*/
 
 
 
@@ -328,11 +329,32 @@ namespace zebra {
                     Token identifier = previous();
                     match(TokenType::EQUAL);
                     std::shared_ptr<Expr> value = declare_assign();
-                    std::shared_ptr<Stmt> assignment = std::make_shared<Assign>(identifier, value);
-                    return std::make_shared<StmtExpr>(assignment);
+                    return std::make_shared<Assign>(identifier, value);
                 //variable declaration
                 } else if (peek_two(TokenType::IDENTIFIER, TokenType::COLON)) {
-                    return std::make_shared<StmtExpr>(declare_var_statement());
+                    match(TokenType::IDENTIFIER);
+                    Token identifier = previous();
+                    match(TokenType::COLON);
+                    
+                    //TODO: this is ugly and error-prone - find a nicer way to do this
+                    match(TokenType::BOOL_TYPE);
+                    match(TokenType::INT_TYPE);
+                    match(TokenType::FLOAT_TYPE);
+                    match(TokenType::STRING_TYPE);
+                    match(TokenType::FUN_TYPE);
+                    Token type = previous();
+
+                    if (type.m_type == TokenType::COLON) {
+                        add_error(type, "Invalid data type.");
+                    }
+                    
+                    //check for possible assignment
+                    std::shared_ptr<Expr> value = nullptr;
+                    if(match(TokenType::EQUAL)) {
+                        value = expression();
+                    }
+
+                    return std::make_shared<VarDecl>(identifier, value);
                 }
 
                 return logic_or();
@@ -460,6 +482,10 @@ namespace zebra {
                     return std::make_shared<StmtExpr>(std::make_shared<Call>(identifier, arguments));
                 } else if (match(TokenType::IDENTIFIER)) {
                     return std::make_shared<Variable>(previous());
+                } else if (match(TokenType::PRINT)) {
+                    Token name = previous();
+                    std::shared_ptr<Expr> value = expression();
+                    return std::make_shared<Print>(name, value);
                 }else if(match(TokenType::LEFT_PAREN)) {
                     Token t = previous();
                     std::shared_ptr<Expr> expr = expression();

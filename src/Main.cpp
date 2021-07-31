@@ -4,7 +4,7 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "AstPrinter.hpp"
-#include "TypeChecker.hpp"
+//#include "Typer.hpp"
 #include "Interpreter.hpp"
 
 //TITLE: Zebra scripting language - 
@@ -16,34 +16,44 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
+//Rewrite to make everything an expression - rewrite using Pratt parsing technique
+//  if else statements to expressions
+//  just throw out the result if not needed - this will make everything easier - no need for both statements and expressions
+//  remove () for flow control
+//  remove ; since statements aren't a thing anymore
+//  loops and if/else will return the last evaluate expression (which allows assigning variables to results of those)
+//
+//a: int = 3
+//b: int = 2
+//
+//my_fun :: if a < b {
+//    (n: int) -> int {
+//        -> n * 3
+//    }
+//} else {
+//    (n: int) -> int {
+//        -> n * 4
+//    }
+//}
+//
+//for i: int = 0, i < 10, i = i + 1 {
+//    //returns last evaluated expression
+//}
+//
+//k: int = 0
+//while k < 10 {
+//    k = k + 1
+//    //returns last evaluated expression
+//}
+//
+//
 //Redo TypeChecker
-//  Rename to Typer - more concise
 //  replace exceptions with return codes (or class data field that holds list of accrued errors)
 //  Typechecker needs to deal with three types of data: primitive types, functions and structs
 //
-//Classes - need keyword before {} to allow anonymous classes
+//All Error types can inherit from same base class Error()
+//  printing errors in Main.cpp can just be done by using print() method (rather than calling cout << with all the fields)
 //
-//  Dog :: class < Animal {
-//      this.name: string = "Jimmy";
-//      this.age: int = 3;
-//
-//      //constructor - can't be called manually
-//      Dog :: (name: string, age: int) -> this {
-//          super(name); //calling parent constructor
-//          this.name = name;
-//          this.age = age;
-//      }
-//
-//      run :: () {
-//          super.run();
-//      }
-//
-//      bark :: () -> string {
-//          return this.name;
-//      }
-//  }
-//
-//  Then gotta add 
 //
 //Infer types when declaring:
 //a := 6; //int
@@ -107,10 +117,10 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-//            zebra::Lexer::print_tokens(tokens);
+            zebra::Lexer::print_tokens(tokens);
 
             zebra::Parser parser(tokens);
-            std::vector<std::shared_ptr<zebra::Stmt>> ast;
+            std::vector<std::shared_ptr<zebra::Expr>> ast;
             zebra::ResultCode parse_result = parser.parse(ast);
 
             if (parse_result != zebra::ResultCode::SUCCESS) {
@@ -121,16 +131,29 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-//            zebra::AstPrinter printer;        
-//            printer.print(ast);
+            zebra::AstPrinter printer;        
+            printer.print(ast);
 
- //           zebra::TypeChecker checker;
-//            bool passed = checker.check(ast);
+/*            
+            zebra::Typer typer;
+            zebra::ResultCode type_result = typer.type(ast);
+
+            if (type_result != zebra::ResultCode::SUCCESS) {
+                std::vector<zebra::TypeError> errors = typer.get_errors();
+                for (zebra::TypeError error: errors) {
+                    std::cout << "[" << error.m_token.to_string() << "]" << error.m_message << std::endl;
+                }
+                return 1;
+            }*/
 
             zebra::Interpreter interp;
-            zebra::ResultCode interp_result = interp.run(ast);
+            zebra::ResultCode run_result = interp.run(ast);
 
-            if (interp_result != zebra::ResultCode::SUCCESS) {
+            if (run_result != zebra::ResultCode::SUCCESS) {
+                std::vector<zebra::RuntimeError> errors = interp.get_errors();
+                for (zebra::RuntimeError error: errors) {
+                    std::cout << "[" << error.m_token.to_string() << "]" << error.m_message << std::endl;
+                }
                 return 1;
             }
         }

@@ -6,7 +6,7 @@
 #include "Object.hpp"
 
 namespace zebra {
-
+/*
     class Print: public Callable {
         public:
             Print() = default;
@@ -31,7 +31,7 @@ namespace zebra {
             std::shared_ptr<Object> clone() override {
                 return std::make_shared<Print>(*this);
             }
-    };
+    };*/
 
     class Input: public Callable {
         public:

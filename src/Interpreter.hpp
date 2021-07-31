@@ -29,7 +29,7 @@ namespace zebra {
         public:
             Interpreter();
             ~Interpreter();
-            ResultCode run(const std::vector<std::shared_ptr<Stmt>> statements);
+            ResultCode run(const std::vector<std::shared_ptr<Expr>> expressions);
             std::vector<RuntimeError> get_errors() const;
             void add_error(Token token, const std::string& message);
             void execute(Stmt* stmt);
@@ -39,9 +39,7 @@ namespace zebra {
             void visit(While* stmt);
             void visit(For* stmt);
             void visit(Return* stmt);
-            void visit(Assign* stmt);
             void visit(AssignField* stmt);
-            void visit(VarDecl* stmt);
             void visit(FunDecl* stmt);
             void visit(StructDecl* stmt);
             void visit(StructInst* stmt);
@@ -55,6 +53,9 @@ namespace zebra {
             std::shared_ptr<Object> visit(Variable* expr);
             std::shared_ptr<Object> visit(Access* expr);
             std::shared_ptr<Object> visit(StmtExpr* expr);
+            std::shared_ptr<Object> visit(VarDecl* expr);
+            std::shared_ptr<Object> visit(Assign* expr);
+            std::shared_ptr<Object> visit(Print* expr);
 
     };
 

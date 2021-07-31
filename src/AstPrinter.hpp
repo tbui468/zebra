@@ -4,7 +4,6 @@
 #include <string>
 #include "Expr.hpp"
 #include "Stmt.hpp"
-#include "ResultCode.hpp"
 
 namespace zebra {
 
@@ -12,16 +11,15 @@ namespace zebra {
         public:
             AstPrinter() {}
             ~AstPrinter() {}
-            ResultCode print(std::vector<std::shared_ptr<Stmt>> ast) {
-                for (std::shared_ptr<Stmt> stmt: ast) {
-                    std::cout << to_string(stmt.get()) << std::endl;
+            void print(std::vector<std::shared_ptr<Expr>> ast) {
+                for (std::shared_ptr<Expr> expr: ast) {
+                    std::cout << to_string(expr.get()) << std::endl;
                 }
 
-                return ResultCode::SUCCESS;
             }
         private:
-            std::string to_string(Stmt* stmt) {
-                return stmt->accept(*this); 
+            std::string to_string(Expr* expr) {
+                return expr->accept(*this); 
             }
 
             /*
@@ -50,6 +48,12 @@ namespace zebra {
             }
             std::string visit(Access* expr) override {
                 return "Access";
+            }
+            std::string visit(VarDecl* expr) override {
+                return "VarDecl";
+            }
+            std::string visit(Print* expr) override {
+                return "( Print " + to_string(expr->m_value.get()) + " )";
             }
 
             /*
@@ -81,9 +85,6 @@ namespace zebra {
             }
             std::string visit(AssignField* stmt) override {
                 return "Assign";
-            }
-            std::string visit(VarDecl* stmt) override {
-                return "VarDecl";
             }
             std::string visit(FunDecl* stmt) override {
                 return "FunDecl";
