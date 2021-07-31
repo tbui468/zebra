@@ -40,16 +40,6 @@ namespace zebra {
         return expr->accept(*this);
     }
 
-    void Interpreter::visit(If* stmt) {
-        std::shared_ptr<Object> condition = evaluate(stmt->m_condition.get());
-        if(dynamic_cast<Bool*>(condition.get()) && dynamic_cast<Bool*>(condition.get())->m_value) {
-            execute(stmt->m_then_branch.get());                    
-        }else if(stmt->m_else_branch) {
-            execute(stmt->m_else_branch.get());
-        }
-    }
-
-
     void Interpreter::visit(While* stmt) {
         std::shared_ptr<Expr> condition = stmt->m_condition;
         while(dynamic_cast<Bool*>(evaluate(condition.get()).get())->m_value) {
@@ -344,6 +334,16 @@ namespace zebra {
 
         return value;
     }
+
+    std::shared_ptr<Object> Interpreter::visit(If* expr) {
+        std::shared_ptr<Object> condition = evaluate(expr->m_condition.get());
+        if(dynamic_cast<Bool*>(condition.get())->m_value) {
+            return evaluate(expr->m_then_branch.get());                    
+        }else if(expr->m_else_branch) {
+            return evaluate(expr->m_else_branch.get());
+        }
+    }
+
 
     std::shared_ptr<Object> Interpreter::visit(Print* expr) {
         std::shared_ptr<Object> value = evaluate(expr->m_value.get());

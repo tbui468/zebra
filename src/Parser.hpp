@@ -228,6 +228,8 @@ namespace zebra {
             }
 
             std::shared_ptr<Stmt> if_statement() {
+                return nullptr;
+                /*
                 Token name = previous();
                 consume(TokenType::LEFT_PAREN, "Expect '(' after keyword 'if'.");
                 std::shared_ptr<Expr> condition = expression();
@@ -238,7 +240,7 @@ namespace zebra {
                 if(match(TokenType::ELSE)) {
                     else_branch = block_statement();
                 }
-                return std::make_shared<If>(name, condition, then_branch, else_branch);
+                return std::make_shared<If>(name, condition, then_branch, else_branch);*/
             }
 
             std::shared_ptr<Stmt> block_statement() {
@@ -502,6 +504,16 @@ namespace zebra {
                     }
 
                     return std::make_shared<Block>(name, expressions);
+                } else if(match(TokenType::IF)) {
+                    Token name = previous();
+                    std::shared_ptr<Expr> condition = expression();
+                    std::shared_ptr<Expr> then_branch = expression();
+
+                    std::shared_ptr<Expr> else_branch = nullptr;
+                    if(match(TokenType::ELSE)) {
+                        else_branch = expression();
+                    }
+                    return std::make_shared<If>(name, condition, then_branch, else_branch);
                 }
 
                 add_error(previous(), "Expecting an expression.");

@@ -17,8 +17,6 @@
 
 //TODO: 
 //Rewrite to make everything an expression - rewrite using Pratt parsing technique
-//  block expressions
-//  if else statements to expressions
 //  for / while loops
 //  just throw out the result if not needed - this will make everything easier - no need for both statements and expressions
 //  remove () for flow control

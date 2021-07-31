@@ -21,6 +21,7 @@ namespace zebra {
     struct VarDecl;
     struct Assign;
     struct Block;
+    struct If;
     struct Print; //TODO: remove later - just to test during refactor of expressions
 
     struct ExprStringVisitor {
@@ -35,6 +36,7 @@ namespace zebra {
         virtual std::string visit(VarDecl* expr) = 0;
         virtual std::string visit(Assign* expr) = 0;
         virtual std::string visit(Block* expr) = 0;
+        virtual std::string visit(If* expr) = 0;
         virtual std::string visit(Print* expr) = 0;
     };
 
@@ -50,6 +52,7 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(VarDecl* expr) = 0;
         virtual std::shared_ptr<Object> visit(Assign* expr) = 0;
         virtual std::shared_ptr<Object> visit(Block* expr) = 0;
+        virtual std::shared_ptr<Object> visit(If* expr) = 0;
         virtual std::shared_ptr<Object> visit(Print* expr) = 0;
     };
 
@@ -65,6 +68,7 @@ namespace zebra {
         virtual TokenType visit(VarDecl* expr) = 0;
         virtual TokenType visit(Assign* expr) = 0;
         virtual TokenType visit(Block* expr) = 0;
+        virtual TokenType visit(If* expr) = 0;
         virtual TokenType visit(Print* expr) = 0;
     };
 
@@ -226,6 +230,23 @@ namespace zebra {
             Token m_name;
             std::vector<std::shared_ptr<Expr>> m_expressions;
     };
+
+    struct If: public Expr {
+        public:
+            If(Token name, std::shared_ptr<Expr> condition, std::shared_ptr<Expr> then_branch, std::shared_ptr<Expr> else_branch): 
+                m_name(name), m_condition(condition), m_then_branch(then_branch), m_else_branch(else_branch) {}
+            ~If() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::shared_ptr<Expr> m_condition;
+            std::shared_ptr<Expr> m_then_branch;
+            std::shared_ptr<Expr> m_else_branch;
+    };
+
+
 
 
 }

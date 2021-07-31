@@ -60,6 +60,14 @@ namespace zebra {
                 }
                 return ret + " )";
             }
+            std::string visit(If* expr) override {
+                std::string ret = "( If " + to_string(expr->m_condition.get()) + " then " + to_string(expr->m_then_branch.get());
+                if (expr->m_else_branch) {
+                    ret += " else " + to_string(expr->m_else_branch.get());
+                }
+
+                return ret + " )";
+            }
             std::string visit(Print* expr) override {
                 return "( Print " + to_string(expr->m_value.get()) + " )";
             }
@@ -67,14 +75,6 @@ namespace zebra {
             /*
              * Statements
              */
-            std::string visit(If* stmt) override {
-                std::string ret = "( If " + stmt->m_condition->accept(*this) + " then " + stmt->m_then_branch->accept(*this);
-                if (stmt->m_else_branch) {
-                    ret += " else " + stmt->m_else_branch->accept(*this);
-                }
-
-                return ret + " )";
-            }
             std::string visit(While* stmt) override {
                 return "While";
             }

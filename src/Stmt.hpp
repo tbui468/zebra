@@ -10,7 +10,6 @@ namespace zebra {
     struct Expr;
     class Object;
 
-    struct If;
     struct While;
     struct For;
     struct Return;
@@ -22,7 +21,6 @@ namespace zebra {
     struct Import;
 
     struct StmtStringVisitor {
-        virtual std::string visit(If* stmt) = 0;
         virtual std::string visit(While* stmt) = 0;
         virtual std::string visit(For* stmt) = 0;
         virtual std::string visit(Return* stmt) = 0;
@@ -34,7 +32,6 @@ namespace zebra {
         virtual std::string visit(Import* stmt) = 0;
     };
     struct StmtVoidVisitor {
-        virtual void visit(If* stmt) = 0;
         virtual void visit(While* stmt) = 0;
         virtual void visit(For* stmt) = 0;
         virtual void visit(Return* stmt) = 0;
@@ -54,20 +51,6 @@ namespace zebra {
         virtual std::string accept(StmtStringVisitor& visitor) = 0;
         virtual void accept(StmtVoidVisitor& visitor) = 0;
         Token m_name;
-    };
-
-
-    struct If: public Stmt {
-        public:
-            If(Token name, std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> then_branch, std::shared_ptr<Stmt> else_branch): 
-                Stmt(name), m_condition(condition), m_then_branch(then_branch), m_else_branch(else_branch) {}
-            ~If() {}
-            std::string accept(StmtStringVisitor& visitor) { return visitor.visit(this); }
-            void accept(StmtVoidVisitor& visitor) { return visitor.visit(this); }
-        public:
-            std::shared_ptr<Expr> m_condition;
-            std::shared_ptr<Stmt> m_then_branch;
-            std::shared_ptr<Stmt> m_else_branch;
     };
 
 
