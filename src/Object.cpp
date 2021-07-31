@@ -35,12 +35,15 @@ namespace zebra {
         return std::make_shared<Nil>(*this);
     }
 
-    FunDef::FunDef(std::vector<std::shared_ptr<Stmt>> parameters, std::shared_ptr<Stmt> body)
+    FunDef::FunDef(std::vector<std::shared_ptr<Expr>> parameters, std::shared_ptr<Expr> body)
         : m_parameters(parameters), m_body(body) {}
+
     FunDef::FunDef(const FunDef& obj): m_parameters(obj.m_parameters), m_body(obj.m_body) {}
+
     std::shared_ptr<Object> FunDef::clone() {
         return std::make_shared<FunDef>(*this);
     }
+
     std::shared_ptr<Object> FunDef::call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) {
 
         for (int i = 0; i < m_parameters.size(); i++) {
@@ -49,7 +52,7 @@ namespace zebra {
             interp->m_environment->define(param_token, param_value);
         }
 
-        interp->execute(m_body.get()); //this should set env return value, which we grab and return
+        interp->evaluate(m_body.get()); //this should set env return value, which we grab and return
 
         return interp->m_environment->get_return();
     }

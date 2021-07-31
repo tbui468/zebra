@@ -26,7 +26,7 @@ namespace zebra {
             //Note: doesn't check if return statement if valid (eg outside of function) - resolver should do that in next phase
             //Used for type checking for function and return
             TokenType m_return_type = TokenType::NIL_TYPE;
-            bool m_had_return = false;
+            bool m_had_return_flag = false;
             std::vector<ParseError> m_errors;
 
             bool m_error_flag {false};
@@ -93,6 +93,8 @@ namespace zebra {
             }
 
             std::shared_ptr<Stmt> import_statement() {
+                return nullptr;
+                /*
                 Token name = previous();
                 match(TokenType::IDENTIFIER);
                 Token lib = previous();
@@ -111,13 +113,16 @@ namespace zebra {
 
 
                 return std::make_shared<Import>(name, functions);
+                */
             }
 
             std::shared_ptr<Stmt> return_statement() {
-                m_had_return = true;
+                return nullptr;
+                /*
+                m_had_return_flag = true;
                 Token name = previous();
                 std::shared_ptr<Expr> value = expression();
-                return std::make_shared<Return>(name, m_return_type, value);
+                return std::make_shared<Return>(name, m_return_type, value);*/
             }
 
 
@@ -487,13 +492,7 @@ namespace zebra {
                         match(TokenType::COMMA);
                     }
 
-                    return std::make_shared<StmtExpr>(std::make_shared<Call>(identifier, arguments));
-                } else if (match(TokenType::IDENTIFIER)) {
-                    return std::make_shared<Variable>(previous());
-                } else if (match(TokenType::PRINT)) {
-                    Token name = previous();
-                    std::shared_ptr<Expr> value = expression();
-                    return std::make_shared<Print>(name, value);
+                    return std::make_shared<Call>(identifier, arguments);
                 }else if(match(TokenType::LEFT_PAREN)) {
                     Token t = previous();
                     std::shared_ptr<Expr> expr = expression();
@@ -546,6 +545,95 @@ namespace zebra {
                     std::shared_ptr<Expr> condition = expression();
                     std::shared_ptr<Expr> body = expression();
                     return std::make_shared<While>(name, condition, body);
+                } else if(peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::LEFT_PAREN)) {
+                    match(TokenType::IDENTIFIER);
+                    Token identifier = previous();
+                    match(TokenType::COLON_COLON);
+
+                    //parameter list
+                    consume(TokenType::LEFT_PAREN, "Expect '(' before function parameters.");
+
+                    std::vector<std::shared_ptr<Expr>> parameters;
+                    while(!match(TokenType::RIGHT_PAREN)) {
+                        match(TokenType::IDENTIFIER);
+                        Token name = previous();
+
+                        consume(TokenType::COLON, "Expect colon after variable identifier.");
+
+                        //TODO: this is ugly and error-prone - find a nicer way to do this
+                        match(TokenType::BOOL_TYPE);
+                        match(TokenType::INT_TYPE);
+                        match(TokenType::FLOAT_TYPE);
+                        match(TokenType::STRING_TYPE);
+                        match(TokenType::FUN_TYPE);
+                        match(TokenType::STRUCT_TYPE);
+                        Token type = previous();
+
+                        if (type.m_type == TokenType::COLON) {
+                            add_error(type, "Invalid parameter type.");
+                        }
+
+                        parameters.emplace_back(std::make_shared<VarDecl>(name, nullptr));
+                        match(TokenType::COMMA);                    
+                    }                
+
+                    consume(TokenType::RIGHT_ARROW, "Expect '->' and return type after parameter declaration.");
+                    match(TokenType::BOOL_TYPE);
+                    match(TokenType::INT_TYPE);
+                    match(TokenType::FLOAT_TYPE);
+                    match(TokenType::STRING_TYPE);
+                    match(TokenType::FUN_TYPE);
+                    match(TokenType::STRUCT_TYPE);
+                    if (previous().m_type == TokenType::RIGHT_ARROW) {
+                        m_return_type = TokenType::NIL_TYPE;
+                    } else {
+                        m_return_type = previous().m_type; 
+                    }
+
+                    consume(TokenType::LEFT_BRACE, "Expect '{' to start new block.");
+
+                    Token name = previous(); //block name
+
+                    //setting flag to default false, will be set to true if return statement in body
+                    m_had_return_flag = false;
+
+                    std::vector<std::shared_ptr<Expr>> expressions;
+                    while (!match(TokenType::RIGHT_BRACE)) {
+                        expressions.push_back(expression());
+                    }
+
+                    if (m_return_type != TokenType::NIL_TYPE && !m_had_return_flag) {
+                        add_error(identifier, "Expect return statement.");
+                    }
+
+                    std::shared_ptr<Expr> body = std::make_shared<Block>(name, expressions);
+                    return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
+                } else if(match(TokenType::RIGHT_ARROW)) {
+                    m_had_return_flag = true;
+                    Token name = previous();
+                    std::shared_ptr<Expr> value = expression();
+                    return std::make_shared<Return>(name, m_return_type, value);
+                } else if (match(TokenType::IDENTIFIER)) {
+                    return std::make_shared<Variable>(previous());
+                } else if (match(TokenType::IMPORT)) {
+                    Token name = previous();
+                    match(TokenType::IDENTIFIER);
+                    Token lib = previous();
+
+                    std::unordered_map<std::string, std::shared_ptr<Object>> functions;
+
+                    if (lib.m_lexeme == "io") {
+                        std::shared_ptr<Object> fun = std::make_shared<Print>();
+                        functions["print"] = fun;
+                        std::shared_ptr<Object> input = std::make_shared<Input>();
+                        functions["input"] = input;
+                    } else if (lib.m_lexeme == "time") {
+                        std::shared_ptr<Object> fun = std::make_shared<Clock>();
+                        functions["clock"] = fun;
+                    }
+
+
+                    return std::make_shared<Import>(name, functions);
                 }
 
                 add_error(previous(), "Expecting an expression.");

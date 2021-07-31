@@ -16,25 +16,9 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Rewrite to make everything an expression - rewrite using Pratt parsing technique
-//  functions - including new return symbol and function Calls
-//  How to do classes?
+//Rewrite to make everything an expression - rewrite Parser.cpp using Pratt parsing technique
 //  rewrite libraries (particulary print()) to use new expressions - then get rid of PRINT expression
-//
-//a: int = 3
-//b: int = 2
-//
-//my_fun :: if a < b {
-//    (n: int) -> int {
-//        -> n * 3
-//    }
-//} else {
-//    (n: int) -> int {
-//        -> n * 4
-//    }
-//}
-//
-//
+//  How to do classes?
 //
 //Redo TypeChecker
 //  replace exceptions with return codes (or class data field that holds list of accrued errors)

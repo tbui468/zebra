@@ -149,10 +149,6 @@ namespace zebra {
                             if (match("r")) add_token(tokens, TokenType::OR);
                             else add_token(tokens, TokenType::IDENTIFIER, read_identifier());
                             break;
-                        case 'p':
-                            if (match("rint")) add_token(tokens, TokenType::PRINT);
-                            else add_token(tokens, TokenType::IDENTIFIER, read_identifier());
-                            break;
                         case 'n':
                             if (match("il")) add_token(tokens, TokenType::NIL_TYPE);
                             else add_token(tokens, TokenType::IDENTIFIER, read_identifier());

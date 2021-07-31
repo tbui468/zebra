@@ -72,10 +72,10 @@ namespace zebra {
     
     class FunDef: public Callable {
         public:
-            std::vector<std::shared_ptr<Stmt>> m_parameters;
-            std::shared_ptr<Stmt> m_body;
+            std::vector<std::shared_ptr<Expr>> m_parameters;
+            std::shared_ptr<Expr> m_body;
         public:
-            FunDef(std::vector<std::shared_ptr<Stmt>> parameters, std::shared_ptr<Stmt> body);
+            FunDef(std::vector<std::shared_ptr<Expr>> parameters, std::shared_ptr<Expr> body);
             FunDef(const FunDef& obj);
             virtual std::shared_ptr<Object> clone() override;
             virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override;

@@ -40,19 +40,9 @@ namespace zebra {
         return expr->accept(*this);
     }
 
-    void Interpreter::visit(Return* stmt) {
-        std::shared_ptr<Object> ret = evaluate(stmt->m_value.get());
-        m_environment->set_return(ret);
-    }
-
     void Interpreter::visit(AssignField* stmt) {
         StructInstance* inst = dynamic_cast<StructInstance*>(m_environment->get(stmt->m_instance).get());
         inst->m_fields[stmt->m_field.m_lexeme] = evaluate(stmt->m_value.get());
-    }
-
-    void Interpreter::visit(FunDecl* stmt) {
-        std::shared_ptr<Object> fun = std::make_shared<FunDef>(stmt->m_parameters, stmt->m_body);
-        m_environment->define(stmt->m_name, fun);
     }
 
     void Interpreter::visit(StructDecl* stmt) {
@@ -81,35 +71,6 @@ namespace zebra {
 
         std::shared_ptr<Object> struct_instance = std::make_shared<StructInstance>(fields);
         m_environment->define(stmt->m_name, struct_instance);
-    }
-
-    //FunDef is not even being used - it's just a wrapper for FunDecl
-    void Interpreter::visit(Call* stmt) {
-        std::shared_ptr<Object> obj = m_environment->get(stmt->m_name);
-        Callable* fun = dynamic_cast<Callable*>(obj.get());
-
-        //evaluate call arguments
-        std::vector<std::shared_ptr<Object>> arguments;
-        for (std::shared_ptr<Expr> e: stmt->m_arguments) {
-            arguments.push_back(evaluate(e.get()));
-        }
-
-        std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, true);
-        std::shared_ptr<Environment> closure = m_environment;
-        m_environment = block_env;
-
-        std::shared_ptr<Object> return_value = fun->call(arguments, this);
-
-        m_environment = closure;
-
-        stmt->m_return = return_value;
-    } 
-
-    
-    void Interpreter::visit(Import* stmt) {
-        for (std::pair<std::string, std::shared_ptr<Object>> p: stmt->m_functions) {
-            m_environment->define(Token(TokenType::FUN_TYPE, p.first, 1), p.second);    
-        }
     }
 
     /*
@@ -309,7 +270,7 @@ namespace zebra {
         std::shared_ptr<Object> value;
         for(std::shared_ptr<Expr> e: expr->m_expressions) {
             value = evaluate(e.get());  
-            if( dynamic_cast<Return*>(e.get())) {
+            if (dynamic_cast<Return*>(e.get())) {
                 break;
             }
         } 
@@ -353,26 +314,50 @@ namespace zebra {
         return value;
     }
 
-
-
-    std::shared_ptr<Object> Interpreter::visit(Print* expr) {
-        std::shared_ptr<Object> value = evaluate(expr->m_value.get());
-
-        if(dynamic_cast<Bool*>(value.get())) {
-            std::cout << dynamic_cast<Bool*>(value.get())->m_value << std::endl;
-        }
-        if(dynamic_cast<Int*>(value.get())) {
-            std::cout << dynamic_cast<Int*>(value.get())->m_value << std::endl;
-        }
-        if(dynamic_cast<Float*>(value.get())) {
-            std::cout << dynamic_cast<Float*>(value.get())->m_value << std::endl;
-        }
-        if(dynamic_cast<String*>(value.get())) {
-            std::cout << dynamic_cast<String*>(value.get())->m_value << std::endl;
-        }
-
-        return value;
+    std::shared_ptr<Object> Interpreter::visit(FunDecl* expr) {
+        std::shared_ptr<Object> fun = std::make_shared<FunDef>(expr->m_parameters, expr->m_body);
+        m_environment->define(expr->m_name, fun);
+        return fun;
     }
+
+    std::shared_ptr<Object> Interpreter::visit(Return* expr) {
+        std::shared_ptr<Object> ret = evaluate(expr->m_value.get());
+        m_environment->set_return(ret);
+        return ret;
+    }
+
+    std::shared_ptr<Object> Interpreter::visit(Call* expr) {
+        std::shared_ptr<Object> obj = m_environment->get(expr->m_name);
+        Callable* fun = dynamic_cast<Callable*>(obj.get());
+
+        //evaluate call arguments
+        std::vector<std::shared_ptr<Object>> arguments;
+        for (std::shared_ptr<Expr> e: expr->m_arguments) {
+            arguments.push_back(evaluate(e.get()));
+        }
+
+        std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, true);
+        std::shared_ptr<Environment> closure = m_environment;
+        m_environment = block_env;
+
+        std::shared_ptr<Object> return_value = fun->call(arguments, this);
+
+        m_environment = closure;
+
+        expr->m_return = return_value;
+
+        return return_value;
+    } 
+
+    
+    std::shared_ptr<Object> Interpreter::visit(Import* expr) {
+        for (std::pair<std::string, std::shared_ptr<Object>> p: expr->m_functions) {
+            m_environment->define(Token(TokenType::FUN_TYPE, p.first, 1), p.second);    
+        }
+
+        return std::shared_ptr<Nil>();
+    }
+
 
 
 }
