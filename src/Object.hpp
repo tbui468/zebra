@@ -101,18 +101,19 @@ namespace zebra {
 
     class ClassDef: public Object {
         public:
-            std::unordered_map<std::string, std::shared_ptr<Object>> m_fields;
+            std::vector<std::pair<Token, std::shared_ptr<Object>>> m_fields;
         public:
-            ClassDef(std::unordered_map<std::string, std::shared_ptr<Object>> fields);
+            ClassDef(std::vector<std::pair<Token, std::shared_ptr<Object>>> fields);
             ClassDef(const ClassDef& obj);
             virtual std::shared_ptr<Object> clone() override;
     };
 
     class ClassInst: public Object {
         public:
-            std::unordered_map<std::string, std::shared_ptr<Object>> m_fields;
+//            std::unordered_map<std::string, std::shared_ptr<Object>> m_fields;
+            std::shared_ptr<Environment> m_environment;
         public:
-            ClassInst(std::unordered_map<std::string, std::shared_ptr<Object>> fields);
+            ClassInst(std::vector<std::pair<Token, std::shared_ptr<Object>>> fields);
             ClassInst(const ClassInst& obj);
             virtual std::shared_ptr<Object> clone() override;
     };

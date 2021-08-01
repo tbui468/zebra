@@ -74,21 +74,22 @@ namespace zebra {
     }
 
 
-    ClassDef::ClassDef(std::unordered_map<std::string, std::shared_ptr<Object>> fields): m_fields(fields) {}
+    ClassDef::ClassDef(std::vector<std::pair<Token, std::shared_ptr<Object>>> fields): m_fields(fields) {}
     ClassDef::ClassDef(const ClassDef& obj) {
-        for (std::pair<std::string, std::shared_ptr<Object>> p: obj.m_fields) {
-            m_fields[p.first] = p.second->clone();
-        }
+        //TODO: this should never happen, right?
     }
     std::shared_ptr<Object> ClassDef::clone() {
         return std::make_shared<ClassDef>(*this);
     }
             
-    ClassInst::ClassInst(std::unordered_map<std::string, std::shared_ptr<Object>> fields): m_fields(fields) {}
-    ClassInst::ClassInst(const ClassInst& obj) {
-        for (std::pair<std::string, std::shared_ptr<Object>> p: obj.m_fields) {
-            m_fields[p.first] = p.second->clone();
+    ClassInst::ClassInst(std::vector<std::pair<Token, std::shared_ptr<Object>>> fields) {
+        m_environment = std::make_shared<Environment>();
+        for (std::pair<Token, std::shared_ptr<Object>> p: fields) {
+            m_environment->define(p.first, p.second);
         }
+    }
+    ClassInst::ClassInst(const ClassInst& obj) {
+        //TODO: this should never happen, right?  Otherwise we need to clone the environment
     }
     std::shared_ptr<Object> ClassInst::clone() {
         return std::make_shared<ClassInst>(*this);

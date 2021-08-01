@@ -418,10 +418,20 @@ namespace zebra {
 
                     consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
                     std::vector<std::shared_ptr<Expr>> fields;
+                    //std::vector<std::shared_ptr<Expr>> methods;
                     while (!match(TokenType::RIGHT_BRACE)) {
-                        fields.push_back(expression());
+                        std::shared_ptr<Expr> decl = expression();
+                        fields.push_back(decl);
+                        /*
+                        //either a VarDecl or FunDecl
+                        if (dynamic_cast<VarDecl*>(decl)) {
+                            fields.push_back(decl);
+                        } else {
+                            methods.push_back(decl);
+                        }*/
                     }
 
+                    //return std::make_shared<ClassDecl>(name, fields, methods);
                     return std::make_shared<ClassDecl>(name, fields);
                 } else if(match(TokenType::RIGHT_ARROW)) {
                     m_had_return_flag = true;

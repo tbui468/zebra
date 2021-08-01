@@ -345,8 +345,10 @@ namespace zebra {
 
     struct ClassDecl: public Expr {
         public:
+            //ClassDecl(Token name, std::vector<std::shared_ptr<Expr>> fields, std::vector<std::shared_ptr<Expr>> methods):
+             //   m_name(name), m_fields(fields), m_methods(methods) {}
             ClassDecl(Token name, std::vector<std::shared_ptr<Expr>> fields):
-                m_name(name), m_fields(fields) {}
+                m_name(name), m_fields(fields){}
             ~ClassDecl() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
@@ -354,6 +356,7 @@ namespace zebra {
         public:
             Token m_name;
             std::vector<std::shared_ptr<Expr>> m_fields;
+//            std::vector<std::shared_ptr<Expr>> m_methods;
     };
 
     struct InstClass: public Expr {

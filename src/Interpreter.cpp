@@ -354,10 +354,11 @@ namespace zebra {
     }
 
     std::shared_ptr<Object> Interpreter::visit(ClassDecl* expr) {
-        std::unordered_map<std::string, std::shared_ptr<Object>> defaults;
+        std::vector<std::pair<Token, std::shared_ptr<Object>>> defaults;
         for (std::shared_ptr<Expr> field: expr->m_fields) {
             std::shared_ptr<Object> value = evaluate(field.get());
-            defaults[dynamic_cast<VarDecl*>(field.get())->m_name.m_lexeme] = value;
+            Token token = dynamic_cast<VarDecl*>(field.get())->m_name;
+            defaults.push_back(std::pair<Token, std::shared_ptr<Object>>(token, value));
         }
 
         std::shared_ptr<Object> class_def = std::make_shared<ClassDef>(defaults);
@@ -382,12 +383,7 @@ namespace zebra {
         }*/
 
         //TODO: Using default class fields for now
-        std::unordered_map<std::string, std::shared_ptr<Object>> fields;
-        for (std::pair<std::string, std::shared_ptr<Object>> p: def->m_fields) {
-            fields[p.first] = p.second->clone();
-        }
-
-        std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(fields);
+        std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(def->m_fields);
         m_environment->define(expr->m_name, class_instance);
 
         return class_instance;
@@ -395,13 +391,13 @@ namespace zebra {
 
     std::shared_ptr<Object> Interpreter::visit(GetField* expr) {
         ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
-        return inst->m_fields[expr->m_field.m_lexeme];
+        return inst->m_environment->get(expr->m_field);
     }
 
     std::shared_ptr<Object> Interpreter::visit(SetField* expr) {
         ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
         std::shared_ptr<Object> value = evaluate(expr->m_value.get());
-        inst->m_fields[expr->m_field.m_lexeme] = value;
+        inst->m_environment->assign(expr->m_field, value);
         return value;
     }
 

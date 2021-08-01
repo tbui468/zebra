@@ -16,6 +16,7 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
+//change class instances so that they hold an environment rather than a map of field keys/values
 //class functions - constructors are syntatic sugar, so no need for them now
 //class inheritance
 //
