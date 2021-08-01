@@ -59,7 +59,7 @@ namespace zebra {
                     case TokenType::WHILE: return "WHILE";
                     case TokenType::FOR: return "FOR";
                     case TokenType::RETURN: return "RETURN";
-                    case TokenType::STRUCT: return "STRUCT";
+                    case TokenType::CLASS: return "CLASS";
                     case TokenType::IMPORT: return "IMPORT";
                     case TokenType::PRINT: return "PRINT";
                     //types

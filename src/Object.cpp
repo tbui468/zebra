@@ -72,6 +72,26 @@ namespace zebra {
     std::shared_ptr<Object> StructInstance::clone() {
         return std::make_shared<StructInstance>(*this);
     }
+
+
+    ClassDef::ClassDef(std::unordered_map<std::string, std::shared_ptr<Object>> fields): m_fields(fields) {}
+    ClassDef::ClassDef(const ClassDef& obj) {
+        for (std::pair<std::string, std::shared_ptr<Object>> p: obj.m_fields) {
+            m_fields[p.first] = p.second->clone();
+        }
+    }
+    std::shared_ptr<Object> ClassDef::clone() {
+        return std::make_shared<ClassDef>(*this);
+    }
             
+    ClassInst::ClassInst(std::unordered_map<std::string, std::shared_ptr<Object>> fields): m_fields(fields) {}
+    ClassInst::ClassInst(const ClassInst& obj) {
+        for (std::pair<std::string, std::shared_ptr<Object>> p: obj.m_fields) {
+            m_fields[p.first] = p.second->clone();
+        }
+    }
+    std::shared_ptr<Object> ClassInst::clone() {
+        return std::make_shared<ClassInst>(*this);
+    }
 
 }

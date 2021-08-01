@@ -16,28 +16,36 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//What should classes look like?
+//getting and setting class members
+//class functions and constructors
+//class inheritance
 //
-//Animal :: class {
+//Dog :: class {
 //  color: string
-//}
+//  age: int
+//  name: string
 //
-//Dog :: class < Animal {
-//  this.name: string
-//  this.age: int
-//
-//  Dog :: (name: string, age: int) -> this {
-//      super(???
-//      this.name = name
+//  Dog :: (color: string, age: int, name: string) -> this {
+//      this.color = color
 //      this.age = age
+//      this.name = name
+//      -> this
 //  }
 //
-//  bark :: () -> string {
+//  speak :: () -> string {
 //      -> this.name
 //  }
 //}
 //
+//
 //my_dog: Dog = Dog()
+//my_dog := Dog() //
+//my_dog: Animal = Dog()
+//
+//my_list: List = List(Animal)
+//my_list := List(Animal)
+//my_list.add(my_dog)
+//
 //update Struct tests / add class tests
 //Redo TypeChecker
 //  replace exceptions with return codes (or class data field that holds list of accrued errors)
@@ -108,7 +116,7 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-//            zebra::Lexer::print_tokens(tokens);
+            zebra::Lexer::print_tokens(tokens);
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Expr>> ast;
@@ -121,8 +129,8 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
- //           zebra::AstPrinter printer;        
-  //          printer.print(ast);
+            zebra::AstPrinter printer;        
+            printer.print(ast);
 
 /*            
             zebra::Typer typer;

@@ -131,6 +131,10 @@ namespace zebra {
                             if (match("ool")) add_token(tokens, TokenType::BOOL_TYPE);
                             else add_token(tokens, TokenType::IDENTIFIER, read_identifier());
                             break;
+                        case 'c':
+                            if (match("lass")) add_token(tokens, TokenType::CLASS);
+                            else add_token(tokens, TokenType::IDENTIFIER, read_identifier());
+                            break;
                         case 'e':
                             if (match("lse")) add_token(tokens, TokenType::ELSE);
                             else add_token(tokens, TokenType::IDENTIFIER, read_identifier());

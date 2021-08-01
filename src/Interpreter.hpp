@@ -58,6 +58,8 @@ namespace zebra {
             std::shared_ptr<Object> visit(Return* expr);
             std::shared_ptr<Object> visit(Call* expr);
             std::shared_ptr<Object> visit(Import* expr);
+            std::shared_ptr<Object> visit(ClassDecl* expr);
+            std::shared_ptr<Object> visit(InstClass* expr);
 
     };
 

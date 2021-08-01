@@ -123,8 +123,23 @@ namespace zebra {
                     match(TokenType::EQUAL);
                     std::shared_ptr<Expr> value = declare_assign();
                     return std::make_shared<Assign>(identifier, value);
-                //variable declaration
-                } else if (peek_two(TokenType::IDENTIFIER, TokenType::COLON)) {
+                } else if (peek_three(TokenType::IDENTIFIER, TokenType::COLON, TokenType::IDENTIFIER)) { //class instatiation
+                    match(TokenType::IDENTIFIER);
+                    Token name = previous();
+                    match(TokenType::COLON);
+                    match(TokenType::IDENTIFIER); //this is base type TODO: will require this when implementing polymorphism
+                    consume(TokenType::EQUAL, "Class must be instantiated.");
+                    match(TokenType::IDENTIFIER); //this is derived type - don't need this yet
+                    Token class_decl = previous();
+                    consume(TokenType::LEFT_PAREN, "Expect '(' after class name.");
+
+                    std::vector<std::shared_ptr<Expr>> arguments;
+                    while (!match(TokenType::RIGHT_PAREN)) {
+                        arguments.push_back(expression()); 
+                    }
+                    
+                    return std::make_shared<InstClass>(name, class_decl, arguments);
+                } else if (peek_two(TokenType::IDENTIFIER, TokenType::COLON)) { //variable
                     match(TokenType::IDENTIFIER);
                     Token identifier = previous();
                     match(TokenType::COLON);
@@ -388,6 +403,19 @@ namespace zebra {
 
                     std::shared_ptr<Expr> body = std::make_shared<Block>(name, expressions);
                     return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
+                } else if(peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::CLASS)) {
+                    match(TokenType::IDENTIFIER);
+                    Token name = previous();
+                    match(TokenType::COLON_COLON);
+                    match(TokenType::CLASS);
+
+                    consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
+                    std::vector<std::shared_ptr<Expr>> fields;
+                    while (!match(TokenType::RIGHT_BRACE)) {
+                        fields.push_back(expression());
+                    }
+
+                    return std::make_shared<ClassDecl>(name, fields);
                 } else if(match(TokenType::RIGHT_ARROW)) {
                     m_had_return_flag = true;
                     Token name = previous();

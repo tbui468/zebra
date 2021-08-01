@@ -87,6 +87,12 @@ namespace zebra {
             std::string visit(Import* expr) override {
                 return "Import";
             }
+            std::string visit(ClassDecl* expr) override {
+                return "ClassDecl";
+            }
+            std::string visit(InstClass* expr) override {
+                return "InstClass";
+            }
 
             /*
              * Statements

@@ -358,6 +358,46 @@ namespace zebra {
         return std::shared_ptr<Nil>();
     }
 
+    std::shared_ptr<Object> Interpreter::visit(ClassDecl* expr) {
+        std::unordered_map<std::string, std::shared_ptr<Object>> defaults;
+        for (std::shared_ptr<Expr> field: expr->m_fields) {
+            std::shared_ptr<Object> value = evaluate(field.get());
+            defaults[dynamic_cast<VarDecl*>(field.get())->m_name.m_lexeme] = value;
+        }
+
+        std::shared_ptr<Object> class_def = std::make_shared<ClassDef>(defaults);
+        m_environment->define(expr->m_name, class_def);
+
+        return class_def;
+    }
+
+    
+    std::shared_ptr<Object> Interpreter::visit(InstClass* expr) {
+        ClassDef* def = dynamic_cast<ClassDef*>(m_environment->get(expr->m_class).get());
+
+        /* TODO: Implement class constructors
+        if (!(expr->m_arguments.empty())) {
+            for (int i = 0; i < def->m_node->m_fields.size(); i++) {
+                //get lexeme from declaration
+                std::string lexeme = def->m_node->m_fields.at(i)->m_name.m_lexeme;
+                //get value from argument evaluation
+                std::shared_ptr<Object> value = evaluate(stmt->m_arguments.at(i).get());
+                fields[lexeme] = value;
+            }
+        }*/
+
+        //TODO: Using default class fields for now
+        std::unordered_map<std::string, std::shared_ptr<Object>> fields;
+        for (std::pair<std::string, std::shared_ptr<Object>> p: def->m_fields) {
+            fields[p.first] = p.second->clone();
+        }
+
+        std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(fields);
+        m_environment->define(expr->m_name, class_instance);
+
+        return class_instance;
+    }
+
 
 
 }

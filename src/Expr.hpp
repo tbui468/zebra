@@ -29,6 +29,8 @@ namespace zebra {
     struct Return;
     struct Call;
     struct Import;
+    struct ClassDecl;
+    struct InstClass;
 
     struct ExprStringVisitor {
         virtual std::string visit(Unary* expr) = 0;
@@ -49,6 +51,8 @@ namespace zebra {
         virtual std::string visit(Return* expr) = 0;
         virtual std::string visit(Call* expr) = 0;
         virtual std::string visit(Import* expr) = 0;
+        virtual std::string visit(ClassDecl* expr) = 0;
+        virtual std::string visit(InstClass* expr) = 0;
     };
 
     struct ExprObjectVisitor {
@@ -70,6 +74,8 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(Return* expr) = 0;
         virtual std::shared_ptr<Object> visit(Call* expr) = 0;
         virtual std::shared_ptr<Object> visit(Import* expr) = 0;
+        virtual std::shared_ptr<Object> visit(ClassDecl* expr) = 0;
+        virtual std::shared_ptr<Object> visit(InstClass* expr) = 0;
     };
 
     struct ExprTokenTypeVisitor {
@@ -91,6 +97,8 @@ namespace zebra {
         virtual TokenType visit(Return* expr) = 0;
         virtual TokenType visit(Call* expr) = 0;
         virtual TokenType visit(Import* expr) = 0;
+        virtual TokenType visit(ClassDecl* expr) = 0;
+        virtual TokenType visit(InstClass* expr) = 0;
     };
 
     //Expressions
@@ -341,6 +349,33 @@ namespace zebra {
         public:
             Token m_name;
             std::unordered_map<std::string, std::shared_ptr<Object>> m_functions;
+    };
+
+    struct ClassDecl: public Expr {
+        public:
+            ClassDecl(Token name, std::vector<std::shared_ptr<Expr>> fields):
+                m_name(name), m_fields(fields) {}
+            ~ClassDecl() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            std::vector<std::shared_ptr<Expr>> m_fields;
+    };
+
+    struct InstClass: public Expr {
+        public:
+            InstClass(Token name, Token class_decl, std::vector<std::shared_ptr<Expr>> arguments):
+                m_name(name), m_class(class_decl), m_arguments(arguments) {}
+            ~InstClass() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            Token m_class;
+            std::vector<std::shared_ptr<Expr>> m_arguments;
     };
 
 
