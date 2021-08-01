@@ -224,11 +224,6 @@ namespace zebra {
         return m_environment->get(expr->m_name);
     }
 
-    std::shared_ptr<Object> Interpreter::visit(Access* expr) {
-        StructInstance* inst = dynamic_cast<StructInstance*>(m_environment->get(expr->m_instance).get());
-        return inst->m_fields[expr->m_field.m_lexeme];
-    }
-
     std::shared_ptr<Object> Interpreter::visit(StmtExpr* expr) {
         execute(expr->m_stmt.get());
 
@@ -398,6 +393,17 @@ namespace zebra {
         return class_instance;
     }
 
+    std::shared_ptr<Object> Interpreter::visit(GetField* expr) {
+        ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
+        return inst->m_fields[expr->m_field.m_lexeme];
+    }
+
+    std::shared_ptr<Object> Interpreter::visit(SetField* expr) {
+        ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
+        std::shared_ptr<Object> value = evaluate(expr->m_value.get());
+        inst->m_fields[expr->m_field.m_lexeme] = value;
+        return value;
+    }
 
 
 }

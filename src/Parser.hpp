@@ -121,8 +121,19 @@ namespace zebra {
                     match(TokenType::IDENTIFIER);
                     Token identifier = previous();
                     match(TokenType::EQUAL);
-                    std::shared_ptr<Expr> value = declare_assign();
+                    std::shared_ptr<Expr> value = expression();
                     return std::make_shared<Assign>(identifier, value);
+                } else if (peek_four(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER, TokenType::EQUAL)) {
+                    match(TokenType::IDENTIFIER);
+                    Token name = previous();
+                    match(TokenType::DOT);
+                    match(TokenType::IDENTIFIER);
+                    Token field = previous();
+                    match(TokenType::EQUAL);
+
+                    std::shared_ptr<Expr> value = expression();
+
+                    return std::make_shared<SetField>(name, field, value);
                 } else if (peek_three(TokenType::IDENTIFIER, TokenType::COLON, TokenType::IDENTIFIER)) { //class instatiation
                     match(TokenType::IDENTIFIER);
                     Token name = previous();
@@ -266,16 +277,12 @@ namespace zebra {
                     return std::make_shared<Literal>(previous());
                 }else if(peek_three(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER)) {
                     match(TokenType::IDENTIFIER);
-                    Token instance = previous();
+                    Token name = previous();
                     match(TokenType::DOT);
                     match(TokenType::IDENTIFIER);
                     Token field = previous();
 
-                    if(match(TokenType::EQUAL)) {
-                        return std::make_shared<StmtExpr>(std::make_shared<AssignField>(instance, instance, field, expression()));
-                    } else {
-                        return std::make_shared<Access>(instance, field);
-                    }
+                    return std::make_shared<GetField>(name, field);
                 }else if(peek_two(TokenType::IDENTIFIER, TokenType::LEFT_PAREN)) {
                     match(TokenType::IDENTIFIER);
                     Token identifier = previous();
@@ -469,6 +476,11 @@ namespace zebra {
             bool peek_three(TokenType type1, TokenType type2, TokenType type3) {
                 if (m_current + 2 >= m_tokens.size()) return false;
                 return peek_two(type1, type2) && (m_tokens.at(m_current + 2).m_type == type3);
+            }
+
+            bool peek_four(TokenType type1, TokenType type2, TokenType type3, TokenType type4) {
+                if (m_current + 3 >= m_tokens.size()) return false;
+                return peek_three(type1, type2, type3) && (m_tokens.at(m_current + 3).m_type == type4);
             }
 
             const Token& previous() {

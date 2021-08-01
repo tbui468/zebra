@@ -16,35 +16,28 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//getting and setting class members
-//class functions and constructors
+//class functions - constructors are syntatic sugar, so no need for them now
 //class inheritance
 //
-//Dog :: class {
-//  color: string
-//  age: int
-//  name: string
-//
-//  Dog :: (color: string, age: int, name: string) -> this {
-//      this.color = color
-//      this.age = age
-//      this.name = name
-//      -> this
-//  }
-//
-//  speak :: () -> string {
-//      -> this.name
-//  }
+//Animal :: class {
+//  species: string = "mammal"
 //}
 //
+//Dog :: class < Animal {
+//    name: string = "Mittens"
+//    age: int = 3
 //
-//my_dog: Dog = Dog()
-//my_dog := Dog() //
-//my_dog: Animal = Dog()
+//    speak :: () -> {
+//        print("My name is " + name)
+//        ->
+//    }
 //
-//my_list: List = List(Animal)
-//my_list := List(Animal)
-//my_list.add(my_dog)
+//    dog_age :: () -> int {
+//        -> age * 7
+//    }
+//}
+//
+//dog: Dog = Dog("Rocky", 4, "canine") //for inheritance, the fields of base classes follow after derived class
 //
 //update Struct tests / add class tests
 //Redo TypeChecker

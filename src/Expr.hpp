@@ -18,7 +18,6 @@ namespace zebra {
     struct Logic;
     struct Variable;
     struct StmtExpr;
-    struct Access;
     struct VarDecl;
     struct Assign;
     struct Block;
@@ -31,6 +30,8 @@ namespace zebra {
     struct Import;
     struct ClassDecl;
     struct InstClass;
+    struct GetField;
+    struct SetField;
 
     struct ExprStringVisitor {
         virtual std::string visit(Unary* expr) = 0;
@@ -40,7 +41,6 @@ namespace zebra {
         virtual std::string visit(Logic* expr) = 0;
         virtual std::string visit(Variable* expr) = 0;
         virtual std::string visit(StmtExpr* expr) = 0;
-        virtual std::string visit(Access* expr) = 0;
         virtual std::string visit(VarDecl* expr) = 0;
         virtual std::string visit(Assign* expr) = 0;
         virtual std::string visit(Block* expr) = 0;
@@ -53,6 +53,8 @@ namespace zebra {
         virtual std::string visit(Import* expr) = 0;
         virtual std::string visit(ClassDecl* expr) = 0;
         virtual std::string visit(InstClass* expr) = 0;
+        virtual std::string visit(GetField* expr) = 0;
+        virtual std::string visit(SetField* expr) = 0;
     };
 
     struct ExprObjectVisitor {
@@ -63,7 +65,6 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(Logic* expr) = 0;
         virtual std::shared_ptr<Object> visit(Variable* expr) = 0;
         virtual std::shared_ptr<Object> visit(StmtExpr* expr) = 0;
-        virtual std::shared_ptr<Object> visit(Access* expr) = 0;
         virtual std::shared_ptr<Object> visit(VarDecl* expr) = 0;
         virtual std::shared_ptr<Object> visit(Assign* expr) = 0;
         virtual std::shared_ptr<Object> visit(Block* expr) = 0;
@@ -76,6 +77,8 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(Import* expr) = 0;
         virtual std::shared_ptr<Object> visit(ClassDecl* expr) = 0;
         virtual std::shared_ptr<Object> visit(InstClass* expr) = 0;
+        virtual std::shared_ptr<Object> visit(GetField* expr) = 0;
+        virtual std::shared_ptr<Object> visit(SetField* expr) = 0;
     };
 
     struct ExprTokenTypeVisitor {
@@ -86,7 +89,6 @@ namespace zebra {
         virtual TokenType visit(Logic* expr) = 0;
         virtual TokenType visit(Variable* expr) = 0;
         virtual TokenType visit(StmtExpr* expr) = 0;
-        virtual TokenType visit(Access* expr) = 0;
         virtual TokenType visit(VarDecl* expr) = 0;
         virtual TokenType visit(Assign* expr) = 0;
         virtual TokenType visit(Block* expr) = 0;
@@ -99,6 +101,8 @@ namespace zebra {
         virtual TokenType visit(Import* expr) = 0;
         virtual TokenType visit(ClassDecl* expr) = 0;
         virtual TokenType visit(InstClass* expr) = 0;
+        virtual TokenType visit(GetField* expr) = 0;
+        virtual TokenType visit(SetField* expr) = 0;
     };
 
     //Expressions
@@ -194,18 +198,6 @@ namespace zebra {
             TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             std::shared_ptr<Stmt> m_stmt;
-    };
-
-    struct Access: public Expr {
-        public:
-            Access(Token instance, Token field): m_instance(instance), m_field(field) {}
-            ~Access() {}
-            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
-            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
-        public:
-            Token m_instance;
-            Token m_field;
     };
 
 
@@ -376,6 +368,32 @@ namespace zebra {
             Token m_name;
             Token m_class;
             std::vector<std::shared_ptr<Expr>> m_arguments;
+    };
+
+    struct GetField: public Expr {
+        public:
+            GetField(Token name, Token field): m_name(name), m_field(field) {}
+            ~GetField() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            Token m_field;
+    };
+
+    struct SetField: public Expr {
+        public:
+            SetField(Token name, Token field, std::shared_ptr<Expr> value): 
+                m_name(name), m_field(field), m_value(value) {}
+            ~SetField() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            Token m_field;
+            std::shared_ptr<Expr> m_value;
     };
 
 

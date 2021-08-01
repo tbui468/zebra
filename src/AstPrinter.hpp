@@ -46,9 +46,6 @@ namespace zebra {
             std::string visit(StmtExpr* expr) override {
                 return "StmtExpr";
             }
-            std::string visit(Access* expr) override {
-                return "Access";
-            }
             std::string visit(VarDecl* expr) override {
                 return "VarDecl";
             }
@@ -92,6 +89,12 @@ namespace zebra {
             }
             std::string visit(InstClass* expr) override {
                 return "InstClass";
+            }
+            std::string visit(GetField* expr) override {
+                return "GetField";
+            }
+            std::string visit(SetField* expr) override {
+                return "SetField";
             }
 
             /*

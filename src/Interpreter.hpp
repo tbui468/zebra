@@ -46,7 +46,6 @@ namespace zebra {
             std::shared_ptr<Object> visit(Literal* expr);
             std::shared_ptr<Object> visit(Logic* expr);
             std::shared_ptr<Object> visit(Variable* expr);
-            std::shared_ptr<Object> visit(Access* expr);
             std::shared_ptr<Object> visit(StmtExpr* expr);
             std::shared_ptr<Object> visit(VarDecl* expr);
             std::shared_ptr<Object> visit(Assign* expr);
@@ -60,6 +59,8 @@ namespace zebra {
             std::shared_ptr<Object> visit(Import* expr);
             std::shared_ptr<Object> visit(ClassDecl* expr);
             std::shared_ptr<Object> visit(InstClass* expr);
+            std::shared_ptr<Object> visit(GetField* expr);
+            std::shared_ptr<Object> visit(SetField* expr);
 
     };
 
