@@ -27,6 +27,7 @@ namespace zebra {
     struct FunDecl;
     struct Return;
     struct Call;
+    struct MethodCall;
     struct Import;
     struct ClassDecl;
     struct InstClass;
@@ -50,6 +51,7 @@ namespace zebra {
         virtual std::string visit(FunDecl* expr) = 0;
         virtual std::string visit(Return* expr) = 0;
         virtual std::string visit(Call* expr) = 0;
+        virtual std::string visit(MethodCall* expr) = 0;
         virtual std::string visit(Import* expr) = 0;
         virtual std::string visit(ClassDecl* expr) = 0;
         virtual std::string visit(InstClass* expr) = 0;
@@ -74,6 +76,7 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(FunDecl* expr) = 0;
         virtual std::shared_ptr<Object> visit(Return* expr) = 0;
         virtual std::shared_ptr<Object> visit(Call* expr) = 0;
+        virtual std::shared_ptr<Object> visit(MethodCall* expr) = 0;
         virtual std::shared_ptr<Object> visit(Import* expr) = 0;
         virtual std::shared_ptr<Object> visit(ClassDecl* expr) = 0;
         virtual std::shared_ptr<Object> visit(InstClass* expr) = 0;
@@ -98,6 +101,7 @@ namespace zebra {
         virtual TokenType visit(FunDecl* expr) = 0;
         virtual TokenType visit(Return* expr) = 0;
         virtual TokenType visit(Call* expr) = 0;
+        virtual TokenType visit(MethodCall* expr) = 0;
         virtual TokenType visit(Import* expr) = 0;
         virtual TokenType visit(ClassDecl* expr) = 0;
         virtual TokenType visit(InstClass* expr) = 0;
@@ -330,6 +334,23 @@ namespace zebra {
             std::shared_ptr<Object> m_return {nullptr};
     };
 
+    struct MethodCall: public Expr {
+        public:
+            MethodCall(Token name, Token method, std::vector<std::shared_ptr<Expr>> arguments): 
+                m_name(name), m_method(method), m_arguments(arguments), m_arity(arguments.size()) {}
+            ~MethodCall() {}
+            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
+            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
+            TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
+        public:
+            Token m_name;
+            Token m_method;
+            std::vector<std::shared_ptr<Expr>> m_arguments;
+            int m_arity;
+            std::shared_ptr<Object> m_return {nullptr};
+
+    };
+
     struct Import: public Expr {
         public:
             Import(Token name, std::unordered_map<std::string, std::shared_ptr<Object>> functions):
@@ -345,10 +366,8 @@ namespace zebra {
 
     struct ClassDecl: public Expr {
         public:
-            //ClassDecl(Token name, std::vector<std::shared_ptr<Expr>> fields, std::vector<std::shared_ptr<Expr>> methods):
-             //   m_name(name), m_fields(fields), m_methods(methods) {}
-            ClassDecl(Token name, std::vector<std::shared_ptr<Expr>> fields):
-                m_name(name), m_fields(fields){}
+            ClassDecl(Token name, std::vector<std::shared_ptr<Expr>> fields, std::vector<std::shared_ptr<Expr>> methods):
+                m_name(name), m_fields(fields), m_methods(methods) {}
             ~ClassDecl() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
@@ -356,7 +375,7 @@ namespace zebra {
         public:
             Token m_name;
             std::vector<std::shared_ptr<Expr>> m_fields;
-//            std::vector<std::shared_ptr<Expr>> m_methods;
+            std::vector<std::shared_ptr<Expr>> m_methods;
     };
 
     struct InstClass: public Expr {

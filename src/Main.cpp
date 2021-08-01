@@ -16,8 +16,11 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//change class instances so that they hold an environment rather than a map of field keys/values
-//class functions - constructors are syntatic sugar, so no need for them now
+//class functions - implement class function by calling function in a new env. inside the class instance env.
+//  -> is not working as return in functions with no return value
+//  print() cannot be called from inside method (since it's defined in global state)
+//      need an import env. (global)
+//  I wonder if dot notation can be used to access class instance env.
 //class inheritance
 //
 //Animal :: class {

@@ -275,6 +275,18 @@ namespace zebra {
                     return std::make_shared<Literal>(previous());
                 }else if(match(TokenType::NIL)) {
                     return std::make_shared<Literal>(previous());
+                }else if(peek_four(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER, TokenType::LEFT_PAREN)) {
+                    match(TokenType::IDENTIFIER);
+                    Token name = previous();
+                    match(TokenType::DOT);
+                    match(TokenType::IDENTIFIER);
+                    Token method = previous();
+                    match(TokenType::LEFT_PAREN);
+                    std::vector<std::shared_ptr<Expr>> arguments;
+                    while (!match(TokenType::RIGHT_PAREN)) {
+                        arguments.push_back(expression());
+                    }
+                    return std::make_shared<MethodCall>(name, method, arguments);
                 }else if(peek_three(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER)) {
                     match(TokenType::IDENTIFIER);
                     Token name = previous();
@@ -418,21 +430,19 @@ namespace zebra {
 
                     consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
                     std::vector<std::shared_ptr<Expr>> fields;
-                    //std::vector<std::shared_ptr<Expr>> methods;
+                    std::vector<std::shared_ptr<Expr>> methods;
                     while (!match(TokenType::RIGHT_BRACE)) {
                         std::shared_ptr<Expr> decl = expression();
-                        fields.push_back(decl);
-                        /*
+                        
                         //either a VarDecl or FunDecl
-                        if (dynamic_cast<VarDecl*>(decl)) {
+                        if (dynamic_cast<VarDecl*>(decl.get())) {
                             fields.push_back(decl);
                         } else {
                             methods.push_back(decl);
-                        }*/
+                        }
                     }
 
-                    //return std::make_shared<ClassDecl>(name, fields, methods);
-                    return std::make_shared<ClassDecl>(name, fields);
+                    return std::make_shared<ClassDecl>(name, fields, methods);
                 } else if(match(TokenType::RIGHT_ARROW)) {
                     m_had_return_flag = true;
                     Token name = previous();

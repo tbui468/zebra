@@ -344,6 +344,37 @@ namespace zebra {
         return return_value;
     } 
 
+    std::shared_ptr<Object> Interpreter::visit(MethodCall* expr) {
+        ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
+        Callable* method;
+        for (std::pair<Token, std::shared_ptr<Object>> p: inst->m_class->m_methods) {
+            FunDef* f = dynamic_cast<FunDef*>(p.second.get());
+            if (expr->m_method.m_lexeme == p.first.m_lexeme) {
+                method = dynamic_cast<Callable*>(p.second.get());
+                break;
+            }
+        }
+
+        //evaluate call arguments
+        std::vector<std::shared_ptr<Object>> arguments;
+        for (std::shared_ptr<Expr> e: expr->m_arguments) {
+            arguments.push_back(evaluate(e.get()));
+        }
+
+        //create new env pointing at instance env. with is_func set to true
+        std::shared_ptr<Environment> method_env = std::make_shared<Environment>(inst->m_environment, true);
+        std::shared_ptr<Environment> closure = m_environment;
+        m_environment = method_env;
+
+        std::shared_ptr<Object> return_value = method->call(arguments, this);
+
+        m_environment = closure;
+
+        expr->m_return = return_value;
+
+        return return_value;
+    }
+
     
     std::shared_ptr<Object> Interpreter::visit(Import* expr) {
         for (std::pair<std::string, std::shared_ptr<Object>> p: expr->m_functions) {
@@ -354,14 +385,21 @@ namespace zebra {
     }
 
     std::shared_ptr<Object> Interpreter::visit(ClassDecl* expr) {
-        std::vector<std::pair<Token, std::shared_ptr<Object>>> defaults;
+        std::vector<std::pair<Token, std::shared_ptr<Object>>> fields;
         for (std::shared_ptr<Expr> field: expr->m_fields) {
             std::shared_ptr<Object> value = evaluate(field.get());
             Token token = dynamic_cast<VarDecl*>(field.get())->m_name;
-            defaults.push_back(std::pair<Token, std::shared_ptr<Object>>(token, value));
+            fields.push_back(std::pair<Token, std::shared_ptr<Object>>(token, value));
         }
 
-        std::shared_ptr<Object> class_def = std::make_shared<ClassDef>(defaults);
+        std::vector<std::pair<Token, std::shared_ptr<Object>>> methods;
+        for (std::shared_ptr<Expr> method: expr->m_methods) {
+            FunDecl* method_decl = dynamic_cast<FunDecl*>(method.get());
+            std::shared_ptr<Object> fun = std::make_shared<FunDef>(method_decl->m_parameters, method_decl->m_body);
+            methods.push_back(std::pair<Token, std::shared_ptr<Object>>(method_decl->m_name, fun));
+        }
+
+        std::shared_ptr<Object> class_def = std::make_shared<ClassDef>(fields, methods);
         m_environment->define(expr->m_name, class_def);
 
         return class_def;
@@ -369,7 +407,7 @@ namespace zebra {
 
     
     std::shared_ptr<Object> Interpreter::visit(InstClass* expr) {
-        ClassDef* def = dynamic_cast<ClassDef*>(m_environment->get(expr->m_class).get());
+        std::shared_ptr<ClassDef> def = std::dynamic_pointer_cast<ClassDef>(m_environment->get(expr->m_class));
 
         /* TODO: Implement class constructors
         if (!(expr->m_arguments.empty())) {
@@ -382,8 +420,9 @@ namespace zebra {
             }
         }*/
 
-        //TODO: Using default class fields for now
-        std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(def->m_fields);
+        //TODO: Using default class fields for now - eg, no arguments
+        //std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(def->m_fields);
+        std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(def);
         m_environment->define(expr->m_name, class_instance);
 
         return class_instance;

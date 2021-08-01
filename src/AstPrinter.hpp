@@ -81,6 +81,9 @@ namespace zebra {
             std::string visit(Call* expr) override {
                 return "Call";
             }
+            std::string visit(MethodCall* expr) override {
+                return "MethodCall";
+            }
             std::string visit(Import* expr) override {
                 return "Import";
             }
