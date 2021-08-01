@@ -446,7 +446,10 @@ namespace zebra {
                 } else if(match(TokenType::RIGHT_ARROW)) {
                     m_had_return_flag = true;
                     Token name = previous();
-                    std::shared_ptr<Expr> value = expression();
+                    std::shared_ptr<Expr> value = nullptr;
+                    if (m_return_type != TokenType::NIL_TYPE) {
+                        value = expression();
+                    }
                     return std::make_shared<Return>(name, m_return_type, value);
                 } else if (match(TokenType::IDENTIFIER)) {
                     return std::make_shared<Variable>(previous());

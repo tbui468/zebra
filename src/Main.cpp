@@ -16,7 +16,7 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//class functions - implement class function by calling function in a new env. inside the class instance env.
+//  if void return, -> will have a nullptr for values
 //  -> is not working as return in functions with no return value
 //      it looks for an expression after ->.  How can functions be short-cicuited???
 //      is this a problem with the syntax?

@@ -317,9 +317,15 @@ namespace zebra {
     }
 
     std::shared_ptr<Object> Interpreter::visit(Return* expr) {
-        std::shared_ptr<Object> ret = evaluate(expr->m_value.get());
-        m_environment->set_return(ret);
-        return ret;
+        if (expr->m_value) {
+            std::shared_ptr<Object> ret = evaluate(expr->m_value.get());
+            m_environment->set_return(ret);
+            return ret;
+        } else {
+            std::shared_ptr<Object> ret = std::make_shared<Nil>();
+            m_environment->set_return(ret);
+            return ret;
+        }
     }
 
     std::shared_ptr<Object> Interpreter::visit(Call* expr) {

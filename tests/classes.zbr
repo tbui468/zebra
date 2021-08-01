@@ -1,0 +1,23 @@
+import io
+
+Dog :: class {
+    name: string = "Mittens"
+    age: int = 3
+
+    speak :: () -> string {
+        -> name 
+    }
+
+    say_age :: () -> {
+        print(age)
+        ->
+    }
+}
+
+dog: Dog = Dog()
+
+if dog.speak() == "Mittens" {
+    print("Classes - method return: Passed")
+} else {
+    print("Classes - method return: Failed")
+}
