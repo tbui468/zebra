@@ -7,6 +7,15 @@ namespace zebra {
 
     Environment::Environment() {}
 
+    void Environment::define_global(Token name, std::shared_ptr<Object> value) {
+        if (m_closure) {
+            m_closure->define_global(name, value);
+            return;
+        }
+
+        m_values[name.m_lexeme] = value; 
+    }
+
     void Environment::define(Token name, std::shared_ptr<Object> value) {
         m_values[name.m_lexeme] = value; 
     }

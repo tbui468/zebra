@@ -84,8 +84,8 @@ namespace zebra {
         return std::make_shared<ClassDef>(*this);
     }
             
-    ClassInst::ClassInst(std::shared_ptr<ClassDef> def): m_class(def) {
-        m_environment = std::make_shared<Environment>();
+    ClassInst::ClassInst(std::shared_ptr<Environment> global_env, std::shared_ptr<ClassDef> def): m_class(def) {
+        m_environment = std::make_shared<Environment>(global_env, false);
         for (std::pair<Token, std::shared_ptr<Object>> p: def->m_fields) {
             m_environment->define(p.first, p.second);
         }

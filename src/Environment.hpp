@@ -15,11 +15,13 @@ namespace zebra {
         private:
             std::unordered_map<std::string, std::shared_ptr<Object>> m_values;
             std::shared_ptr<Environment> m_closure {nullptr};
+            std::shared_ptr<Environment> m_global {nullptr};
             std::shared_ptr<Object> m_return {nullptr};
             bool m_is_function {false};
         public:
             Environment(std::shared_ptr<Environment> closure, bool is_func);
             Environment();
+            void define_global(Token name, std::shared_ptr<Object> value);
             void define(Token name, std::shared_ptr<Object> value);
             void assign(Token name, std::shared_ptr<Object> value);
             std::shared_ptr<Object> get(Token name);

@@ -115,7 +115,7 @@ namespace zebra {
             std::shared_ptr<Environment> m_environment;
             std::shared_ptr<ClassDef> m_class;
         public:
-            ClassInst(std::shared_ptr<ClassDef> def);
+            ClassInst(std::shared_ptr<Environment> global_env, std::shared_ptr<ClassDef> def);
             ClassInst(const ClassInst& obj);
             virtual std::shared_ptr<Object> clone() override;
     };

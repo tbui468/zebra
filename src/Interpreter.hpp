@@ -29,6 +29,7 @@ namespace zebra {
             std::vector<RuntimeError> m_errors;
         public:
             std::shared_ptr<Environment> m_environment;
+            std::shared_ptr<Environment> m_global;
         public:
             Interpreter();
             ~Interpreter();

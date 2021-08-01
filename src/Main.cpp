@@ -18,9 +18,8 @@
 //TODO: 
 //class functions - implement class function by calling function in a new env. inside the class instance env.
 //  -> is not working as return in functions with no return value
-//  print() cannot be called from inside method (since it's defined in global state)
-//      need an import env. (global)
-//  I wonder if dot notation can be used to access class instance env.
+//      it looks for an expression after ->.  How can functions be short-cicuited???
+//      is this a problem with the syntax?
 //class inheritance
 //
 //Animal :: class {

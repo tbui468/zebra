@@ -4,7 +4,8 @@
 namespace zebra {
 
     Interpreter::Interpreter() {
-        m_environment = std::make_shared<Environment>();
+        m_global = std::make_shared<Environment>();
+        m_environment = std::make_shared<Environment>(m_global, false);
     }
 
     Interpreter::~Interpreter() {}
@@ -378,7 +379,7 @@ namespace zebra {
     
     std::shared_ptr<Object> Interpreter::visit(Import* expr) {
         for (std::pair<std::string, std::shared_ptr<Object>> p: expr->m_functions) {
-            m_environment->define(Token(TokenType::FUN_TYPE, p.first, 1), p.second);    
+            m_environment->define_global(Token(TokenType::FUN_TYPE, p.first, 1), p.second);    
         }
 
         return std::shared_ptr<Nil>();
@@ -422,7 +423,7 @@ namespace zebra {
 
         //TODO: Using default class fields for now - eg, no arguments
         //std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(def->m_fields);
-        std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(def);
+        std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(m_global, def);
         m_environment->define(expr->m_name, class_instance);
 
         return class_instance;
