@@ -1,23 +1,72 @@
 import io
 
-Dog :: class {
-    name: string = "Mittens"
-    age: int = 3
+//BASIC CLASS 
+{
+    Dog :: class {
+        name: string = "Mittens"
+        age: int = 3
 
-    speak :: () -> string {
-        -> name 
+        speak :: () -> string {
+            -> name 
+        }
+
+        say_age :: () -> {
+            print(age)
+            ->
+        }
     }
 
-    say_age :: () -> {
-        print(age)
-        ->
+    dog: Dog = Dog()
+
+    if dog.speak() == "Mittens" {
+        print("Classes - method return: Passed")
+    } else {
+        print("Classes - method return: Failed")
     }
 }
 
-dog: Dog = Dog()
+//INHERITANCE
+{
+    Animal :: class {
+        species: string = "mammal"
+        jump :: () -> string {
+            -> "Animal jumping"
+        }
+    }
 
-if dog.speak() == "Mittens" {
-    print("Classes - method return: Passed")
-} else {
-    print("Classes - method return: Failed")
+    Dog :: class < Animal {
+    }
+
+    d: Dog = Dog()
+    if d.species == "mammal" {
+        print("Classes - accessing base fields: Passed")
+    } else {
+        print("Classes - accessing base fields: Failed")
+    } 
+
+    if d.jump() == "Animal jumping" {
+        print("Classes - accessing base methods: Passed")
+    } else {
+        print("Classes - accessing base methods: Failed")
+    } 
+
+    Cat :: class < Animal {
+        species: string = "whiskers"
+        jump :: () -> string {
+            -> "Cat jumping"
+        }
+    }
+
+    c: Cat = Cat()
+    if c.species == "whisker" {
+        print("Classes - overriding base fields: Passed")
+    } else {
+        print("Classes - overriding base fields: Failed")
+    } 
+
+    if c.jump() == "Cat jumping" {
+        print("Classes - overriding base methods: Passed")
+    } else {
+        print("Classes - overriding base methods: Failed")
+    } 
 }

@@ -5,7 +5,6 @@
 #include <iostream>
 #include "Token.hpp"
 #include "Expr.hpp"
-#include "Stmt.hpp"
 #include "ZbrIo.hpp"
 #include "ZbrTime.hpp"
 #include "ResultCode.hpp"
@@ -65,44 +64,6 @@ namespace zebra {
                 m_errors.emplace_back(token, message);
                 m_error_flag = true;
             }
-
-
-            std::shared_ptr<Stmt> struct_instantiation() {
-                match(TokenType::IDENTIFIER);
-                Token name = previous();
-                match(TokenType::COLON);
-                match(TokenType::IDENTIFIER);
-                Token struct_name = previous();
-                consume(TokenType::LEFT_PAREN, "Expect '(' after struct name.");
-
-                std::vector<std::shared_ptr<Expr>> arguments;
-                while (!match(TokenType::RIGHT_PAREN)) {
-                    arguments.push_back(expression());
-                    match(TokenType::COMMA);
-                }
-
-
-                return std::make_shared<StructInst>(name, struct_name, arguments);
-            }
-
-            //TODO: NEed to redo this
-            std::shared_ptr<Stmt> struct_declaration() {
-                return nullptr; //TODO: TEmp short circuitin to redo VarDecl
-                /*
-                match(TokenType::IDENTIFIER);
-                Token name = previous();
-                match(TokenType::COLON_COLON);
-                match(TokenType::LEFT_BRACE);
-
-                std::vector<std::shared_ptr<VarDecl>> fields;
-                while (!match(TokenType::RIGHT_BRACE)) {
-                    fields.push_back(std::dynamic_pointer_cast<VarDecl>(declare_var_statement()));
-                }
-
-                return std::make_shared<StructDecl>(name, fields);*/
-            }
-
-
 
 
             /*

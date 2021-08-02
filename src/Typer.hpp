@@ -8,7 +8,6 @@
 #include "TokenType.hpp"
 #include "Token.hpp"
 #include "Expr.hpp"
-#include "Stmt.hpp"
 #include "ResultCode.hpp"
 
 namespace zebra {

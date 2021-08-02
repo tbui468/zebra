@@ -10,7 +10,6 @@
 
 namespace zebra {
 
-    struct Stmt;
     struct StructDecl;
     struct VarDecl;
 

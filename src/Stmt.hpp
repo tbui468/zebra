@@ -1,3 +1,4 @@
+/*
 #ifndef ZEBRA_STMT_H
 #define ZEBRA_STMT_H
 
@@ -78,3 +79,4 @@ namespace zebra {
 
 
 #endif //ZEBRA_STMT_H
+*/

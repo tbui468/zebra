@@ -30,49 +30,10 @@ namespace zebra {
         m_errors.emplace_back(token, message);
     }
 
-    void Interpreter::execute(Stmt* stmt) {
-        if (m_environment->get_return()) {
-            return;
-        }
-        stmt->accept(*this);
-    }
-
     std::shared_ptr<Object> Interpreter::evaluate(Expr* expr) {
         return expr->accept(*this);
     }
 
-    void Interpreter::visit(AssignField* stmt) {
-        StructInstance* inst = dynamic_cast<StructInstance*>(m_environment->get(stmt->m_instance).get());
-        inst->m_fields[stmt->m_field.m_lexeme] = evaluate(stmt->m_value.get());
-    }
-
-    void Interpreter::visit(StructDecl* stmt) {
-        std::shared_ptr<Object> struct_def = std::make_shared<StructDef>(stmt);
-        m_environment->define(stmt->m_name, struct_def);
-    }
-
-    void Interpreter::visit(StructInst* stmt) {
-        StructDef* def = dynamic_cast<StructDef*>(m_environment->get(stmt->m_struct).get());
-        std::unordered_map<std::string, std::shared_ptr<Object>> fields;
-        if (!(stmt->m_arguments.empty())) {
-            for (int i = 0; i < def->m_node->m_fields.size(); i++) {
-                //get lexeme from declaration
-                std::string lexeme = def->m_node->m_fields.at(i)->m_name.m_lexeme;
-                //get value from argument evaluation
-                std::shared_ptr<Object> value = evaluate(stmt->m_arguments.at(i).get());
-                fields[lexeme] = value;
-            }
-        } else { //use default values in struct definition
-            for (std::shared_ptr<VarDecl> var_decl: def->m_node->m_fields) {
-                std::string lexeme = var_decl->m_name.m_lexeme;
-                std::shared_ptr<Object> value = evaluate(var_decl->m_value.get());
-                fields[lexeme] = value;
-            }
-        }
-
-        std::shared_ptr<Object> struct_instance = std::make_shared<StructInstance>(fields);
-        m_environment->define(stmt->m_name, struct_instance);
-    }
 
     /*
      * Expressions
@@ -225,27 +186,6 @@ namespace zebra {
         return m_environment->get(expr->m_name);
     }
 
-    std::shared_ptr<Object> Interpreter::visit(StmtExpr* expr) {
-        execute(expr->m_stmt.get());
-
-        Call* call = dynamic_cast<Call*>(expr->m_stmt.get());
-        if (call) {
-            return call->m_return;
-        }
-
-        Assign* assignment = dynamic_cast<Assign*>(expr->m_stmt.get());
-        if (assignment) {
-            return m_environment->get(assignment->m_name);
-        }
-
-        VarDecl* var_decl = dynamic_cast<VarDecl*>(expr->m_stmt.get());
-        if (var_decl) {
-            return m_environment->get(var_decl->m_name);
-        }
-        
-        add_error(expr->m_stmt->m_name, "Invalid StmtExpr");
-    }
-
     std::shared_ptr<Object> Interpreter::visit(VarDecl* expr) {
         std::shared_ptr<Object> value = evaluate(expr->m_value.get());
         m_environment->define(expr->m_name, value);
@@ -353,21 +293,7 @@ namespace zebra {
 
     std::shared_ptr<Object> Interpreter::visit(MethodCall* expr) {
         ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
-
-        //TODO: here's the issue - we're looking for methods in the class instance
-        //why aren't these functions being set in env. like the fields?  That would
-        //make inheritance a lot easier to deal with
-        //THEY ARE!  I'm just not accessing them here
         Callable* method = dynamic_cast<Callable*>(inst->m_environment->get(expr->m_method).get());
-
-        /*
-        for (std::pair<Token, std::shared_ptr<Object>> p: inst->m_class->m_methods) {
-            FunDef* f = dynamic_cast<FunDef*>(p.second.get());
-            if (expr->m_method.m_lexeme == p.first.m_lexeme) {
-                method = dynamic_cast<Callable*>(p.second.get());
-                break;
-            }
-        }*/
 
         //evaluate call arguments
         std::vector<std::shared_ptr<Object>> arguments;

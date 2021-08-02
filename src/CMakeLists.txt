@@ -6,7 +6,6 @@ set(Sources
     )
 
 set(Headers
-    Stmt.hpp
     Expr.hpp
     TokenType.hpp
     Token.hpp

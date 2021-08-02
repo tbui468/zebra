@@ -16,46 +16,30 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//class inheritance
-//  fields are inherited, but not functions
+//Typer - this will be a big project.  Will require restructing of Parser, Interpreter and Environments
+//  What types are there?  primitive, classes and functions
+//  What do we check?
+//
+//Infer types when declaring: do this to allow less verbose data structure creation
+//  a := 6; //int
+//  b := "dog"; //string
+//  c := Dog(); //dog instance.  This also allows instatiating for use as an argument
+//
+//Data structures
+//  Array, List, Map - need to integrate types (including inheritance and polymorphism)
+//  takes single argument, the data type
+//  l: List = List(int)
+//  l := List(Animal)
+//  a: Array = Array(int)
 //
 //
-//Animal :: class {
-//  species: string = "mammal"
-//}
+//Write a simple tic tac toe or connect 4 program to test usability of zebra
 //
-//Dog :: class < Animal {
-//    name: string = "Mittens"
-//    age: int = 3
-//
-//    speak :: () -> {
-//        print("My name is " + name)
-//        ->
-//    }
-//
-//    dog_age :: () -> int {
-//        -> age * 7
-//    }
-//}
-//
-//Typer - this will be a big project.  May require restructing of Parser, Interpreter and Environments
-//
-//Array, List, Map
-//
-//Polymorphism
-//
-//Redo TypeChecker
-//  replace exceptions with return codes (or class data field that holds list of accrued errors)
-//  Typechecker needs to deal with three types of data: primitive types, functions and structs
+//Write tests for error codes - feed in source file and check what kinds of errors come out
 //
 //All Error types can inherit from same base class Error()
 //  printing errors in Main.cpp can just be done by using print() method (rather than calling cout << with all the fields)
 //
-//
-//Infer types when declaring:
-//a := 6; //int
-//b := "dog"; //string
-//c := Dog(); //dog instance.  This also allows instatiating for use as an argument
 //native cast functions - int(2.3), string(3), float("3.2"), float(3), bool("cat"), print("dog"), print(23.2) should be a native function too
 
 int main(int argc, char** argv) {

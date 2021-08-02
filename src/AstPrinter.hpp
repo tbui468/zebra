@@ -7,7 +7,7 @@
 
 namespace zebra {
 
-    class AstPrinter: public ExprStringVisitor, public StmtStringVisitor {
+    class AstPrinter: public ExprStringVisitor {
         public:
             AstPrinter() {}
             ~AstPrinter() {}
@@ -43,13 +43,12 @@ namespace zebra {
             std::string visit(Variable* expr) override {
                 return "( " + expr->m_name.to_string() + " )";
             }
-            std::string visit(StmtExpr* expr) override {
-                return "StmtExpr";
-            }
             std::string visit(VarDecl* expr) override {
                 return "VarDecl";
             }
-
+            std::string visit(Assign* expr) override {
+                return "Assign";
+            }
             std::string visit(Block* expr) override {
                 std::string ret = "( Block ";
                 for(std::shared_ptr<Expr> e: expr->m_expressions) {
@@ -77,7 +76,6 @@ namespace zebra {
             std::string visit(Return* expr) override {
                 return "Return";
             }
-
             std::string visit(Call* expr) override {
                 return "Call";
             }
@@ -100,21 +98,6 @@ namespace zebra {
                 return "SetField";
             }
 
-            /*
-             * Statements
-             */
-            std::string visit(Assign* stmt) override {
-                return "( Assign " + stmt->m_name.to_string() + " " + stmt->m_value->accept(*this) + " )";
-            }
-            std::string visit(AssignField* stmt) override {
-                return "Assign";
-            }
-            std::string visit(StructDecl* stmt) override {
-                return "StructDecl";
-            }
-            std::string visit(StructInst* stmt) override {
-                return "StructInst";
-            }
     };
 
 
