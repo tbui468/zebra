@@ -4,7 +4,7 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "AstPrinter.hpp"
-//#include "Typer.hpp"
+#include "Typer.hpp"
 #include "Interpreter.hpp"
 
 //TITLE: Zebra scripting language - 
@@ -16,15 +16,13 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//Clean up and rename Expr to make it easier to read
-//  Change Expr names for clarity
-//  Group and reorder expressions in:
-//      Expr.hpp
-//      AstPrinter.hpp
-//      Parser.hpp
-//      Interpreter.hpp and Interpreter.cpp
-//      Typer.hpp
 //Typer - this will be a big project.  Will require restructing of Parser, Interpreter and Environments
+//  Finish Type checking functions and function calls and returns 
+//  Control Flow
+//      do this before Variables and Functions since it'll be easier
+//  Variables and Functions
+//  Classes
+//
 //  What types are there?  primitive, classes and functions
 //  What do we check? - will need to go through each expression and maybe also create new environments??? (I want to avoid this if possible)
 //
@@ -32,6 +30,8 @@
 //  a := 6; //int
 //  b := "dog"; //string
 //  c := Dog(); //dog instance.  This also allows instatiating for use as an argument
+//
+//Enums
 //
 //Data structures
 //  Array, List, Map - need to integrate types (including inheritance and polymorphism)
@@ -81,20 +81,20 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-//            zebra::AstPrinter printer;        
-//            printer.print(ast);
+            zebra::AstPrinter printer;        
+            printer.print(ast);
 
-/*            
+            
             zebra::Typer typer;
             zebra::ResultCode type_result = typer.type(ast);
 
             if (type_result != zebra::ResultCode::SUCCESS) {
                 std::vector<zebra::TypeError> errors = typer.get_errors();
                 for (zebra::TypeError error: errors) {
-                    std::cout << "[" << error.m_token.to_string() << "]" << error.m_message << std::endl;
+                    error.print();
                 }
                 return 1;
-            }*/
+            }
 
             zebra::Interpreter interp;
             zebra::ResultCode run_result = interp.run(ast);

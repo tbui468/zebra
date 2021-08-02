@@ -34,11 +34,21 @@ namespace zebra {
         return expr->accept(*this);
     }
 
-
     /*
-     * Expressions
+     * Misc.
      */
 
+    std::shared_ptr<Object> Interpreter::visit(Import* expr) {
+        for (std::pair<std::string, std::shared_ptr<Object>> p: expr->m_functions) {
+            m_environment->define_global(Token(TokenType::FUN_TYPE, p.first, 1), p.second);    
+        }
+
+        return std::shared_ptr<Nil>();
+    }
+
+    /*
+     * Basic
+     */
 
     std::shared_ptr<Object> Interpreter::visit(Unary* expr) {
         std::shared_ptr<Object> right = expr->m_right->accept(*this);
@@ -89,9 +99,11 @@ namespace zebra {
         }
 
     }
+
     std::shared_ptr<Object> Interpreter::visit(Group* expr) {
         return expr->m_expr->accept(*this);
     }
+
     std::shared_ptr<Object> Interpreter::visit(Literal* expr) {
         switch(expr->m_token.m_type) {
             case TokenType::FLOAT:
@@ -182,14 +194,18 @@ namespace zebra {
 
     }
 
-    std::shared_ptr<Object> Interpreter::visit(GetVar* expr) {
-        return m_environment->get(expr->m_name);
-    }
+    /*
+     * Variables and Functions
+     */
 
     std::shared_ptr<Object> Interpreter::visit(DeclVar* expr) {
         std::shared_ptr<Object> value = evaluate(expr->m_value.get());
         m_environment->define(expr->m_name, value);
         return value;
+    }
+
+    std::shared_ptr<Object> Interpreter::visit(GetVar* expr) {
+        return m_environment->get(expr->m_name);
     }
 
     std::shared_ptr<Object> Interpreter::visit(SetVar* expr) {
@@ -198,74 +214,10 @@ namespace zebra {
         return value;
     }
 
-    std::shared_ptr<Object> Interpreter::visit(Block* expr) {
-        std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, false);
-        std::shared_ptr<Environment> closure = m_environment;
-        m_environment = block_env;
-
-        std::shared_ptr<Object> value;
-        for(std::shared_ptr<Expr> e: expr->m_expressions) {
-            value = evaluate(e.get());  
-            if (dynamic_cast<Return*>(e.get())) {
-                break;
-            }
-        } 
-
-        m_environment = closure;   
-
-        return value;
-    }
-
-    std::shared_ptr<Object> Interpreter::visit(If* expr) {
-        std::shared_ptr<Object> condition = evaluate(expr->m_condition.get());
-        if(dynamic_cast<Bool*>(condition.get())->m_value) {
-            return evaluate(expr->m_then_branch.get());                    
-        }else if(expr->m_else_branch) {
-            return evaluate(expr->m_else_branch.get());
-        }
-    }
-
-    std::shared_ptr<Object> Interpreter::visit(For* expr) {
-        if(expr->m_initializer) evaluate(expr->m_initializer.get());
-
-        std::shared_ptr<Object> value;
-        while(expr->m_condition && dynamic_cast<Bool*>(evaluate(expr->m_condition.get()).get())->m_value) {
-            value = evaluate(expr->m_body.get());
-            if(expr->m_update) evaluate(expr->m_update.get()); //not using result of expression
-        }
-
-        if (!value) {
-            return std::make_shared<Nil>();
-        }
-
-        return value;
-    }
-
-    std::shared_ptr<Object> Interpreter::visit(While* expr) {
-        std::shared_ptr<Object> value;
-        while(dynamic_cast<Bool*>(evaluate(expr->m_condition.get()).get())->m_value) {
-            value = evaluate(expr->m_body.get());
-        }
-
-        return value;
-    }
-
     std::shared_ptr<Object> Interpreter::visit(DeclFun* expr) {
         std::shared_ptr<Object> fun = std::make_shared<FunDef>(expr->m_parameters, expr->m_body);
         m_environment->define(expr->m_name, fun);
         return fun;
-    }
-
-    std::shared_ptr<Object> Interpreter::visit(Return* expr) {
-        if (expr->m_value) {
-            std::shared_ptr<Object> ret = evaluate(expr->m_value.get());
-            m_environment->set_return(ret);
-            return ret;
-        } else {
-            std::shared_ptr<Object> ret = std::make_shared<Nil>();
-            m_environment->set_return(ret);
-            return ret;
-        }
     }
 
     std::shared_ptr<Object> Interpreter::visit(CallFun* expr) {
@@ -291,39 +243,74 @@ namespace zebra {
         return return_value;
     } 
 
-    std::shared_ptr<Object> Interpreter::visit(CallMethod* expr) {
-        ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
-        Callable* method = dynamic_cast<Callable*>(inst->m_environment->get(expr->m_method).get());
-
-        //evaluate call arguments
-        std::vector<std::shared_ptr<Object>> arguments;
-        for (std::shared_ptr<Expr> e: expr->m_arguments) {
-            arguments.push_back(evaluate(e.get()));
+    std::shared_ptr<Object> Interpreter::visit(Return* expr) {
+        if (expr->m_value) {
+            std::shared_ptr<Object> ret = evaluate(expr->m_value.get());
+            m_environment->set_return(ret);
+            return ret;
+        } else {
+            std::shared_ptr<Object> ret = std::make_shared<Nil>();
+            m_environment->set_return(ret);
+            return ret;
         }
+    }
 
-        //create new env pointing at instance env. with is_func set to true
-        std::shared_ptr<Environment> method_env = std::make_shared<Environment>(inst->m_environment, true);
+
+    /*
+     * Control Flow
+     */
+
+    std::shared_ptr<Object> Interpreter::visit(Block* expr) {
+        std::shared_ptr<Environment> block_env = std::make_shared<Environment>(m_environment, false);
         std::shared_ptr<Environment> closure = m_environment;
-        m_environment = method_env;
+        m_environment = block_env;
 
-        std::shared_ptr<Object> return_value = method->call(arguments, this);
+        for(std::shared_ptr<Expr> e: expr->m_expressions) {
+            evaluate(e.get());  
+            if (dynamic_cast<Return*>(e.get())) {
+                break;
+            }
+        } 
 
-        m_environment = closure;
+        m_environment = closure;   
 
-        expr->m_return = return_value;
-
-        return return_value;
+        return std::make_shared<Nil>();
     }
 
-    
-    std::shared_ptr<Object> Interpreter::visit(Import* expr) {
-        for (std::pair<std::string, std::shared_ptr<Object>> p: expr->m_functions) {
-            m_environment->define_global(Token(TokenType::FUN_TYPE, p.first, 1), p.second);    
+    std::shared_ptr<Object> Interpreter::visit(If* expr) {
+        std::shared_ptr<Object> condition = evaluate(expr->m_condition.get());
+        if(dynamic_cast<Bool*>(condition.get())->m_value) {
+            evaluate(expr->m_then_branch.get());                    
+        }else if(expr->m_else_branch) {
+            evaluate(expr->m_else_branch.get());
         }
 
-        return std::shared_ptr<Nil>();
+        return std::make_shared<Nil>();
     }
 
+    std::shared_ptr<Object> Interpreter::visit(For* expr) {
+        if(expr->m_initializer) evaluate(expr->m_initializer.get());
+
+        while(expr->m_condition && dynamic_cast<Bool*>(evaluate(expr->m_condition.get()).get())->m_value) {
+            evaluate(expr->m_body.get());
+            if(expr->m_update) evaluate(expr->m_update.get()); //not using result of expression
+        }
+
+        return std::make_shared<Nil>();
+    }
+
+    std::shared_ptr<Object> Interpreter::visit(While* expr) {
+        while(dynamic_cast<Bool*>(evaluate(expr->m_condition.get()).get())->m_value) {
+            evaluate(expr->m_body.get());
+        }
+
+        return std::make_shared<Nil>();
+    }
+
+    /*
+     * Classes
+     */
+    
     std::shared_ptr<Object> Interpreter::visit(DeclClass* expr) {
         std::vector<std::pair<Token, std::shared_ptr<Object>>> fields;
         for (std::shared_ptr<Expr> field: expr->m_fields) {
@@ -350,7 +337,6 @@ namespace zebra {
 
         return class_def;
     }
-
     
     std::shared_ptr<Object> Interpreter::visit(InstClass* expr) {
         std::shared_ptr<ClassDef> def = std::dynamic_pointer_cast<ClassDef>(m_environment->get(expr->m_class));
@@ -380,6 +366,31 @@ namespace zebra {
         inst->m_environment->assign(expr->m_field, value);
         return value;
     }
+
+    std::shared_ptr<Object> Interpreter::visit(CallMethod* expr) {
+        ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
+        Callable* method = dynamic_cast<Callable*>(inst->m_environment->get(expr->m_method).get());
+
+        //evaluate call arguments
+        std::vector<std::shared_ptr<Object>> arguments;
+        for (std::shared_ptr<Expr> e: expr->m_arguments) {
+            arguments.push_back(evaluate(e.get()));
+        }
+
+        //create new env pointing at instance env. with is_func set to true
+        std::shared_ptr<Environment> method_env = std::make_shared<Environment>(inst->m_environment, true);
+        std::shared_ptr<Environment> closure = m_environment;
+        m_environment = method_env;
+
+        std::shared_ptr<Object> return_value = method->call(arguments, this);
+
+        m_environment = closure;
+
+        expr->m_return = return_value;
+
+        return return_value;
+    }
+
 
 
 }

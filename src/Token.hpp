@@ -13,12 +13,8 @@ namespace zebra {
             std::string m_lexeme;
             int m_line;
         public:
-            Token(): m_type(TokenType::NIL), m_lexeme(""), m_line(-1) {}
-            Token(TokenType type, const std::string& lexeme, int line): m_type(type), m_lexeme(lexeme), m_line(line) {}
-            ~Token() {}
-
-            std::string to_string() {
-                switch(m_type) {
+            static std::string to_string(TokenType type) {
+                switch(type) {
                     //single char tokens
                     case TokenType::PLUS: return "PLUS"; break;
                     case TokenType::MINUS: return "MINUS"; break;
@@ -45,10 +41,14 @@ namespace zebra {
                     case TokenType::COLON_COLON: return "COLON_COLON"; break;
                     case TokenType::RIGHT_ARROW: return "RIGHT_ARROW"; break;
                     //literals
-                    case TokenType::INT: return "INT [" + m_lexeme + "]"; break;
-                    case TokenType::FLOAT: return "FLOAT [" + m_lexeme + "]"; break;
-                    case TokenType::STRING: return "STRING [" + m_lexeme + "]"; break;
-                    case TokenType::IDENTIFIER: return "IDENTIFIER [" + m_lexeme + "]"; break;
+                    //case TokenType::INT: return "INT [" + m_lexeme + "]"; break;
+                    //case TokenType::FLOAT: return "FLOAT [" + m_lexeme + "]"; break;
+                    //case TokenType::STRING: return "STRING [" + m_lexeme + "]"; break;
+                    //case TokenType::IDENTIFIER: return "IDENTIFIER [" + m_lexeme + "]"; break;
+                    case TokenType::INT: return "INT"; break;
+                    case TokenType::FLOAT: return "FLOAT"; break;
+                    case TokenType::STRING: return "STRING"; break;
+                    case TokenType::IDENTIFIER: return "IDENTIFIER"; break;
                     case TokenType::NIL: return "NIL";
                     //keywords
                     case TokenType::IF: return "IF"; break;
@@ -73,7 +73,22 @@ namespace zebra {
                     case TokenType::STRUCT_TYPE: return "STRUCT_TYPE";
                     //other
                     case TokenType::SLASH_SLASH: return "SLASH_SLASH";
+                    case TokenType::ERROR: return "ERROR";
                     case TokenType::EOFILE: return "EOFILE";
+                    default: return "Invalid token type";
+                }
+            }
+        public:
+            Token(): m_type(TokenType::NIL), m_lexeme(""), m_line(-1) {}
+            Token(TokenType type, const std::string& lexeme, int line): m_type(type), m_lexeme(lexeme), m_line(line) {}
+            ~Token() {}
+
+            std::string to_string() {
+                std::string token = Token::to_string(m_type);
+                if (m_lexeme != "") {
+                    return token + " [" + m_lexeme + "]";
+                } else {
+                    return token;
                 }
             }
     };

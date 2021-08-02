@@ -22,7 +22,14 @@ namespace zebra {
             }
 
             /*
-             * Expressions
+             * Misc.
+             */
+            std::string visit(Import* expr) override {
+                return "Import";
+            }
+
+            /*
+             * Basic
              */
             std::string visit(Unary* expr) override {
                 return "( " + expr->m_op.to_string() + " " + expr->m_right->accept(*this);
@@ -39,6 +46,10 @@ namespace zebra {
             std::string visit(Logic* expr) override {
                 return "( " + expr->m_op.to_string() + " " + expr->m_left->accept(*this) + " " + expr->m_right->accept(*this) + " )";
             }
+
+            /*
+             * Variables and Functions
+             */
             std::string visit(GetVar* expr) override {
                 return "( " + expr->m_name.to_string() + " )";
             }
@@ -48,6 +59,19 @@ namespace zebra {
             std::string visit(SetVar* expr) override {
                 return "SetVar";
             }
+            std::string visit(DeclFun* expr) override {
+                return "FunDecl";
+            }
+            std::string visit(CallFun* expr) override {
+                return "CallFun";
+            }
+            std::string visit(Return* expr) override {
+                return "Return";
+            }
+
+            /*
+             * Control Flow
+             */
             std::string visit(Block* expr) override {
                 std::string ret = "( Block ";
                 for(std::shared_ptr<Expr> e: expr->m_expressions) {
@@ -69,21 +93,10 @@ namespace zebra {
             std::string visit(While* expr) override {
                 return "While";
             }
-            std::string visit(DeclFun* expr) override {
-                return "FunDecl";
-            }
-            std::string visit(Return* expr) override {
-                return "Return";
-            }
-            std::string visit(CallFun* expr) override {
-                return "CallFun";
-            }
-            std::string visit(CallMethod* expr) override {
-                return "MethodCall";
-            }
-            std::string visit(Import* expr) override {
-                return "Import";
-            }
+            
+            /*
+             * Classes
+             */
             std::string visit(DeclClass* expr) override {
                 return "ClassDecl";
             }
@@ -95,6 +108,9 @@ namespace zebra {
             }
             std::string visit(SetField* expr) override {
                 return "SetField";
+            }
+            std::string visit(CallMethod* expr) override {
+                return "MethodCall";
             }
 
     };

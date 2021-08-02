@@ -30,9 +30,9 @@ namespace zebra {
         BREAK,
         CONTINUE,*/
         SLASH_SLASH,
-        EOFILE
+        EOFILE,
+        ERROR
     };
-
 }
 
 #endif //ZEBRA_TOKEN_TYPE_H

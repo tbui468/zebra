@@ -134,7 +134,7 @@ namespace zebra {
                         value = expression();
                     }
 
-                    return std::make_shared<DeclVar>(identifier, value);
+                    return std::make_shared<DeclVar>(identifier, type, value);
                 }
 
                 return logic_or();
@@ -348,7 +348,7 @@ namespace zebra {
                             add_error(type, "Invalid parameter type.");
                         }
 
-                        parameters.emplace_back(std::make_shared<DeclVar>(name, nullptr));
+                        parameters.emplace_back(std::make_shared<DeclVar>(name, type, nullptr));
                         match(TokenType::COMMA);                    
                     }                
 
@@ -436,6 +436,8 @@ namespace zebra {
                     } else if (lib.m_lexeme == "time") {
                         std::shared_ptr<Object> fun = std::make_shared<Clock>();
                         functions["clock"] = fun;
+                    } else {
+                        add_error(previous(), "Invalid library.");
                     }
 
 
