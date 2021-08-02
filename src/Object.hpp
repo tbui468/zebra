@@ -10,9 +10,6 @@
 
 namespace zebra {
 
-    struct StructDecl;
-    struct VarDecl;
-
     class Object {
         public:
             Object();
@@ -78,24 +75,6 @@ namespace zebra {
             FunDef(const FunDef& obj);
             virtual std::shared_ptr<Object> clone() override;
             virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override;
-    };
-
-    class StructDef: public Object {
-        public:
-            StructDecl* m_node;
-        public:
-            StructDef(StructDecl* node);
-            StructDef(const StructDef& obj);
-            virtual std::shared_ptr<Object> clone() override;
-    };
-
-    class StructInstance: public Object {
-        public:
-            std::unordered_map<std::string, std::shared_ptr<Object>> m_fields;
-        public:
-            StructInstance(std::unordered_map<std::string, std::shared_ptr<Object>> fields);
-            StructInstance(const StructInstance& obj);
-            virtual std::shared_ptr<Object> clone() override;
     };
 
     class ClassDef: public Object {

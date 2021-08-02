@@ -16,9 +16,17 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
+//Clean up and rename Expr to make it easier to read
+//  Change Expr names for clarity
+//  Group and reorder expressions in:
+//      Expr.hpp
+//      AstPrinter.hpp
+//      Parser.hpp
+//      Interpreter.hpp and Interpreter.cpp
+//      Typer.hpp
 //Typer - this will be a big project.  Will require restructing of Parser, Interpreter and Environments
 //  What types are there?  primitive, classes and functions
-//  What do we check?
+//  What do we check? - will need to go through each expression and maybe also create new environments??? (I want to avoid this if possible)
 //
 //Infer types when declaring: do this to allow less verbose data structure creation
 //  a := 6; //int
@@ -60,7 +68,7 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            zebra::Lexer::print_tokens(tokens);
+//            zebra::Lexer::print_tokens(tokens);
 
             zebra::Parser parser(tokens);
             std::vector<std::shared_ptr<zebra::Expr>> ast;
@@ -73,8 +81,8 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            zebra::AstPrinter printer;        
-            printer.print(ast);
+//            zebra::AstPrinter printer;        
+//            printer.print(ast);
 
 /*            
             zebra::Typer typer;

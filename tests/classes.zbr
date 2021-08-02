@@ -58,7 +58,7 @@ import io
     }
 
     c: Cat = Cat()
-    if c.species == "whisker" {
+    if c.species == "whiskers" {
         print("Classes - overriding base fields: Passed")
     } else {
         print("Classes - overriding base fields: Failed")

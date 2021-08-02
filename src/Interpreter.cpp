@@ -182,17 +182,17 @@ namespace zebra {
 
     }
 
-    std::shared_ptr<Object> Interpreter::visit(Variable* expr) {
+    std::shared_ptr<Object> Interpreter::visit(GetVar* expr) {
         return m_environment->get(expr->m_name);
     }
 
-    std::shared_ptr<Object> Interpreter::visit(VarDecl* expr) {
+    std::shared_ptr<Object> Interpreter::visit(DeclVar* expr) {
         std::shared_ptr<Object> value = evaluate(expr->m_value.get());
         m_environment->define(expr->m_name, value);
         return value;
     }
 
-    std::shared_ptr<Object> Interpreter::visit(Assign* expr) {
+    std::shared_ptr<Object> Interpreter::visit(SetVar* expr) {
         std::shared_ptr<Object> value = evaluate(expr->m_value.get());
         m_environment->assign(expr->m_name, value);
         return value;
@@ -250,7 +250,7 @@ namespace zebra {
         return value;
     }
 
-    std::shared_ptr<Object> Interpreter::visit(FunDecl* expr) {
+    std::shared_ptr<Object> Interpreter::visit(DeclFun* expr) {
         std::shared_ptr<Object> fun = std::make_shared<FunDef>(expr->m_parameters, expr->m_body);
         m_environment->define(expr->m_name, fun);
         return fun;
@@ -268,7 +268,7 @@ namespace zebra {
         }
     }
 
-    std::shared_ptr<Object> Interpreter::visit(Call* expr) {
+    std::shared_ptr<Object> Interpreter::visit(CallFun* expr) {
         std::shared_ptr<Object> obj = m_environment->get(expr->m_name);
         Callable* fun = dynamic_cast<Callable*>(obj.get());
 
@@ -291,7 +291,7 @@ namespace zebra {
         return return_value;
     } 
 
-    std::shared_ptr<Object> Interpreter::visit(MethodCall* expr) {
+    std::shared_ptr<Object> Interpreter::visit(CallMethod* expr) {
         ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
         Callable* method = dynamic_cast<Callable*>(inst->m_environment->get(expr->m_method).get());
 
@@ -324,17 +324,17 @@ namespace zebra {
         return std::shared_ptr<Nil>();
     }
 
-    std::shared_ptr<Object> Interpreter::visit(ClassDecl* expr) {
+    std::shared_ptr<Object> Interpreter::visit(DeclClass* expr) {
         std::vector<std::pair<Token, std::shared_ptr<Object>>> fields;
         for (std::shared_ptr<Expr> field: expr->m_fields) {
             std::shared_ptr<Object> value = evaluate(field.get());
-            Token token = dynamic_cast<VarDecl*>(field.get())->m_name;
+            Token token = dynamic_cast<DeclVar*>(field.get())->m_name;
             fields.push_back(std::pair<Token, std::shared_ptr<Object>>(token, value));
         }
 
         std::vector<std::pair<Token, std::shared_ptr<Object>>> methods;
         for (std::shared_ptr<Expr> method: expr->m_methods) {
-            FunDecl* method_decl = dynamic_cast<FunDecl*>(method.get());
+            DeclFun* method_decl = dynamic_cast<DeclFun*>(method.get());
             std::shared_ptr<Object> fun = std::make_shared<FunDef>(method_decl->m_parameters, method_decl->m_body);
             methods.push_back(std::pair<Token, std::shared_ptr<Object>>(method_decl->m_name, fun));
         }

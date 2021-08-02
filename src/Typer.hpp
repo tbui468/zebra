@@ -26,11 +26,10 @@ namespace zebra {
     };
 
 
-    class Typer: public ExprTokenTypeVisitor, public StmtVoidVisitor {
+    class Typer: public ExprTokenTypeVisitor {
         private:
             std::vector<std::unordered_map<std::string, Stmt*>> m_variables;
             std::vector<TypeError> m_errors;
-            bool m_error_flag {false};
         public:
             TypeChecker() {
                 m_variables.emplace_back(std::unordered_map<std::string, Stmt*>()); 
@@ -56,10 +55,6 @@ namespace zebra {
             }
 
         private:
-            void execute(Stmt* stmt) {
-                stmt->accept(*this);
-            }
-
             TokenType evaluate(Expr* expr) {
                 return expr->accept(*this);
             }
@@ -105,137 +100,10 @@ namespace zebra {
              * Statements
              */
 
-            void visit(If* stmt) {
-                TokenType type = evaluate(stmt->m_condition.get());
-                execute(stmt->m_then_branch.get());
-                if(stmt->m_else_branch) execute(stmt->m_else_branch.get());
-            }
-            void visit(Block* stmt) {
-                m_variables.emplace_back(std::unordered_map<std::string, Stmt*>());
-                for(std::shared_ptr<Stmt> s: stmt->m_statements) {
-                    execute(s.get());
-                }
-                m_variables.pop_back();
-            }
-
-            void visit(While* stmt) {
-                TokenType type = evaluate(stmt->m_condition.get());
-                if (type != TokenType::BOOL_TYPE) {
-                    throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
-                }
-                execute(stmt->m_body.get());
-            }
-
-            void visit(For* stmt) {
-                execute(stmt->m_initializer.get());
-                TokenType con_type = evaluate(stmt->m_condition.get());
-                TokenType up_type = evaluate(stmt->m_update.get());
-                if (con_type != TokenType::BOOL_TYPE) {
-                    throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
-                }
-                execute(stmt->m_body.get());
-            }
-
-
-            void visit(Return* stmt) {
-                TokenType expr_type = evaluate(stmt->m_value.get());
-                if(expr_type != stmt->m_return_type) {
-                    throw TypeError(stmt->m_name, "Return type must match return type in function declaration.");
-                }
-            }
-
-            void visit(FunDecl* stmt) {
-                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
-                for(std::shared_ptr<Stmt> s: stmt->m_parameters) {
-                    VarDecl* var_decl = dynamic_cast<VarDecl*>(s.get());
-                    m_variables.back()[var_decl->m_name.m_lexeme] = s.get();
-                }
-
-                execute(stmt->m_body.get());
-            }
-
-            void visit(VarDecl* stmt) {
-                if(stmt->m_value) {
-                    TokenType expr_type = evaluate(stmt->m_value.get());
-                    if(stmt->m_type.m_type != expr_type) {
-                        throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
-                    }
-                } else {
-                    throw TypeError(stmt->m_name, stmt->m_name.to_string() + " must be defined at declaration.");
-                }
-
-                m_variables.back()[stmt->m_name.m_lexeme] = stmt; //put indentifier in env. variables
-            }
-
-            void visit(Assign* stmt) {
-                TokenType type = get_type(stmt->m_name);
-
-                TokenType expr_type = evaluate(stmt->m_value.get());
-
-                if(type != expr_type) {
-                    throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
-                }
-            }
-
-            void visit(AssignField* stmt) {
-                TokenType field_type = get_field_type_from_instance(stmt->m_instance, stmt->m_field);
-                TokenType value_t = evaluate(stmt->m_value.get());
-
-                if (field_type != value_t) {
-                    throw TypeError(stmt->m_instance, stmt->m_field.to_string() + " type does not match assignment type.");
-                }
-            }
-
-            void visit(Call* stmt) {
-                FunDecl* fun_decl = dynamic_cast<FunDecl*>(get_decl(stmt->m_name));
-
-                //check parameter/argument count
-                if(stmt->m_arity != fun_decl->m_arity) {
-                    throw TypeError(stmt->m_name, "Function call argument count must match declaration parameter count.");
-                }
-
-                //check parameter/argument type
-                for (int i = 0; i < stmt->m_arguments.size(); i++) {
-                    TokenType arg_type = evaluate(stmt->m_arguments.at(i).get());
-                    VarDecl* param = dynamic_cast<VarDecl*>(fun_decl->m_parameters.at(i).get());
-                    if(arg_type != get_type(param->m_name)) {
-                        throw TypeError(stmt->m_name, "Function call argument type must match declaration parameter type.");
-                    }
-                }
-            }
-
-            void visit(StructDecl* stmt) {
-                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
-            }
-
-            void visit(StructInst* stmt) {
-                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
-                Stmt* decl = get_decl(stmt->m_struct);
-                StructDecl* struct_decl = dynamic_cast<StructDecl*>(decl);
-
-                if (stmt->m_arguments.size() > 0 && stmt->m_arguments.size() != struct_decl->m_fields.size()) {
-                    throw TypeError(stmt->m_name, "Number of arguments for " + stmt->m_name.to_string() + " must be 0 or match the declaration.");
-                }
-
-                for (int i = 0; i < stmt->m_arguments.size(); i++) {
-                    TokenType arg_type = evaluate(stmt->m_arguments.at(i).get());
-                    TokenType field_type = struct_decl->m_fields.at(i)->m_type.m_type;
-                    if (arg_type != field_type) {
-                        throw TypeError(stmt->m_name, "Arguments for " + stmt->m_name.to_string() + " must match declaration.");
-                    }
-                }
-            }
-
-            void visit(Import* stmt) {
-                /*
-                for (std::pair<std::string, std::shared_ptr<Object>> p: stmt->m_functions) {
-                    
-                }*/
-            }
 
 
             /*
-             * Expressions
+             * Batch 1
              */
             TokenType visit(Unary* expr) {
                 TokenType right_type = evaluate(expr->m_right.get());
@@ -307,26 +175,157 @@ namespace zebra {
                 throw TypeError(expr->m_op, "Inputs to logical operator must be of same type.");
             }
 
+            /*
+             * Batch 2
+             */
             TokenType visit(Variable* expr) {
                 return get_type(expr->m_name);
             }
 
-            //Return the type of the assignment/declartion
-            TokenType visit(StmtExpr* expr) {
-                execute(expr->m_stmt.get());
-
-
-                if (dynamic_cast<AssignField*>(expr->m_stmt.get())) {
-                    AssignField* stmt = dynamic_cast<AssignField*>(expr->m_stmt.get());
-                    return get_field_type_from_instance(stmt->m_instance, stmt->m_field);
+            void visit(VarDecl* stmt) {
+                if(stmt->m_value) {
+                    TokenType expr_type = evaluate(stmt->m_value.get());
+                    if(stmt->m_type.m_type != expr_type) {
+                        throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
+                    }
+                } else {
+                    throw TypeError(stmt->m_name, stmt->m_name.to_string() + " must be defined at declaration.");
                 }
 
-                return get_type(expr->m_stmt->m_name);
+                m_variables.back()[stmt->m_name.m_lexeme] = stmt; //put indentifier in env. variables
+            }
+
+            void visit(Assign* stmt) {
+                TokenType type = get_type(stmt->m_name);
+
+                TokenType expr_type = evaluate(stmt->m_value.get());
+
+                if(type != expr_type) {
+                    throw TypeError(stmt->m_name, "Right hand expression must evaluate to type " + stmt->m_name.to_string() + ".");
+                }
+            }
+
+            void visit(Block* stmt) {
+                m_variables.emplace_back(std::unordered_map<std::string, Stmt*>());
+                for(std::shared_ptr<Stmt> s: stmt->m_statements) {
+                    execute(s.get());
+                }
+                m_variables.pop_back();
             }
 
 
+            void visit(If* stmt) {
+                TokenType type = evaluate(stmt->m_condition.get());
+                execute(stmt->m_then_branch.get());
+                if(stmt->m_else_branch) execute(stmt->m_else_branch.get());
+            }
+
+
+            void visit(For* stmt) {
+                execute(stmt->m_initializer.get());
+                TokenType con_type = evaluate(stmt->m_condition.get());
+                TokenType up_type = evaluate(stmt->m_update.get());
+                if (con_type != TokenType::BOOL_TYPE) {
+                    throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
+                }
+                execute(stmt->m_body.get());
+            }
+
+            void visit(While* stmt) {
+                TokenType type = evaluate(stmt->m_condition.get());
+                if (type != TokenType::BOOL_TYPE) {
+                    throw TypeError(stmt->m_name, "Condition must evaluate to a boolean.");
+                }
+                execute(stmt->m_body.get());
+            }
+
+            void visit(FunDecl* stmt) {
+                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
+                for(std::shared_ptr<Stmt> s: stmt->m_parameters) {
+                    VarDecl* var_decl = dynamic_cast<VarDecl*>(s.get());
+                    m_variables.back()[var_decl->m_name.m_lexeme] = s.get();
+                }
+
+                execute(stmt->m_body.get());
+            }
+
+            void visit(Return* stmt) {
+                TokenType expr_type = evaluate(stmt->m_value.get());
+                if(expr_type != stmt->m_return_type) {
+                    throw TypeError(stmt->m_name, "Return type must match return type in function declaration.");
+                }
+            }
+
+            void visit(Call* stmt) {
+                FunDecl* fun_decl = dynamic_cast<FunDecl*>(get_decl(stmt->m_name));
+
+                //check parameter/argument count
+                if(stmt->m_arity != fun_decl->m_arity) {
+                    throw TypeError(stmt->m_name, "Function call argument count must match declaration parameter count.");
+                }
+
+                //check parameter/argument type
+                for (int i = 0; i < stmt->m_arguments.size(); i++) {
+                    TokenType arg_type = evaluate(stmt->m_arguments.at(i).get());
+                    VarDecl* param = dynamic_cast<VarDecl*>(fun_decl->m_parameters.at(i).get());
+                    if(arg_type != get_type(param->m_name)) {
+                        throw TypeError(stmt->m_name, "Function call argument type must match declaration parameter type.");
+                    }
+                }
+            }
+
+            /*
+             * Batch 3
+             */
+            
+            TokenType visit(MethodCall* expr) {
+
+            }
+
+            void visit(Import* stmt) {
+                /*
+                for (std::pair<std::string, std::shared_ptr<Object>> p: stmt->m_functions) {
+                    
+                }*/
+            }
+
+            //should be ClassDecl
+            void visit(StructDecl* stmt) {
+                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
+            }
+
+            //should be InstClass
+            void visit(StructInst* stmt) {
+                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
+                Stmt* decl = get_decl(stmt->m_struct);
+                StructDecl* struct_decl = dynamic_cast<StructDecl*>(decl);
+
+                if (stmt->m_arguments.size() > 0 && stmt->m_arguments.size() != struct_decl->m_fields.size()) {
+                    throw TypeError(stmt->m_name, "Number of arguments for " + stmt->m_name.to_string() + " must be 0 or match the declaration.");
+                }
+
+                for (int i = 0; i < stmt->m_arguments.size(); i++) {
+                    TokenType arg_type = evaluate(stmt->m_arguments.at(i).get());
+                    TokenType field_type = struct_decl->m_fields.at(i)->m_type.m_type;
+                    if (arg_type != field_type) {
+                        throw TypeError(stmt->m_name, "Arguments for " + stmt->m_name.to_string() + " must match declaration.");
+                    }
+                }
+            }
+
+            //should be GetField
             TokenType visit(Access* expr) {
                 return get_field_type_from_instance(expr->m_instance, expr->m_field);
+            }
+
+            //Should be SetField
+            void visit(AssignField* stmt) {
+                TokenType field_type = get_field_type_from_instance(stmt->m_instance, stmt->m_field);
+                TokenType value_t = evaluate(stmt->m_value.get());
+
+                if (field_type != value_t) {
+                    throw TypeError(stmt->m_instance, stmt->m_field.to_string() + " type does not match assignment type.");
+                }
             }
 
 

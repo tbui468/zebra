@@ -47,7 +47,7 @@ namespace zebra {
     std::shared_ptr<Object> FunDef::call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) {
 
         for (int i = 0; i < m_parameters.size(); i++) {
-            Token param_token = dynamic_cast<VarDecl*>(m_parameters.at(i).get())->m_name;
+            Token param_token = dynamic_cast<DeclVar*>(m_parameters.at(i).get())->m_name;
             std::shared_ptr<Object> param_value = arguments.at(i);
             interp->m_environment->define(param_token, param_value);
         }
@@ -55,22 +55,6 @@ namespace zebra {
         interp->evaluate(m_body.get()); //this should set env return value, which we grab and return
 
         return interp->m_environment->get_return();
-    }
-
-    StructDef::StructDef(StructDecl* node): m_node(node) {}
-    StructDef::StructDef(const StructDef& obj): m_node(obj.m_node) {}
-    std::shared_ptr<Object> StructDef::clone() {
-        return std::make_shared<StructDef>(*this);
-    }
-
-    StructInstance::StructInstance(std::unordered_map<std::string, std::shared_ptr<Object>> fields): m_fields(fields) {}
-    StructInstance::StructInstance(const StructInstance& obj) {
-        for(std::pair<std::string, std::shared_ptr<Object>> it: obj.m_fields) {
-            m_fields[it.first] = it.second->clone();
-        }
-    }
-    std::shared_ptr<Object> StructInstance::clone() {
-        return std::make_shared<StructInstance>(*this);
     }
 
 

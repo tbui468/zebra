@@ -36,28 +36,32 @@ namespace zebra {
             std::vector<RuntimeError> get_errors() const;
             void add_error(Token token, const std::string& message);
             std::shared_ptr<Object> evaluate(Expr* expr);
+
+            std::shared_ptr<Object> visit(Import* expr);
+
             std::shared_ptr<Object> visit(Unary* expr);
             std::shared_ptr<Object> visit(Binary* expr);
             std::shared_ptr<Object> visit(Group* expr);
             std::shared_ptr<Object> visit(Literal* expr);
             std::shared_ptr<Object> visit(Logic* expr);
-            std::shared_ptr<Object> visit(Variable* expr);
-            std::shared_ptr<Object> visit(VarDecl* expr);
-            std::shared_ptr<Object> visit(Assign* expr);
+
+            std::shared_ptr<Object> visit(DeclVar* expr);
+            std::shared_ptr<Object> visit(GetVar* expr);
+            std::shared_ptr<Object> visit(SetVar* expr);
+            std::shared_ptr<Object> visit(DeclFun* expr);
+            std::shared_ptr<Object> visit(CallFun* expr);
+            std::shared_ptr<Object> visit(Return* expr);
+
             std::shared_ptr<Object> visit(Block* expr);
             std::shared_ptr<Object> visit(If* expr);
             std::shared_ptr<Object> visit(For* expr);
             std::shared_ptr<Object> visit(While* expr);
-            std::shared_ptr<Object> visit(FunDecl* expr);
-            std::shared_ptr<Object> visit(Return* expr);
-            std::shared_ptr<Object> visit(Call* expr);
-            std::shared_ptr<Object> visit(MethodCall* expr);
-            std::shared_ptr<Object> visit(Import* expr);
-            std::shared_ptr<Object> visit(ClassDecl* expr);
+
+            std::shared_ptr<Object> visit(DeclClass* expr);
             std::shared_ptr<Object> visit(InstClass* expr);
             std::shared_ptr<Object> visit(GetField* expr);
             std::shared_ptr<Object> visit(SetField* expr);
-
+            std::shared_ptr<Object> visit(CallMethod* expr);
     };
 
 }

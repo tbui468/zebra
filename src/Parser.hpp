@@ -83,7 +83,7 @@ namespace zebra {
                     Token identifier = previous();
                     match(TokenType::EQUAL);
                     std::shared_ptr<Expr> value = expression();
-                    return std::make_shared<Assign>(identifier, value);
+                    return std::make_shared<SetVar>(identifier, value);
                 } else if (peek_four(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER, TokenType::EQUAL)) {
                     match(TokenType::IDENTIFIER);
                     Token name = previous();
@@ -134,7 +134,7 @@ namespace zebra {
                         value = expression();
                     }
 
-                    return std::make_shared<VarDecl>(identifier, value);
+                    return std::make_shared<DeclVar>(identifier, value);
                 }
 
                 return logic_or();
@@ -247,7 +247,7 @@ namespace zebra {
                     while (!match(TokenType::RIGHT_PAREN)) {
                         arguments.push_back(expression());
                     }
-                    return std::make_shared<MethodCall>(name, method, arguments);
+                    return std::make_shared<CallMethod>(name, method, arguments);
                 }else if(peek_three(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER)) {
                     match(TokenType::IDENTIFIER);
                     Token name = previous();
@@ -267,7 +267,7 @@ namespace zebra {
                         match(TokenType::COMMA);
                     }
 
-                    return std::make_shared<Call>(identifier, arguments);
+                    return std::make_shared<CallFun>(identifier, arguments);
                 }else if(match(TokenType::LEFT_PAREN)) {
                     Token t = previous();
                     std::shared_ptr<Expr> expr = expression();
@@ -348,7 +348,7 @@ namespace zebra {
                             add_error(type, "Invalid parameter type.");
                         }
 
-                        parameters.emplace_back(std::make_shared<VarDecl>(name, nullptr));
+                        parameters.emplace_back(std::make_shared<DeclVar>(name, nullptr));
                         match(TokenType::COMMA);                    
                     }                
 
@@ -382,7 +382,7 @@ namespace zebra {
                     }
 
                     std::shared_ptr<Expr> body = std::make_shared<Block>(name, expressions);
-                    return std::make_shared<FunDecl>(identifier, parameters, m_return_type, body);
+                    return std::make_shared<DeclFun>(identifier, parameters, m_return_type, body);
                 } else if(peek_three(TokenType::IDENTIFIER, TokenType::COLON_COLON, TokenType::CLASS)) {
                     match(TokenType::IDENTIFIER);
                     Token name = previous();
@@ -402,15 +402,15 @@ namespace zebra {
                     while (!match(TokenType::RIGHT_BRACE)) {
                         std::shared_ptr<Expr> decl = expression();
                         
-                        //either a VarDecl or FunDecl
-                        if (dynamic_cast<VarDecl*>(decl.get())) {
+                        //either a DeclVar or DeclFun
+                        if (dynamic_cast<DeclVar*>(decl.get())) {
                             fields.push_back(decl);
                         } else {
                             methods.push_back(decl);
                         }
                     }
 
-                    return std::make_shared<ClassDecl>(name, base, fields, methods);
+                    return std::make_shared<DeclClass>(name, base, fields, methods);
                 } else if(match(TokenType::RIGHT_ARROW)) {
                     m_had_return_flag = true;
                     Token name = previous();
@@ -420,7 +420,7 @@ namespace zebra {
                     }
                     return std::make_shared<Return>(name, m_return_type, value);
                 } else if (match(TokenType::IDENTIFIER)) {
-                    return std::make_shared<Variable>(previous());
+                    return std::make_shared<GetVar>(previous());
                 } else if (match(TokenType::IMPORT)) {
                     Token name = previous();
                     match(TokenType::IDENTIFIER);

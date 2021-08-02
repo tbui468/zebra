@@ -3,7 +3,6 @@
 
 #include <string>
 #include "Expr.hpp"
-#include "Stmt.hpp"
 
 namespace zebra {
 
@@ -40,14 +39,14 @@ namespace zebra {
             std::string visit(Logic* expr) override {
                 return "( " + expr->m_op.to_string() + " " + expr->m_left->accept(*this) + " " + expr->m_right->accept(*this) + " )";
             }
-            std::string visit(Variable* expr) override {
+            std::string visit(GetVar* expr) override {
                 return "( " + expr->m_name.to_string() + " )";
             }
-            std::string visit(VarDecl* expr) override {
-                return "VarDecl";
+            std::string visit(DeclVar* expr) override {
+                return "DeclVar";
             }
-            std::string visit(Assign* expr) override {
-                return "Assign";
+            std::string visit(SetVar* expr) override {
+                return "SetVar";
             }
             std::string visit(Block* expr) override {
                 std::string ret = "( Block ";
@@ -70,22 +69,22 @@ namespace zebra {
             std::string visit(While* expr) override {
                 return "While";
             }
-            std::string visit(FunDecl* expr) override {
+            std::string visit(DeclFun* expr) override {
                 return "FunDecl";
             }
             std::string visit(Return* expr) override {
                 return "Return";
             }
-            std::string visit(Call* expr) override {
-                return "Call";
+            std::string visit(CallFun* expr) override {
+                return "CallFun";
             }
-            std::string visit(MethodCall* expr) override {
+            std::string visit(CallMethod* expr) override {
                 return "MethodCall";
             }
             std::string visit(Import* expr) override {
                 return "Import";
             }
-            std::string visit(ClassDecl* expr) override {
+            std::string visit(DeclClass* expr) override {
                 return "ClassDecl";
             }
             std::string visit(InstClass* expr) override {
