@@ -74,9 +74,10 @@ namespace zebra {
     }
 
 
-    ClassDef::ClassDef(std::vector<std::pair<Token, std::shared_ptr<Object>>> fields, 
-             std::vector<std::pair<Token, std::shared_ptr<Object>>> methods):
-                m_fields(fields), m_methods(methods) {}
+    ClassDef::ClassDef(std::shared_ptr<Object> base,
+                       std::vector<std::pair<Token, std::shared_ptr<Object>>> fields, 
+                       std::vector<std::pair<Token, std::shared_ptr<Object>>> methods):
+                            m_base(base), m_fields(fields), m_methods(methods) {}
     ClassDef::ClassDef(const ClassDef& obj) {
         //TODO: this should never happen, right?
     }

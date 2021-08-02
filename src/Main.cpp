@@ -16,11 +16,9 @@
     //types must match, but casting functions are avaiable for use
 
 //TODO: 
-//  if void return, -> will have a nullptr for values
-//  -> is not working as return in functions with no return value
-//      it looks for an expression after ->.  How can functions be short-cicuited???
-//      is this a problem with the syntax?
 //class inheritance
+//  fields are inherited, but not functions
+//
 //
 //Animal :: class {
 //  species: string = "mammal"
@@ -40,9 +38,12 @@
 //    }
 //}
 //
-//dog: Dog = Dog("Rocky", 4, "canine") //for inheritance, the fields of base classes follow after derived class
+//Typer - this will be a big project.  May require restructing of Parser, Interpreter and Environments
 //
-//update Struct tests / add class tests
+//Array, List, Map
+//
+//Polymorphism
+//
 //Redo TypeChecker
 //  replace exceptions with return codes (or class data field that holds list of accrued errors)
 //  Typechecker needs to deal with three types of data: primitive types, functions and structs
@@ -55,43 +56,6 @@
 //a := 6; //int
 //b := "dog"; //string
 //c := Dog(); //dog instance.  This also allows instatiating for use as an argument
-//
-//
-//This code is bugged: line is not printing correctly (it's a 1 instead of the user input)
-//  line: string = "dog";
-//  print(line);
-//  while ( line = input() != "") {
-//     print(line);
-//  }
-//
-//For typechecking native functions, could have Callable class hold parameter types and return type
-//when input() is used in a while loop with an assignment, the string isn't in the variable when entering loop body
-//  see test.zbr for this.  The variable 'line' prints 1 (for some reason)
-//Typechecker can't check import currently - functions are saved as nodes in m_variables, not function objects (which the functions are saved as)
-//  need to redo entire typechecker to make it simplier too
-//import cast
-//  string(), int(), float(), bool()
-//import system
-//  clock()
-//import file
-//  read()
-//  write()
-//import list - will need classes for this.  my_list: List(int);  my_list.add(1) - or at least arrays
-//String manipulation - split(string, delimiter)  need lists for this
-//Allow copy constructors for structs.  dog: Dog(d); //will construct a new Dog 'dog' by copying Dog 'd'
-//How to allow custom types as parameters into functions?? (And as return types)
-//Should change name of Access to AccessField for clarity (Expr.hpp)
-//Should change name of Fun to FunctionDefinition (Object.hpp)
-//Allow numbers in IDENTIFIERS as long as the first character is alpha or _.  Currently 'my_var12' is not allowed as identifier (and it should be)
-//'consume' in parser should return a Token - do this instead of calling match and previous a bunch of times
-//change VarDecl m_type field to m_data_type field.  m_type belongs to Token and is the token type
-//Dealing with return types in Parser is freaking messy with a lot of parser states - can this be simplified?
-//Look up edges cases in Jlox book, and write tests to see if my code passes them - if not, then fix the bugs
-//For Lexer, Parser, TypeChecker and Resolver: replace exceptions with error codes - exceptions just cause trouble
-    //if more than one return is needed, create a struct that can be return.  Have funtions null out any info not need up higher,
-    //and the pass the struct upwards
-//TypeChecker should return error is a function with a none-return type is used as an expression
-//Change for loop separators from semicolons to commas(or colons) to make it prettier (and more consistent with function declaraction syntax)
 //native cast functions - int(2.3), string(3), float("3.2"), float(3), bool("cat"), print("dog"), print(23.2) should be a native function too
 
 int main(int argc, char** argv) {

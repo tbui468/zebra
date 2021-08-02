@@ -353,14 +353,21 @@ namespace zebra {
 
     std::shared_ptr<Object> Interpreter::visit(MethodCall* expr) {
         ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
-        Callable* method;
+
+        //TODO: here's the issue - we're looking for methods in the class instance
+        //why aren't these functions being set in env. like the fields?  That would
+        //make inheritance a lot easier to deal with
+        //THEY ARE!  I'm just not accessing them here
+        Callable* method = dynamic_cast<Callable*>(inst->m_environment->get(expr->m_method).get());
+
+        /*
         for (std::pair<Token, std::shared_ptr<Object>> p: inst->m_class->m_methods) {
             FunDef* f = dynamic_cast<FunDef*>(p.second.get());
             if (expr->m_method.m_lexeme == p.first.m_lexeme) {
                 method = dynamic_cast<Callable*>(p.second.get());
                 break;
             }
-        }
+        }*/
 
         //evaluate call arguments
         std::vector<std::shared_ptr<Object>> arguments;
@@ -406,7 +413,13 @@ namespace zebra {
             methods.push_back(std::pair<Token, std::shared_ptr<Object>>(method_decl->m_name, fun));
         }
 
-        std::shared_ptr<Object> class_def = std::make_shared<ClassDef>(fields, methods);
+        //base is a pointer to base class Object (ClassDef)
+        std::shared_ptr<Object> base = nullptr;
+        if (expr->m_base.m_type != TokenType::NIL) {
+            base = m_environment->get(expr->m_base);
+        }
+
+        std::shared_ptr<Object> class_def = std::make_shared<ClassDef>(base, fields, methods);
         m_environment->define(expr->m_name, class_def);
 
         return class_def;
@@ -416,23 +429,18 @@ namespace zebra {
     std::shared_ptr<Object> Interpreter::visit(InstClass* expr) {
         std::shared_ptr<ClassDef> def = std::dynamic_pointer_cast<ClassDef>(m_environment->get(expr->m_class));
 
-        /* TODO: Implement class constructors
-        if (!(expr->m_arguments.empty())) {
-            for (int i = 0; i < def->m_node->m_fields.size(); i++) {
-                //get lexeme from declaration
-                std::string lexeme = def->m_node->m_fields.at(i)->m_name.m_lexeme;
-                //get value from argument evaluation
-                std::shared_ptr<Object> value = evaluate(stmt->m_arguments.at(i).get());
-                fields[lexeme] = value;
-            }
-        }*/
+        if (def->m_base) {
+            std::shared_ptr<ClassDef> base = std::dynamic_pointer_cast<ClassDef>(def->m_base);
+            std::shared_ptr<ClassInst> base_instance = std::make_shared<ClassInst>(m_global, base);
+            std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(base_instance->m_environment, def);
+            m_environment->define(expr->m_name, class_instance);
+            return class_instance;
+        } else {
+            std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(m_global, def);
+            m_environment->define(expr->m_name, class_instance);
+            return class_instance;
+        }
 
-        //TODO: Using default class fields for now - eg, no arguments
-        //std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(def->m_fields);
-        std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(m_global, def);
-        m_environment->define(expr->m_name, class_instance);
-
-        return class_instance;
     }
 
     std::shared_ptr<Object> Interpreter::visit(GetField* expr) {

@@ -428,6 +428,13 @@ namespace zebra {
                     match(TokenType::COLON_COLON);
                     match(TokenType::CLASS);
 
+                    Token base;
+                    if (peek_two(TokenType::LESS, TokenType::IDENTIFIER)) {
+                        match(TokenType::LESS);
+                        match(TokenType::IDENTIFIER);
+                        base = previous();
+                    }
+
                     consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
                     std::vector<std::shared_ptr<Expr>> fields;
                     std::vector<std::shared_ptr<Expr>> methods;
@@ -442,7 +449,7 @@ namespace zebra {
                         }
                     }
 
-                    return std::make_shared<ClassDecl>(name, fields, methods);
+                    return std::make_shared<ClassDecl>(name, base, fields, methods);
                 } else if(match(TokenType::RIGHT_ARROW)) {
                     m_had_return_flag = true;
                     Token name = previous();

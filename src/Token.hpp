@@ -13,6 +13,7 @@ namespace zebra {
             std::string m_lexeme;
             int m_line;
         public:
+            Token(): m_type(TokenType::NIL), m_lexeme(""), m_line(-1) {}
             Token(TokenType type, const std::string& lexeme, int line): m_type(type), m_lexeme(lexeme), m_line(line) {}
             ~Token() {}
 

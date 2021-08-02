@@ -101,10 +101,12 @@ namespace zebra {
 
     class ClassDef: public Object {
         public:
+            std::shared_ptr<Object> m_base;
             std::vector<std::pair<Token, std::shared_ptr<Object>>> m_fields;
             std::vector<std::pair<Token, std::shared_ptr<Object>>> m_methods;
         public:
-            ClassDef(std::vector<std::pair<Token, std::shared_ptr<Object>>> fields, 
+            ClassDef(std::shared_ptr<Object> base,
+                     std::vector<std::pair<Token, std::shared_ptr<Object>>> fields, 
                      std::vector<std::pair<Token, std::shared_ptr<Object>>> methods);
             ClassDef(const ClassDef& obj);
             virtual std::shared_ptr<Object> clone() override;
