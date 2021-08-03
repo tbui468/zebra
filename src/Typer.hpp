@@ -9,6 +9,7 @@
 #include "Token.hpp"
 #include "Expr.hpp"
 #include "ResultCode.hpp"
+#include "DataType.hpp"
 
 namespace zebra {
 
@@ -26,10 +27,10 @@ namespace zebra {
     };
 
 
-    class Typer: public ExprTokenTypeVisitor {
+    class Typer: public DataTypeVisitor {
         private:
-            std::vector<std::unordered_map<std::string, Token>> m_types;
-            std::vector<std::unordered_map<std::string, std::vector<Token>>> m_fun_sig;
+            std::vector<std::unordered_map<std::string, DataType>> m_types;
+            std::vector<std::unordered_map<std::string, std::vector<DataType>>> m_fun_sig;
             std::vector<TypeError> m_errors;
         public:
             Typer() {
@@ -39,8 +40,8 @@ namespace zebra {
             ~Typer() {}
 
             void push_scope() {
-                m_types.emplace_back(std::unordered_map<std::string, Token>()); 
-                m_fun_sig.emplace_back(std::unordered_map<std::string, std::vector<Token>>()); 
+                m_types.emplace_back(std::unordered_map<std::string, DataType>()); 
+                m_fun_sig.emplace_back(std::unordered_map<std::string, std::vector<DataType>>()); 
             }
 
             void pop_scope() {
@@ -48,7 +49,7 @@ namespace zebra {
                 m_fun_sig.pop_back();
             }
 
-            std::vector<Token> find_fun_sig(const std::string& lexeme) {
+            std::vector<DataType> find_fun_sig(const std::string& lexeme) {
                 for (int i = m_fun_sig.size() - 1; i >= 0; i--) {
                     if (m_fun_sig.at(i).count(lexeme) > 0) 
                         return m_fun_sig.at(i)[lexeme];
@@ -57,7 +58,7 @@ namespace zebra {
                 }
             }
 
-            Token find_token(const std::string& lexeme) {
+            DataType find_datatype(const std::string& lexeme) {
                 for (int i = m_types.size() - 1; i >= 0; i--) {
                     if (m_types.at(i).count(lexeme) > 0) 
                         return m_types.at(i)[lexeme];
@@ -81,143 +82,127 @@ namespace zebra {
                 return m_errors;
             }
         private:
-            TokenType evaluate(Expr* expr) {
+            DataType evaluate(Expr* expr) {
                 return expr->accept(*this);
             }
-
-            /*
-             * Helper Functions
-             */
 
             void add_error(Token token, const std::string& message) {
                 m_errors.push_back(TypeError(token, message));
             }
 
-            /*
-            TokenType get_field_type_from_instance(Token inst_name, Token field) {
-                StructInst* inst = dynamic_cast<StructInst*>(get_decl(inst_name));
-                StructDecl* decl = dynamic_cast<StructDecl*>(get_decl(inst->m_struct)); 
-
-                for (std::shared_ptr<VarDecl> var_decl: decl->m_fields) {
-                    if (var_decl->m_name.m_lexeme == field.m_lexeme) {
-                        return var_decl->m_type.m_type;
-                    }
-                }
-
-                throw TypeError(inst_name, "Struct " + decl->m_name.to_string() + " has does not have a field " + field.to_string());
-            }
-
-            Stmt* get_decl(Token& token) {
-                for (int i = m_variables.size() - 1; i >= 0; i--) {
-                    if(m_variables.at(i).count(token.m_lexeme) > 0) {
-                        return m_variables.at(i)[token.m_lexeme];
-                    }
-                }
-
-                throw TypeError(token, token.to_string() + " not declared.");
-            }
-
-            //getting declaration type (variable or function return type)
-            TokenType get_type(Token& token) {
-                Stmt* var = get_decl(token);
-
-                if (dynamic_cast<VarDecl*>(var)) {
-                    return dynamic_cast<VarDecl*>(var)->m_type.m_type;
-                } else if (dynamic_cast<StructInst*>(var)) {
-                    return TokenType::STRUCT_TYPE;                     
-                } else {
-                    return dynamic_cast<FunDecl*>(var)->m_return_type;
-                }
-            }*/
-
 
             /*
              * Misc.
              */
-            TokenType visit(Import* expr) {
+            DataType visit(Import* expr) {
                 for (std::pair<std::string, std::shared_ptr<Object>> p: expr->m_functions) {
                     m_fun_sig.back()[p.first] = dynamic_cast<Callable*>(p.second.get())->m_signature;
                 }
-                return TokenType::NIL_TYPE;
+                return DataType(TokenType::NIL_TYPE);
             }
 
 
             /*
              * Basic
              */
-            TokenType visit(Unary* expr) {
-                TokenType right_type = evaluate(expr->m_right.get());
+            DataType visit(Unary* expr) {
+                DataType right_type = evaluate(expr->m_right.get());
+
+                if (right_type.m_type == TokenType::CUSTOM_TYPE) {
+                    add_error(expr->m_op, expr->m_op.to_string() + " operator does not work on " +
+                                          right_type.m_lexeme + " data types.");
+                    return DataType(TokenType::ERROR);
+                }
 
                 switch(expr->m_op.m_type) {
                     case TokenType::MINUS:
-                        if(right_type == TokenType::INT_TYPE || right_type == TokenType::FLOAT_TYPE)
+                        if(right_type.m_type == TokenType::INT_TYPE || right_type.m_type == TokenType::FLOAT_TYPE)
                             return right_type;
                     case TokenType::BANG:
-                        if(right_type == TokenType::BOOL_TYPE)
+                        if(right_type.m_type == TokenType::BOOL_TYPE)
                             return right_type;
                 }
 
                 add_error(expr->m_op, "Cannot use " + 
                                       expr->m_op.to_string() + 
                                       " operator on a" + 
-                                      Token::to_string(right_type) + ".");
-                return TokenType::ERROR;
+                                      Token::to_string(right_type.m_type) + ".");
+
+                return DataType(TokenType::ERROR);
             }
 
-            TokenType visit(Binary* expr) {
-                TokenType left = evaluate(expr->m_left.get());
-                TokenType right = evaluate(expr->m_right.get());
+            DataType visit(Binary* expr) {
+                DataType left = evaluate(expr->m_left.get());
+                DataType right = evaluate(expr->m_right.get());
 
-                if (left == right && left != TokenType::BOOL_TYPE) return left;
+                if (left.m_type == TokenType::CUSTOM_TYPE ||
+                    right.m_type == TokenType::CUSTOM_TYPE) {
+                    add_error(expr->m_op, "Cannot use " + expr->m_op.to_string() +
+                                          " operator with a " + left.m_lexeme + 
+                                          " and a " + right.m_lexeme + ".");
+                    return DataType(TokenType::ERROR);
+                }
+
+                if (left.m_type == right.m_type && 
+                    left.m_type != TokenType::BOOL_TYPE &&
+                    left.m_type != TokenType::CUSTOM_TYPE) return left;
 
                 add_error(expr->m_op, "Cannot use " + expr->m_op.to_string() + 
-                                      " operator with a " + Token::to_string(left) + 
-                                      " and a " + Token::to_string(right) + ".");
-                return TokenType::ERROR;
+                                      " operator with a " + Token::to_string(left.m_type) + 
+                                      " and a " + Token::to_string(right.m_type) + ".");
+                return DataType(TokenType::ERROR);
             }
 
-            TokenType visit(Group* expr) {
+            DataType visit(Group* expr) {
                 return evaluate(expr->m_expr.get());
             }
 
-            TokenType visit(Literal* expr) {
+            DataType visit(Literal* expr) {
                 switch(expr->m_token.m_type) {
                     case TokenType::TRUE:
                     case TokenType::FALSE:
-                        return TokenType::BOOL_TYPE;
+                        return DataType(TokenType::BOOL_TYPE);
                     case TokenType::FLOAT:
-                        return TokenType::FLOAT_TYPE;
+                        return DataType(TokenType::FLOAT_TYPE);
                     case TokenType::INT:
-                        return TokenType::INT_TYPE;
+                        return DataType(TokenType::INT_TYPE);
                     case TokenType::STRING:
-                        return TokenType::STRING_TYPE;
+                        return DataType(TokenType::STRING_TYPE);
                 }
 
                 add_error(expr->m_token, expr->m_token.to_string() + 
                                          " token not valid.");
-                return TokenType::ERROR;
+                return DataType(TokenType::ERROR);
             }
 
             // ==, !=, <, <=, >, >=, and, or
-            TokenType visit(Logic* expr) {
-                TokenType left = evaluate(expr->m_left.get());
-                TokenType right = evaluate(expr->m_right.get());
+            DataType visit(Logic* expr) {
+                DataType left = evaluate(expr->m_left.get());
+                DataType right = evaluate(expr->m_right.get());
 
-                if (left != right) {
+                if (left.m_type == TokenType::CUSTOM_TYPE ||
+                    right.m_type == TokenType::CUSTOM_TYPE) {
+                    add_error(expr->m_op, "Cannot use " + expr->m_op.to_string() +
+                                          " operator with a " + left.m_lexeme + 
+                                          " and a " + right.m_lexeme + ".");
+                    return DataType(TokenType::ERROR);
+                }
+
+                if (left.m_type != right.m_type) {
                     add_error(expr->m_op, "Cannot use " + expr->m_op.to_string() + 
-                                          " with " + Token::to_string(left) + 
-                                          " and " + Token::to_string(right) + ".");
-                    return TokenType::ERROR;
+                                          " with " + Token::to_string(left.m_type) + 
+                                          " and " + Token::to_string(right.m_type) + ".");
+                    return DataType(TokenType::ERROR);
                 }
 
                 bool logic = expr->m_op.m_type == TokenType::AND ||
                                    expr->m_op.m_type == TokenType::OR;
 
-                if (logic && left != TokenType::BOOL_TYPE) {
+                if (logic && left.m_type != TokenType::BOOL_TYPE) {
                     add_error(expr->m_op, "The expressions on the left and right of " + 
                                           expr->m_op.to_string() + 
                                           " must evaluate to boolean types.");
-                    return TokenType::ERROR;
+                    return DataType(TokenType::ERROR);
                 }
 
                 bool inequality = expr->m_op.m_type == TokenType::LESS ||
@@ -225,77 +210,77 @@ namespace zebra {
                                    expr->m_op.m_type == TokenType::GREATER ||
                                    expr->m_op.m_type == TokenType::GREATER_EQUAL;
 
-                if ((left == TokenType::BOOL_TYPE || right == TokenType::BOOL_TYPE) && inequality) {
+                if ((left.m_type == TokenType::BOOL_TYPE || right.m_type == TokenType::BOOL_TYPE) && inequality) {
                     add_error(expr->m_op, "Cannot use " + 
                                           expr->m_op.to_string() + 
                                           " with boolean types.");
-                    return TokenType::ERROR;
+                    return DataType(TokenType::ERROR);
                 }
 
-                return TokenType::BOOL_TYPE;
+                return DataType(TokenType::BOOL_TYPE);
             }
 
             /*
              * Variables and Functions
              */
 
-            TokenType visit(DeclVar* expr) {
+            DataType visit(DeclVar* expr) {
                 if (expr->m_value) {
-                    if (evaluate(expr->m_value.get()) != expr->m_type.m_type) {
+                    if (evaluate(expr->m_value.get()).m_type != expr->m_type.m_type) {
                         add_error(expr->m_name, "Right hand side of " + 
                                                 expr->m_name.to_string() + 
                                                 " must evaluate to " + 
                                                 expr->m_type.to_string() + ".");
-                        return TokenType::ERROR;
+                        return DataType(TokenType::ERROR);
                     }
                 } else {
                     add_error(expr->m_name, expr->m_name.to_string() + 
                                             " must be defined at declaration.");
-                    return TokenType::ERROR;
+                    return DataType(TokenType::ERROR);
                 }
 
-                m_types.back()[expr->m_name.m_lexeme] = expr->m_type;
+                m_types.back()[expr->m_name.m_lexeme] = DataType(expr->m_type.m_type);
 
-                return expr->m_type.m_type;
+                return DataType(expr->m_type.m_type);
             }
 
-            TokenType visit(GetVar* expr) {
+            DataType visit(GetVar* expr) {
                 if (m_types.back().count(expr->m_name.m_lexeme) == 0) {
                     add_error(expr->m_name, "Undefined reference to " + 
                                             expr->m_name.to_string() + ".");
-                    return TokenType::ERROR;
+                    return DataType(TokenType::ERROR);
                 } else {
-                    return find_token(expr->m_name.m_lexeme).m_type;
+                    return find_datatype(expr->m_name.m_lexeme);
                 }
             }
 
-            TokenType visit(SetVar* expr) {
+            DataType visit(SetVar* expr) {
                 if (m_types.back().count(expr->m_name.m_lexeme) == 0) {
                     add_error(expr->m_name, "Undefined reference to " + 
                                             expr->m_name.to_string() + ".");
-                    return TokenType::ERROR;
+                    return DataType(TokenType::ERROR);
                 } else {
-                    TokenType var_type = find_token(expr->m_name.m_lexeme).m_type;
-                    TokenType val_type = evaluate(expr->m_value.get());
-                    if (var_type != val_type) {
+                    DataType var_type = find_datatype(expr->m_name.m_lexeme);
+                    DataType val_type = evaluate(expr->m_value.get());
+                    if (!DataType::equal(var_type, val_type)) {
                         add_error(expr->m_name, "Cannot assign variable of " + 
-                                                Token::to_string(var_type) + 
+                                                Token::to_string(var_type.m_type) + 
                                                 " to expression evaluating to " + 
-                                                Token::to_string(val_type) + ".");
-                        return TokenType::ERROR;
+                                                Token::to_string(val_type.m_type) + ".");
+                        return DataType(TokenType::ERROR);
                     }
 
                     return var_type;
                 }
             }
 
-            TokenType visit(DeclFun* expr) {
-                std::vector<Token> types;
+            DataType visit(DeclFun* expr) {
+                std::vector<DataType> types;
                 for(std::shared_ptr<Expr> e: expr->m_parameters) {
                     DeclVar* decl_var = dynamic_cast<DeclVar*>(e.get());
-                    types.push_back(decl_var->m_type);
+                    types.push_back(DataType(decl_var->m_type.m_type));
                 }
-                types.push_back(Token(expr->m_return_type));
+                types.push_back(DataType(expr->m_return_type));
 
                 m_fun_sig.back()[expr->m_name.m_lexeme] = types;
 
@@ -304,11 +289,11 @@ namespace zebra {
                 //declaring parameters in local function scope
                 for(std::shared_ptr<Expr> e: expr->m_parameters) {
                     DeclVar* decl_var = dynamic_cast<DeclVar*>(e.get());
-                    m_types.back()[decl_var->m_name.m_lexeme] = decl_var->m_type;
+                    m_types.back()[decl_var->m_name.m_lexeme] = DataType(decl_var->m_type.m_type);
                 }
 
                 //checking body of function (may be multiple return statements - need to check them all)
-                std::vector<TokenType> returns;
+                std::vector<DataType> returns;
                 Block* block = dynamic_cast<Block*>(expr->m_body.get());
                 for (std::shared_ptr<Expr> e: block->m_expressions) {
                     if (dynamic_cast<Return*>(e.get())) {
@@ -321,56 +306,56 @@ namespace zebra {
                 pop_scope();
 
                 if (returns.empty()) {
-                    return TokenType::NIL_TYPE;
+                    return DataType(TokenType::NIL_TYPE);
                 }
 
-                for (TokenType ret: returns) {
-                    if (ret != expr->m_return_type) {
+                for (DataType ret: returns) {
+                    if (ret.m_type != expr->m_return_type) {
                         add_error(expr->m_name, "Return type does not match " + 
                                                 expr->m_name.to_string() +
                                                 " return type, " + 
                                                 Token::to_string(expr->m_return_type) + ".");
-                        return TokenType::ERROR;
+                        return DataType(TokenType::ERROR);
                     }
                 }
 
-                return expr->m_return_type;
+                return DataType(expr->m_return_type);
 
             }
 
-            TokenType visit(CallFun* expr) {
-                std::vector<Token> sig = find_fun_sig(expr->m_name.m_lexeme);
+            DataType visit(CallFun* expr) {
+                std::vector<DataType> sig = find_fun_sig(expr->m_name.m_lexeme);
 
                 //function signature includes return type, so it's one size larger than arity
                 if (sig.size() - 1 != expr->m_arity) {
                     add_error(expr->m_name, "Number of arguments do no match " + 
                                             expr->m_name.to_string() + " declaration.");
-                    return TokenType::ERROR;
+                    return DataType(TokenType::ERROR);
                 }
 
                 //check argument types
                 for (int i = 0; i < expr->m_arguments.size(); i++) {
-                    TokenType arg_type = evaluate(expr->m_arguments.at(i).get());
-                    TokenType sig_type = sig.at(i).m_type;
+                    DataType arg_type = evaluate(expr->m_arguments.at(i).get());
+                    DataType sig_type = sig.at(i);
                     
-                    if (arg_type != sig_type) {
+                    if (!DataType::equal(arg_type, sig_type)) {
                         add_error(expr->m_name, "Argument type at position " + 
                                                 std::to_string(i) + ", " + 
-                                                Token::to_string(arg_type) + 
+                                                Token::to_string(arg_type.m_type) + 
                                                ", does not match parameter type " +
-                                               Token::to_string(sig_type));
-                        return TokenType::ERROR;
+                                               Token::to_string(sig_type.m_type));
+                        return DataType(TokenType::ERROR);
                     }
                 }
 
-                return sig.at(sig.size() - 1).m_type;
+                return sig.at(sig.size() - 1);
             }
 
-            TokenType visit(Return* expr) {
+            DataType visit(Return* expr) {
                 if (expr->m_value) {
                     return evaluate(expr->m_value.get());
                 } else {
-                    return TokenType::NIL_TYPE;
+                    return DataType(TokenType::NIL_TYPE);
                 }
             }
 
@@ -379,99 +364,112 @@ namespace zebra {
              * Control Flow
              */
 
-            TokenType visit(Block* expr) {
+            DataType visit(Block* expr) {
                 push_scope();
                 for(std::shared_ptr<Expr> e: expr->m_expressions) {
                     evaluate(e.get());
                 }
                 pop_scope();
-                return TokenType::NIL_TYPE;
+
+                return DataType(TokenType::NIL_TYPE);
             }
 
-            TokenType visit(If* expr) {
-                TokenType condition = evaluate(expr->m_condition.get());
-                if (condition != TokenType::BOOL_TYPE) {
+            DataType visit(If* expr) {
+                DataType condition = evaluate(expr->m_condition.get());
+                if (condition.m_type != TokenType::BOOL_TYPE) {
                     add_error(expr->m_name, "If condition cannot evaluate to a " + 
-                                            Token::to_string(condition) + ".");
-                    return TokenType::ERROR;
+                                            Token::to_string(condition.m_type) + ".");
+                    return DataType(TokenType::ERROR);
                 }
                 evaluate(expr->m_then_branch.get());
                 if(expr->m_else_branch) evaluate(expr->m_else_branch.get());
-                return TokenType::NIL_TYPE;
+
+                return DataType(TokenType::NIL_TYPE);
             }
 
-            TokenType visit(For* expr) {
+            DataType visit(For* expr) {
                 evaluate(expr->m_initializer.get());
-                TokenType condition = evaluate(expr->m_condition.get());
+                DataType condition = evaluate(expr->m_condition.get());
                 evaluate(expr->m_update.get());
-                if (condition != TokenType::BOOL_TYPE) {
+                if (condition.m_type != TokenType::BOOL_TYPE) {
                     add_error(expr->m_name, "For loop condition cannot evaluate to a " + 
-                                            Token::to_string(condition) + ".");
-                    return TokenType::ERROR;
+                                            Token::to_string(condition.m_type) + ".");
+                    return DataType(TokenType::ERROR);
                 }
                 evaluate(expr->m_body.get());
-                return TokenType::NIL_TYPE;
+
+                return DataType(TokenType::NIL_TYPE);
             }
 
-            TokenType visit(While* expr) {
-                TokenType condition = evaluate(expr->m_condition.get());
-                if (condition != TokenType::BOOL_TYPE) {
+            DataType visit(While* expr) {
+                DataType condition = evaluate(expr->m_condition.get());
+                if (condition.m_type != TokenType::BOOL_TYPE) {
                     add_error(expr->m_name, "For loop condition cannot evaluate to a " + 
-                                            Token::to_string(condition) + ".");
-                    return TokenType::ERROR;
+                                            Token::to_string(condition.m_type) + ".");
+                    return DataType(TokenType::ERROR);
                 }
                 evaluate(expr->m_body.get());
-                return TokenType::NIL_TYPE;
+
+                return DataType(TokenType::NIL_TYPE);
             }
 
             /*
              * Classes
              */
-            TokenType visit(DeclClass* stmt) {
-                return TokenType::NIL;
+            DataType visit(DeclClass* expr) {
                 /*
-                m_variables.back()[stmt->m_name.m_lexeme] = stmt;*/
-            }
-
-            TokenType visit(InstClass* stmt) {
-                return TokenType::NIL;
-                /*
-                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
-                Stmt* decl = get_decl(stmt->m_struct);
-                StructDecl* struct_decl = dynamic_cast<StructDecl*>(decl);
-
-                if (stmt->m_arguments.size() > 0 && stmt->m_arguments.size() != struct_decl->m_fields.size()) {
-                    throw TypeError(stmt->m_name, "Number of arguments for " + stmt->m_name.to_string() + " must be 0 or match the declaration.");
+                push_scope();
+                
+                //check fields
+                for (std::shared_ptr<Expr> e: expr->m_fields) {
+                    evaluate(e.get());
+                }
+                
+                //check methods
+                for (std::shared_ptr<Expr> e: expr->m_methods) {
+                    evaluate(e.get());
                 }
 
-                for (int i = 0; i < stmt->m_arguments.size(); i++) {
-                    TokenType arg_type = evaluate(stmt->m_arguments.at(i).get());
-                    TokenType field_type = struct_decl->m_fields.at(i)->m_type.m_type;
-                    if (arg_type != field_type) {
-                        throw TypeError(stmt->m_name, "Arguments for " + stmt->m_name.to_string() + " must match declaration.");
-                    }
-                }*/
+                pop_scope();
+
+                m_types.back()[expr->m_name.m_lexeme] = expr->m_name;
+
+                return TokenType::NIL_TYPE;*/
+                return DataType(TokenType::ERROR);
             }
 
-            TokenType visit(GetField* expr) {
-                return TokenType::NIL;
+            DataType visit(InstClass* expr) {
                 /*
+                m_types.back()[expr->m_name.m_lexeme] = Token(TokenType::CUSTOM_TYPE, expr->m_class.m_lexeme);
+                return TokenType::CUSTOM_TYPE;*/
+                return DataType(TokenType::ERROR);
+            }
+
+            DataType visit(GetField* expr) {
+                /*
+                //check if field type is declared, then return that value if so
                 return get_field_type_from_instance(expr->m_instance, expr->m_field);*/
+                return DataType(TokenType::ERROR);
             }
 
-            TokenType visit(SetField* expr) {
-                return TokenType::NIL;
+            DataType visit(SetField* expr) {
                 /*
+                //check if field is declared
+                //check the type of field == type of value
+                //if so, return that value
                 TokenType field_type = get_field_type_from_instance(stmt->m_instance, stmt->m_field);
                 TokenType value_t = evaluate(stmt->m_value.get());
 
                 if (field_type != value_t) {
                     throw TypeError(stmt->m_instance, stmt->m_field.to_string() + " type does not match assignment type.");
                 }*/
+                return DataType(TokenType::ERROR);
             }
 
-            TokenType visit(CallMethod* expr) {
-                return TokenType::NIL;
+            DataType visit(CallMethod* expr) {
+                //check that argument count / type is equal to function signature
+                //return the return type of the signature
+                return DataType(TokenType::ERROR);
             }
 
 

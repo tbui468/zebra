@@ -7,6 +7,7 @@
 
 #include "Token.hpp"
 #include "Interpreter.hpp"
+#include "DataType.hpp"
 
 namespace zebra {
 
@@ -63,9 +64,9 @@ namespace zebra {
 
     class Callable: public Object {
         public:
-            std::vector<Token> m_signature;
+            std::vector<DataType> m_signature;
         public:
-            Callable(std::vector<Token> signature): m_signature(signature) {}
+            Callable(std::vector<DataType> signature): m_signature(signature) {}
             Callable() {}
             virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) = 0;
     };

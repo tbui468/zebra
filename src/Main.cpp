@@ -18,7 +18,10 @@
  * HIGH PRIORITY
  */
 //Typer - this will be a big project.  Will require restructing of Parser, Interpreter and Environments
-//  Classes
+//  Integrate DataType with Expr.hpp, and Typer.hpp
+//  Get Typer working with everything except for classes.   make sure it compiles and runs
+//  Get typer working with classes
+//      InstClass m_arguments not being used now (only default instantiation) remove?
 //      DeclClass needs to check fields, and methods (same as functions)
 //      InstClass needs to check type.  Add a CUSTOM_TYPE token that includes lexeme for the type - so need to check m_lexeme if m_type == TokenType::CUSTOM_TYPE
 //      GetField needs to check field type

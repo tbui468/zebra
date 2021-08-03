@@ -8,6 +8,7 @@ set(Sources
 set(Headers
     Expr.hpp
     TokenType.hpp
+    DataType.hpp
     Token.hpp
     Lexer.hpp
     Parser.hpp
