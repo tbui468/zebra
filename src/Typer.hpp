@@ -293,7 +293,7 @@ namespace zebra {
             }
 
             DataType visit(GetVar* expr) {
-                if (m_var_sig.back().count(expr->m_name.m_lexeme) == 0) {
+                if (!is_declared_var(expr->m_name.m_lexeme)) {
                     add_error(expr->m_name, "Undefined reference to " + 
                                             expr->m_name.to_string() + ".");
                     return DataType(TokenType::ERROR);
@@ -303,7 +303,7 @@ namespace zebra {
             }
 
             DataType visit(SetVar* expr) {
-                if (m_var_sig.back().count(expr->m_name.m_lexeme) == 0) {
+                if (!is_declared_var(expr->m_name.m_lexeme)) {
                     add_error(expr->m_name, "Undefined reference to " + 
                                             expr->m_name.to_string() + ".");
                     return DataType(TokenType::ERROR);
@@ -367,8 +367,7 @@ namespace zebra {
                     }
                 }
 
-                return DataType(expr->m_return_type);
-
+                return DataType(TokenType::NIL_TYPE);
             }
 
             DataType visit(CallFun* expr) {
@@ -465,6 +464,72 @@ namespace zebra {
              * Classes
              */
             DataType visit(DeclClass* expr) {
+
+                /*
+                 * Checking class definition
+                 */
+                //TODO: DO NOT RETURN ERRORS UNTIL AFTER ALL PUSHED SCOPES ARE POPPED
+
+                bool had_error = false;
+                
+                push_scope();
+
+                //declare all fields and check types
+                for (std::shared_ptr<Expr> e: expr->m_fields) {
+                    DataType dt = evaluate(e.get());
+                    DeclVar* decl_var = dynamic_cast<DeclVar*>(e.get());
+                    m_var_sig.back()[decl_var->m_name.m_lexeme] = dt;
+                }
+                
+                for (std::shared_ptr<Expr> m: expr->m_methods) {
+                    DeclFun* method = dynamic_cast<DeclFun*>(m.get());
+                    push_scope();
+
+                    for(std::shared_ptr<Expr> param: method->m_parameters) {
+                        DataType dt = evaluate(param.get());
+                        DeclVar* decl_var = dynamic_cast<DeclVar*>(param.get());
+                        m_var_sig.back()[decl_var->m_name.m_lexeme] = dt;
+                    }
+
+                    std::vector<DataType> returns;
+                    Block* block = dynamic_cast<Block*>(method->m_body.get());
+                    for (std::shared_ptr<Expr> stmt: block->m_expressions) {
+                        if (dynamic_cast<Return*>(stmt.get())) {
+                            returns.push_back(evaluate(stmt.get()));
+                        } else {
+                            evaluate(stmt.get());
+                        }
+                    }
+
+                    pop_scope();
+
+                    //check return types here
+                    if (returns.empty() && method->m_return_type != TokenType::NIL_TYPE) {
+                        add_error(method->m_name, "Expecting return type of " + Token::to_string(method->m_return_type));
+                        had_error = true;
+                    }
+
+                    for (DataType ret: returns) {
+                        if (ret.m_type != method->m_return_type) {
+                            add_error(method->m_name, "Return type does not match " + 
+                                                    method->m_name.to_string() +
+                                                    " return type, " + 
+                                                    Token::to_string(method->m_return_type) + ".");
+                            had_error = true;
+                        }
+                    }
+                }
+
+                pop_scope();
+
+                if (had_error) {
+                    return DataType(TokenType::ERROR);
+                }
+
+                /*
+                 * Putting data into m_class_sig for type checking class instantiation
+                 */
+
                 //put fields in field_sig
                 std::unordered_map<std::string, DataType> field_sig;
                 for (std::shared_ptr<Expr> e: expr->m_fields) {
@@ -473,9 +538,8 @@ namespace zebra {
                     field_sig[lexeme] = dt;
                 }
                 
-                //put methods in method_sig
                 std::unordered_map<std::string, std::vector<DataType>> method_sig;
-                //loop through each method in class
+
                 for (std::shared_ptr<Expr> e: expr->m_methods) {
                     DeclFun* decl_fun = dynamic_cast<DeclFun*>(e.get());
                     std::string lexeme = decl_fun->m_name.m_lexeme;
@@ -494,6 +558,7 @@ namespace zebra {
                         DeclVar* decl_var = dynamic_cast<DeclVar*>(p.get());
                         m_sig.push_back(DataType(decl_var->m_type.m_type)); 
                     }
+
                     m_sig.push_back(DataType(decl_fun->m_return_type));
                     method_sig[lexeme] = m_sig;
                 }
@@ -515,10 +580,26 @@ namespace zebra {
             }
 
             DataType visit(GetField* expr) {
-                //look up instance in m_var_sig
-                //use m_lexeme in data type to look up class in m_class_sig
-                //check type of field use is trying to access
-                return DataType(TokenType::ERROR);
+                if (!is_declared_var(expr->m_name.m_lexeme)) {
+                    add_error(expr->m_name, expr->m_name.m_lexeme + " is not declared.");
+                    return DataType(TokenType::ERROR);
+                }
+
+                DataType dt = find_var_sig(expr->m_name.m_lexeme);
+
+                if (!is_declared_class(dt.m_lexeme)) {
+                    add_error(expr->m_name, dt.m_lexeme + " is not declared class.");
+                    return DataType(TokenType::ERROR);
+                }
+
+                ClassSig class_sig = find_class_sig(dt.m_lexeme);
+
+                if (class_sig.m_field_sig.count(expr->m_field.m_lexeme) == 0) {
+                    add_error(expr->m_name, expr->m_field.m_lexeme + " is not a field in " + dt.m_lexeme + ".");
+                    return DataType(TokenType::ERROR);
+                }
+
+                return class_sig.m_field_sig[expr->m_field.m_lexeme];
             }
 
             DataType visit(SetField* expr) {

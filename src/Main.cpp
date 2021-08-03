@@ -20,12 +20,9 @@
 //Typer - this will be a big project.  Will require restructing of Parser, Interpreter and Environments
 //
 //  Get typer working with classes
-//      InstClass m_arguments not being used now (only default instantiation) remove?
-//      DeclClass needs to check fields, and methods (same as functions)
-//      InstClass needs to check type.  Add a CUSTOM_TYPE token that includes lexeme for the type - so need to check m_lexeme if m_type == TokenType::CUSTOM_TYPE
-//      GetField needs to check field type
 //      SetField needs to check field type
 //      CallMethod needs to check signature (same as CallFun)
+//      write tests for all
 //
 //
 //InstClass shouldn't really need its own node - it's just a DeclVar with a value being the result of a constructor (function) call
