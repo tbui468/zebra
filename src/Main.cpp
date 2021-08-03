@@ -17,12 +17,6 @@
 
 //TODO: 
 //Typer - this will be a big project.  Will require restructing of Parser, Interpreter and Environments
-//  Variables and Functions Typer
-//      Import needs to declare functions in Typer - can't this be done with DeclFun code????
-//          Import node has a map of string + Callable objects
-//          FunDefs and import functions are both Callable types
-//              we should combine them into a more consistent class - import functions are regualr FunDefs and should be treated as such
-//      Return node shouldn't need m_return_type - that's already in the return value
 //  Classes
 //
 //  What types are there?  primitive, classes and functions

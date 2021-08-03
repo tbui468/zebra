@@ -418,7 +418,7 @@ namespace zebra {
                     if (m_return_type != TokenType::NIL_TYPE) {
                         value = expression();
                     }
-                    return std::make_shared<Return>(name, m_return_type, value);
+                    return std::make_shared<Return>(name, value);
                 } else if (match(TokenType::IDENTIFIER)) {
                     return std::make_shared<GetVar>(previous());
                 } else if (match(TokenType::IMPORT)) {

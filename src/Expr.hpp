@@ -292,15 +292,14 @@ namespace zebra {
 
     struct Return: public Expr {
         public:
-            Return(Token name, TokenType return_type, std::shared_ptr<Expr> value): 
-                m_name(name), m_return_type(return_type), m_value(value) {}
+            Return(Token name, std::shared_ptr<Expr> value): 
+                m_name(name), m_value(value) {}
             ~Return() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
             TokenType accept(ExprTokenTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
-            TokenType m_return_type;
             std::shared_ptr<Expr> m_value;
     };
 

@@ -36,9 +36,9 @@ namespace zebra {
     }
 
     FunDef::FunDef(std::vector<std::shared_ptr<Expr>> parameters, std::shared_ptr<Expr> body)
-        : m_parameters(parameters), m_body(body) {}
+        : Callable(), m_parameters(parameters), m_body(body) {}
 
-    FunDef::FunDef(const FunDef& obj): m_parameters(obj.m_parameters), m_body(obj.m_body) {}
+    FunDef::FunDef(const FunDef& obj): Callable(), m_parameters(obj.m_parameters), m_body(obj.m_body) {}
 
     std::shared_ptr<Object> FunDef::clone() {
         return std::make_shared<FunDef>(*this);
