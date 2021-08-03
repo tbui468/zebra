@@ -64,10 +64,10 @@ namespace zebra {
                     case TokenType::FLOAT_TYPE: return "FLOAT_TYPE";
                     case TokenType::STRING_TYPE: return "STRING_TYPE";
                     case TokenType::BOOL_TYPE: return "BOOL_TYPE";
-                    case TokenType::FUN_TYPE: return "FUN_TYPE"; //is this used?
+                    case TokenType::FUN_TYPE: return "FUN_TYPE"; //is this used? Using function signatures (parameter/return types)
                     case TokenType::NIL_TYPE: return "NIL_TYPE";
-                    case TokenType::STRUCT_TYPE: return "STRUCT_TYPE"; //is this used?
-                    case TokenType::CUSTOM_TYPE: return "CUSTOM_TYPE";
+                    case TokenType::CLASS_TYPE: return "CLASS_TYPE";
+                    case TokenType::CUSTOM_TYPE: return "CUSTOM_TYPE"; //used for class instances
                     //other
                     case TokenType::SLASH_SLASH: return "SLASH_SLASH";
                     case TokenType::ERROR: return "ERROR";

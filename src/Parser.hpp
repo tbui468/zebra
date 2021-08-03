@@ -341,7 +341,6 @@ namespace zebra {
                         match(TokenType::FLOAT_TYPE);
                         match(TokenType::STRING_TYPE);
                         match(TokenType::FUN_TYPE);
-                        match(TokenType::STRUCT_TYPE);
                         Token type = previous();
 
                         if (type.m_type == TokenType::COLON) {
@@ -358,7 +357,6 @@ namespace zebra {
                     match(TokenType::FLOAT_TYPE);
                     match(TokenType::STRING_TYPE);
                     match(TokenType::FUN_TYPE);
-                    match(TokenType::STRUCT_TYPE);
                     if (previous().m_type == TokenType::RIGHT_ARROW) {
                         m_return_type = TokenType::NIL_TYPE;
                     } else {
