@@ -28,17 +28,47 @@ namespace zebra {
 
     class Typer: public ExprTokenTypeVisitor {
         private:
-            //TODO: m_variables is a stack of environments - how do we deal with the
-            //local environments of class instances?
-            //std::vector<std::unordered_map<std::string, Expr*>> m_variables;
-            std::vector<std::unordered_map<std::string, TokenType>> m_types;
+            //function declarations are own independent unit, so no need to store in m_function_sig
+            //  can just check types and emit error at declaration time
+            //
+            //function calls require use of function signatures
+            std::vector<std::unordered_map<std::string, TokenType>> m_types; //basic types
+            std::vector<std::unordered_map<std::string, std::vector<TokenType>>> m_fun_sig; //function signatures
             std::vector<TypeError> m_errors;
         public:
             Typer() {
-                m_types.emplace_back(std::unordered_map<std::string, TokenType>()); 
+                push_scope();
             }
 
             ~Typer() {}
+
+            void push_scope() {
+                m_types.emplace_back(std::unordered_map<std::string, TokenType>()); 
+                m_fun_sig.emplace_back(std::unordered_map<std::string, std::vector<TokenType>>()); 
+            }
+
+            void pop_scope() {
+                m_types.pop_back();
+                m_fun_sig.pop_back();
+            }
+
+            std::vector<TokenType> find_fun_sig(const std::string& lexeme) {
+                for (int i = m_fun_sig.size() - 1; i >= 0; i--) {
+                    if (m_fun_sig.at(i).count(lexeme) > 0) 
+                        return m_fun_sig.at(i)[lexeme];
+                    else
+                        continue;
+                }
+            }
+
+            TokenType find_type(const std::string& lexeme) {
+                for (int i = m_types.size() - 1; i >= 0; i--) {
+                    if (m_types.at(i).count(lexeme) > 0) 
+                        return m_types.at(i)[lexeme];
+                    else
+                        continue;
+                }
+            }
 
             ResultCode type(const std::vector<std::shared_ptr<Expr>>& ast) {
                 for(std::shared_ptr<Expr> expr: ast) {
@@ -109,6 +139,7 @@ namespace zebra {
              * Misc.
              */
             TokenType visit(Import* expr) {
+
                 return TokenType::NIL_TYPE;
             }
 
@@ -247,45 +278,84 @@ namespace zebra {
                 }
             }
 
-            TokenType visit(DeclFun* stmt) {
-                return TokenType::NIL;
-                /*
-                m_variables.back()[stmt->m_name.m_lexeme] = stmt;
-                for(std::shared_ptr<Stmt> s: stmt->m_parameters) {
-                    VarDecl* var_decl = dynamic_cast<VarDecl*>(s.get());
-                    m_variables.back()[var_decl->m_name.m_lexeme] = s.get();
+            TokenType visit(DeclFun* expr) {
+                std::vector<TokenType> types;
+                for(std::shared_ptr<Expr> e: expr->m_parameters) {
+                    DeclVar* decl_var = dynamic_cast<DeclVar*>(e.get());
+                    types.push_back(decl_var->m_type.m_type);
+                }
+                types.push_back(expr->m_return_type);
+
+                m_fun_sig.back()[expr->m_name.m_lexeme] = types;
+
+                push_scope();
+
+                //declaring parameters in local function scope
+                for(std::shared_ptr<Expr> e: expr->m_parameters) {
+                    DeclVar* decl_var = dynamic_cast<DeclVar*>(e.get());
+                    m_types.back()[decl_var->m_name.m_lexeme] = decl_var->m_type.m_type;
                 }
 
-                execute(stmt->m_body.get());*/
-            }
-
-            TokenType visit(CallFun* stmt) {
-                return TokenType::NIL;
-                /*
-                FunDecl* fun_decl = dynamic_cast<FunDecl*>(get_decl(stmt->m_name));
-
-                //check parameter/argument count
-                if(stmt->m_arity != fun_decl->m_arity) {
-                    throw TypeError(stmt->m_name, "Function call argument count must match declaration parameter count.");
-                }
-
-                //check parameter/argument type
-                for (int i = 0; i < stmt->m_arguments.size(); i++) {
-                    TokenType arg_type = evaluate(stmt->m_arguments.at(i).get());
-                    VarDecl* param = dynamic_cast<VarDecl*>(fun_decl->m_parameters.at(i).get());
-                    if(arg_type != get_type(param->m_name)) {
-                        throw TypeError(stmt->m_name, "Function call argument type must match declaration parameter type.");
+                //checking body of function (may be multiple return statements - need to check them all)
+                std::vector<TokenType> returns;
+                Block* block = dynamic_cast<Block*>(expr->m_body.get());
+                for (std::shared_ptr<Expr> e: block->m_expressions) {
+                    if (dynamic_cast<Return*>(e.get())) {
+                        returns.push_back(evaluate(e.get()));
+                    } else {
+                        evaluate(e.get());
                     }
-                }*/
+                }
+
+                pop_scope();
+
+                if (returns.empty()) {
+                    return TokenType::NIL_TYPE;
+                }
+
+                for (TokenType ret: returns) {
+                    if (ret != expr->m_return_type) {
+                        add_error(expr->m_name, "Return type does not match " + expr->m_name.to_string() +
+                                                " return type, " + Token::to_string(expr->m_return_type) + ".");
+                        return TokenType::ERROR;
+                    }
+                }
+
+                return expr->m_return_type;
+
             }
 
-            TokenType visit(Return* stmt) {
-                return TokenType::NIL;
-                /*
-                TokenType expr_type = evaluate(stmt->m_value.get());
-                if(expr_type != stmt->m_return_type) {
-                    throw TypeError(stmt->m_name, "Return type must match return type in function declaration.");
-                }*/
+            TokenType visit(CallFun* expr) {
+                std::vector<TokenType> sig = find_fun_sig(expr->m_name.m_lexeme);
+
+                //function signature includes return type, so it's one size larger than arity
+                if (sig.size() - 1 != expr->m_arity) {
+                    add_error(expr->m_name, "Number of arguments do no match " + expr->m_name.to_string() + " declaration.");
+                    return TokenType::ERROR;
+                }
+
+                //check argument types
+                for (int i = 0; i < expr->m_arguments.size(); i++) {
+                    TokenType arg_type = evaluate(expr->m_arguments.at(i).get());
+                    TokenType sig_type = sig.at(i);
+                    
+                    if (arg_type != sig_type) {
+                        add_error(expr->m_name, "Argument type at position " + std::to_string(i) + 
+                                               ", " + Token::to_string(arg_type) + ", does not match parameter type " +
+                                               Token::to_string(sig_type));
+                        return TokenType::ERROR;
+                    }
+                }
+
+                return sig.at(sig.size() - 1);
+            }
+
+            TokenType visit(Return* expr) {
+                if (expr->m_value) {
+                    return evaluate(expr->m_value.get());
+                } else {
+                    return TokenType::NIL_TYPE;
+                }
             }
 
 
@@ -294,11 +364,11 @@ namespace zebra {
              */
 
             TokenType visit(Block* expr) {
-                m_types.emplace_back(std::unordered_map<std::string, TokenType>());
+                push_scope();
                 for(std::shared_ptr<Expr> e: expr->m_expressions) {
                     evaluate(e.get());
                 }
-                m_types.pop_back();
+                pop_scope();
                 return TokenType::NIL_TYPE;
             }
 

@@ -17,14 +17,18 @@
 
 //TODO: 
 //Typer - this will be a big project.  Will require restructing of Parser, Interpreter and Environments
-//  Finish Type checking functions and function calls and returns 
-//  Control Flow
-//      do this before Variables and Functions since it'll be easier
-//  Variables and Functions
+//  Variables and Functions Typer
+//      Import needs to declare functions in Typer - can't this be done with DeclFun code????
+//          Import node has a map of string + Callable objects
+//          FunDefs and import functions are both Callable types
+//              we should combine them into a more consistent class - import functions are regualr FunDefs and should be treated as such
+//      Return node shouldn't need m_return_type - that's already in the return value
 //  Classes
 //
 //  What types are there?  primitive, classes and functions
 //  What do we check? - will need to go through each expression and maybe also create new environments??? (I want to avoid this if possible)
+//
+//When / Is statements
 //
 //Infer types when declaring: do this to allow less verbose data structure creation
 //  a := 6; //int
@@ -40,8 +44,11 @@
 //  l := List(Animal)
 //  a: Array = Array(int)
 //
+//Block comments (easy)
 //
-//Write a simple tic tac toe or connect 4 program to test usability of zebra
+//Write a simple tic tac toe or connect 4 program to test usability of zebra (a few 100 lines)
+//
+//Write a mini language interpreter (a few 1000 lines)
 //
 //Write tests for error codes - feed in source file and check what kinds of errors come out
 //
