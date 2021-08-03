@@ -41,10 +41,6 @@ namespace zebra {
                     case TokenType::COLON_COLON: return "COLON_COLON"; break;
                     case TokenType::RIGHT_ARROW: return "RIGHT_ARROW"; break;
                     //literals
-                    //case TokenType::INT: return "INT [" + m_lexeme + "]"; break;
-                    //case TokenType::FLOAT: return "FLOAT [" + m_lexeme + "]"; break;
-                    //case TokenType::STRING: return "STRING [" + m_lexeme + "]"; break;
-                    //case TokenType::IDENTIFIER: return "IDENTIFIER [" + m_lexeme + "]"; break;
                     case TokenType::INT: return "INT"; break;
                     case TokenType::FLOAT: return "FLOAT"; break;
                     case TokenType::STRING: return "STRING"; break;
@@ -68,9 +64,10 @@ namespace zebra {
                     case TokenType::FLOAT_TYPE: return "FLOAT_TYPE";
                     case TokenType::STRING_TYPE: return "STRING_TYPE";
                     case TokenType::BOOL_TYPE: return "BOOL_TYPE";
-                    case TokenType::FUN_TYPE: return "FUN_TYPE";
+                    case TokenType::FUN_TYPE: return "FUN_TYPE"; //is this used?
                     case TokenType::NIL_TYPE: return "NIL_TYPE";
-                    case TokenType::STRUCT_TYPE: return "STRUCT_TYPE";
+                    case TokenType::STRUCT_TYPE: return "STRUCT_TYPE"; //is this used?
+                    case TokenType::CUSTOM_TYPE: return "CUSTOM_TYPE";
                     //other
                     case TokenType::SLASH_SLASH: return "SLASH_SLASH";
                     case TokenType::ERROR: return "ERROR";
@@ -80,6 +77,8 @@ namespace zebra {
             }
         public:
             Token(): m_type(TokenType::NIL), m_lexeme(""), m_line(-1) {}
+            Token(TokenType type): m_type(type), m_lexeme(""), m_line(-1) {}
+            Token(TokenType type, const std::string& lexeme): m_type(type), m_lexeme(lexeme), m_line(-1) {}
             Token(TokenType type, const std::string& lexeme, int line): m_type(type), m_lexeme(lexeme), m_line(line) {}
             ~Token() {}
 

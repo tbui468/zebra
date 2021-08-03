@@ -28,12 +28,8 @@ namespace zebra {
 
     class Typer: public ExprTokenTypeVisitor {
         private:
-            //function declarations are own independent unit, so no need to store in m_function_sig
-            //  can just check types and emit error at declaration time
-            //
-            //function calls require use of function signatures
-            std::vector<std::unordered_map<std::string, TokenType>> m_types; //basic types
-            std::vector<std::unordered_map<std::string, std::vector<TokenType>>> m_fun_sig; //function signatures
+            std::vector<std::unordered_map<std::string, Token>> m_types;
+            std::vector<std::unordered_map<std::string, std::vector<Token>>> m_fun_sig;
             std::vector<TypeError> m_errors;
         public:
             Typer() {
@@ -43,8 +39,8 @@ namespace zebra {
             ~Typer() {}
 
             void push_scope() {
-                m_types.emplace_back(std::unordered_map<std::string, TokenType>()); 
-                m_fun_sig.emplace_back(std::unordered_map<std::string, std::vector<TokenType>>()); 
+                m_types.emplace_back(std::unordered_map<std::string, Token>()); 
+                m_fun_sig.emplace_back(std::unordered_map<std::string, std::vector<Token>>()); 
             }
 
             void pop_scope() {
@@ -52,7 +48,7 @@ namespace zebra {
                 m_fun_sig.pop_back();
             }
 
-            std::vector<TokenType> find_fun_sig(const std::string& lexeme) {
+            std::vector<Token> find_fun_sig(const std::string& lexeme) {
                 for (int i = m_fun_sig.size() - 1; i >= 0; i--) {
                     if (m_fun_sig.at(i).count(lexeme) > 0) 
                         return m_fun_sig.at(i)[lexeme];
@@ -61,7 +57,7 @@ namespace zebra {
                 }
             }
 
-            TokenType find_type(const std::string& lexeme) {
+            Token find_token(const std::string& lexeme) {
                 for (int i = m_types.size() - 1; i >= 0; i--) {
                     if (m_types.at(i).count(lexeme) > 0) 
                         return m_types.at(i)[lexeme];
@@ -161,8 +157,10 @@ namespace zebra {
                             return right_type;
                 }
 
-                add_error(expr->m_op, "Cannot use " + expr->m_op.to_string() + 
-                                      " operator on a" + Token::to_string(right_type) + ".");
+                add_error(expr->m_op, "Cannot use " + 
+                                      expr->m_op.to_string() + 
+                                      " operator on a" + 
+                                      Token::to_string(right_type) + ".");
                 return TokenType::ERROR;
             }
 
@@ -195,7 +193,8 @@ namespace zebra {
                         return TokenType::STRING_TYPE;
                 }
 
-                add_error(expr->m_token, expr->m_token.to_string() + " token not valid.");
+                add_error(expr->m_token, expr->m_token.to_string() + 
+                                         " token not valid.");
                 return TokenType::ERROR;
             }
 
@@ -216,7 +215,8 @@ namespace zebra {
 
                 if (logic && left != TokenType::BOOL_TYPE) {
                     add_error(expr->m_op, "The expressions on the left and right of " + 
-                                          expr->m_op.to_string() + " must evaluate to boolean types.");
+                                          expr->m_op.to_string() + 
+                                          " must evaluate to boolean types.");
                     return TokenType::ERROR;
                 }
 
@@ -226,7 +226,9 @@ namespace zebra {
                                    expr->m_op.m_type == TokenType::GREATER_EQUAL;
 
                 if ((left == TokenType::BOOL_TYPE || right == TokenType::BOOL_TYPE) && inequality) {
-                    add_error(expr->m_op, "Cannot use " + expr->m_op.to_string() + " with boolean types.");
+                    add_error(expr->m_op, "Cannot use " + 
+                                          expr->m_op.to_string() + 
+                                          " with boolean types.");
                     return TokenType::ERROR;
                 }
 
@@ -240,39 +242,46 @@ namespace zebra {
             TokenType visit(DeclVar* expr) {
                 if (expr->m_value) {
                     if (evaluate(expr->m_value.get()) != expr->m_type.m_type) {
-                        add_error(expr->m_name, "Right hand side of " + expr->m_name.to_string() + 
-                                                " must evaluate to " + expr->m_type.to_string() + ".");
+                        add_error(expr->m_name, "Right hand side of " + 
+                                                expr->m_name.to_string() + 
+                                                " must evaluate to " + 
+                                                expr->m_type.to_string() + ".");
                         return TokenType::ERROR;
                     }
                 } else {
-                    add_error(expr->m_name, expr->m_name.to_string() + " must be defined at declaration.");
+                    add_error(expr->m_name, expr->m_name.to_string() + 
+                                            " must be defined at declaration.");
                     return TokenType::ERROR;
                 }
 
-                m_types.back()[expr->m_name.m_lexeme] = expr->m_type.m_type;
+                m_types.back()[expr->m_name.m_lexeme] = expr->m_type;
 
                 return expr->m_type.m_type;
             }
 
             TokenType visit(GetVar* expr) {
                 if (m_types.back().count(expr->m_name.m_lexeme) == 0) {
-                    add_error(expr->m_name, "Undefined reference to " + expr->m_name.to_string() + ".");
+                    add_error(expr->m_name, "Undefined reference to " + 
+                                            expr->m_name.to_string() + ".");
                     return TokenType::ERROR;
                 } else {
-                    return m_types.back()[expr->m_name.m_lexeme];
+                    return find_token(expr->m_name.m_lexeme).m_type;
                 }
             }
 
             TokenType visit(SetVar* expr) {
                 if (m_types.back().count(expr->m_name.m_lexeme) == 0) {
-                    add_error(expr->m_name, "Undefined reference to " + expr->m_name.to_string() + ".");
+                    add_error(expr->m_name, "Undefined reference to " + 
+                                            expr->m_name.to_string() + ".");
                     return TokenType::ERROR;
                 } else {
-                    TokenType var_type = m_types.back()[expr->m_name.m_lexeme];
+                    TokenType var_type = find_token(expr->m_name.m_lexeme).m_type;
                     TokenType val_type = evaluate(expr->m_value.get());
                     if (var_type != val_type) {
-                        add_error(expr->m_name, "Cannot assign variable of " + Token::to_string(var_type) + 
-                                                " to expression evaluating to " + Token::to_string(val_type) + ".");
+                        add_error(expr->m_name, "Cannot assign variable of " + 
+                                                Token::to_string(var_type) + 
+                                                " to expression evaluating to " + 
+                                                Token::to_string(val_type) + ".");
                         return TokenType::ERROR;
                     }
 
@@ -281,12 +290,12 @@ namespace zebra {
             }
 
             TokenType visit(DeclFun* expr) {
-                std::vector<TokenType> types;
+                std::vector<Token> types;
                 for(std::shared_ptr<Expr> e: expr->m_parameters) {
                     DeclVar* decl_var = dynamic_cast<DeclVar*>(e.get());
-                    types.push_back(decl_var->m_type.m_type);
+                    types.push_back(decl_var->m_type);
                 }
-                types.push_back(expr->m_return_type);
+                types.push_back(Token(expr->m_return_type));
 
                 m_fun_sig.back()[expr->m_name.m_lexeme] = types;
 
@@ -295,7 +304,7 @@ namespace zebra {
                 //declaring parameters in local function scope
                 for(std::shared_ptr<Expr> e: expr->m_parameters) {
                     DeclVar* decl_var = dynamic_cast<DeclVar*>(e.get());
-                    m_types.back()[decl_var->m_name.m_lexeme] = decl_var->m_type.m_type;
+                    m_types.back()[decl_var->m_name.m_lexeme] = decl_var->m_type;
                 }
 
                 //checking body of function (may be multiple return statements - need to check them all)
@@ -317,8 +326,10 @@ namespace zebra {
 
                 for (TokenType ret: returns) {
                     if (ret != expr->m_return_type) {
-                        add_error(expr->m_name, "Return type does not match " + expr->m_name.to_string() +
-                                                " return type, " + Token::to_string(expr->m_return_type) + ".");
+                        add_error(expr->m_name, "Return type does not match " + 
+                                                expr->m_name.to_string() +
+                                                " return type, " + 
+                                                Token::to_string(expr->m_return_type) + ".");
                         return TokenType::ERROR;
                     }
                 }
@@ -328,28 +339,31 @@ namespace zebra {
             }
 
             TokenType visit(CallFun* expr) {
-                std::vector<TokenType> sig = find_fun_sig(expr->m_name.m_lexeme);
+                std::vector<Token> sig = find_fun_sig(expr->m_name.m_lexeme);
 
                 //function signature includes return type, so it's one size larger than arity
                 if (sig.size() - 1 != expr->m_arity) {
-                    add_error(expr->m_name, "Number of arguments do no match " + expr->m_name.to_string() + " declaration.");
+                    add_error(expr->m_name, "Number of arguments do no match " + 
+                                            expr->m_name.to_string() + " declaration.");
                     return TokenType::ERROR;
                 }
 
                 //check argument types
                 for (int i = 0; i < expr->m_arguments.size(); i++) {
                     TokenType arg_type = evaluate(expr->m_arguments.at(i).get());
-                    TokenType sig_type = sig.at(i);
+                    TokenType sig_type = sig.at(i).m_type;
                     
                     if (arg_type != sig_type) {
-                        add_error(expr->m_name, "Argument type at position " + std::to_string(i) + 
-                                               ", " + Token::to_string(arg_type) + ", does not match parameter type " +
+                        add_error(expr->m_name, "Argument type at position " + 
+                                                std::to_string(i) + ", " + 
+                                                Token::to_string(arg_type) + 
+                                               ", does not match parameter type " +
                                                Token::to_string(sig_type));
                         return TokenType::ERROR;
                     }
                 }
 
-                return sig.at(sig.size() - 1);
+                return sig.at(sig.size() - 1).m_type;
             }
 
             TokenType visit(Return* expr) {
@@ -377,7 +391,8 @@ namespace zebra {
             TokenType visit(If* expr) {
                 TokenType condition = evaluate(expr->m_condition.get());
                 if (condition != TokenType::BOOL_TYPE) {
-                    add_error(expr->m_name, "If condition cannot evaluate to a " + Token::to_string(condition) + ".");
+                    add_error(expr->m_name, "If condition cannot evaluate to a " + 
+                                            Token::to_string(condition) + ".");
                     return TokenType::ERROR;
                 }
                 evaluate(expr->m_then_branch.get());
@@ -390,7 +405,8 @@ namespace zebra {
                 TokenType condition = evaluate(expr->m_condition.get());
                 evaluate(expr->m_update.get());
                 if (condition != TokenType::BOOL_TYPE) {
-                    add_error(expr->m_name, "For loop condition cannot evaluate to a " + Token::to_string(condition) + ".");
+                    add_error(expr->m_name, "For loop condition cannot evaluate to a " + 
+                                            Token::to_string(condition) + ".");
                     return TokenType::ERROR;
                 }
                 evaluate(expr->m_body.get());
@@ -400,7 +416,8 @@ namespace zebra {
             TokenType visit(While* expr) {
                 TokenType condition = evaluate(expr->m_condition.get());
                 if (condition != TokenType::BOOL_TYPE) {
-                    add_error(expr->m_name, "For loop condition cannot evaluate to a " + Token::to_string(condition) + ".");
+                    add_error(expr->m_name, "For loop condition cannot evaluate to a " + 
+                                            Token::to_string(condition) + ".");
                     return TokenType::ERROR;
                 }
                 evaluate(expr->m_body.get());

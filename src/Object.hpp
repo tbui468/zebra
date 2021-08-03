@@ -63,9 +63,9 @@ namespace zebra {
 
     class Callable: public Object {
         public:
-            std::vector<TokenType> m_signature;
+            std::vector<Token> m_signature;
         public:
-            Callable(std::vector<TokenType> signature): m_signature(signature) {}
+            Callable(std::vector<Token> signature): m_signature(signature) {}
             Callable() {}
             virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) = 0;
     };

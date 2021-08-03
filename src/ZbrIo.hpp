@@ -9,7 +9,7 @@ namespace zebra {
 
     class Print: public Callable {
         public:
-            Print(): Callable({TokenType::STRING_TYPE, TokenType::NIL_TYPE}) {}
+            Print(): Callable({Token(TokenType::STRING_TYPE), Token(TokenType::NIL_TYPE)}) {}
             virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override {
                 std::shared_ptr<Object> value = arguments.at(0);
 
@@ -35,7 +35,7 @@ namespace zebra {
 
     class Input: public Callable {
         public:
-            Input(): Callable({TokenType::STRING_TYPE}) {}
+            Input(): Callable({Token(TokenType::STRING_TYPE)}) {}
             virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override {
                 std::string line;
                 std::getline(std::cin, line);

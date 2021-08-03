@@ -14,22 +14,31 @@
     //if(true) { print "dog"; } OK if(true) print "dog"; X
     //no nulls or nils or nullptrs, all variables must be defined at declaration time
     //types must match, but casting functions are avaiable for use
-
-//TODO: 
+/*
+ * HIGH PRIORITY
+ */
 //Typer - this will be a big project.  Will require restructing of Parser, Interpreter and Environments
 //  Classes
+//      DeclClass needs to check fields, and methods (same as functions)
+//      InstClass needs to check type.  Add a CUSTOM_TYPE token that includes lexeme for the type - so need to check m_lexeme if m_type == TokenType::CUSTOM_TYPE
+//      GetField needs to check field type
+//      SetField needs to check field type
+//      CallMethod needs to check signature (same as CallFun)
 //
-//  What types are there?  primitive, classes and functions
-//  What do we check? - will need to go through each expression and maybe also create new environments??? (I want to avoid this if possible)
+//cast functions - need this for print() function to work
 //
 //When / Is statements
 //
-//Infer types when declaring: do this to allow less verbose data structure creation
-//  a := 6; //int
-//  b := "dog"; //string
-//  c := Dog(); //dog instance.  This also allows instatiating for use as an argument
-//
 //Enums
+//animals: enum {
+//  DOG
+//  CAT
+//  BIRD
+//  ZEBRA
+//}
+//
+//b: animal = animals.DOG
+//c: int = int(b)
 //
 //Data structures
 //  Array, List, Map - need to integrate types (including inheritance and polymorphism)
@@ -38,18 +47,28 @@
 //  l := List(Animal)
 //  a: Array = Array(int)
 //
-//Block comments (easy)
-//
 //Write a simple tic tac toe or connect 4 program to test usability of zebra (a few 100 lines)
 //
 //Write a mini language interpreter (a few 1000 lines)
 //
 //Write tests for error codes - feed in source file and check what kinds of errors come out
 //
+/*
+ * LOW PRIORITY
+ */
+//
+//Don't like the confusing way 'returns' are dealt with in Interpreter / Environment / FunDef / Callables
+//
+//Block comments (easy)
+//
+//Infer types when declaring: do this to allow less verbose data structure creation
+//  a := 6; //int
+//  b := "dog"; //string
+//  c := Dog(); //dog instance.  This also allows instatiating for use as an argument
+//  d := animal.CAT //enum
+//
 //All Error types can inherit from same base class Error()
 //  printing errors in Main.cpp can just be done by using print() method (rather than calling cout << with all the fields)
-//
-//native cast functions - int(2.3), string(3), float("3.2"), float(3), bool("cat"), print("dog"), print(23.2) should be a native function too
 
 int main(int argc, char** argv) {
     if (argc < 2) {
