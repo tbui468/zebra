@@ -16,8 +16,6 @@
 /*
  * HIGH PRIORITY
  */
-//Typer doesn't recognizes class instantations as valid function calls
-//
 //Class dot notation should be able to use GetVar, SetVar and CallFun - rather than having three separate nodes for classes
 //  what if user tries to overwrite class methods?  Shouldn't allow this
 //

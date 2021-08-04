@@ -343,7 +343,9 @@ namespace zebra {
                     return DataType(TokenType::ERROR);
                 }
 
-                m_var_sig.back()[expr->m_name.m_lexeme] = DataType(expr->m_type.m_type);
+                DataType dt = evaluate(expr->m_value.get());
+
+                m_var_sig.back()[expr->m_name.m_lexeme] = dt;
 
                 return DataType(expr->m_type.m_type);
             }
@@ -622,6 +624,14 @@ namespace zebra {
                 }
 
                 m_class_sig.back()[expr->m_name.m_lexeme] = {expr->m_base.m_lexeme, field_sig, method_sig};
+
+                /*
+                 * Putting constructor function signature in m_fun_sig
+                 * 0 parameters for now, with instance return type
+                 */
+                std::vector<DataType> types;
+                types.push_back(DataType(TokenType::IDENTIFIER, expr->m_name.m_lexeme));
+                m_fun_sig.back()[expr->m_name.m_lexeme] = types;
 
                 return DataType(TokenType::NIL_TYPE);
             }
