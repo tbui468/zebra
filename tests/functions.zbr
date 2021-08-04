@@ -1,5 +1,3 @@
-import io
-
 //String return functions tests
 a :: () -> string {
     -> "test"

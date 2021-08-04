@@ -5,8 +5,6 @@
 #include <iostream>
 #include "Token.hpp"
 #include "Expr.hpp"
-#include "ZbrIo.hpp"
-#include "ZbrTime.hpp"
 #include "ResultCode.hpp"
 
 namespace zebra {
@@ -407,27 +405,6 @@ namespace zebra {
                     return std::make_shared<Return>(name, value);
                 } else if (match(TokenType::IDENTIFIER)) {
                     return std::make_shared<GetVar>(previous(), Token(TokenType::NIL));
-                } else if (match(TokenType::IMPORT)) {
-                    Token name = previous();
-                    match(TokenType::IDENTIFIER);
-                    Token lib = previous();
-
-                    std::unordered_map<std::string, std::shared_ptr<Object>> functions;
-
-                    if (lib.m_lexeme == "io") {
-                        std::shared_ptr<Object> fun = std::make_shared<Print>();
-                        functions["print"] = fun;
-                        std::shared_ptr<Object> input = std::make_shared<Input>();
-                        functions["input"] = input;
-                    } else if (lib.m_lexeme == "time") {
-                        std::shared_ptr<Object> fun = std::make_shared<Clock>();
-                        functions["clock"] = fun;
-                    } else {
-                        add_error(previous(), "Invalid library.");
-                    }
-
-
-                    return std::make_shared<Import>(name, functions);
                 }
 
                 add_error(previous(), "Expecting an expression.");

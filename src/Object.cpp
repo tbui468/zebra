@@ -52,7 +52,9 @@ namespace zebra {
             interp->m_environment->define(param_token, param_value);
         }
 
-        interp->evaluate(m_body.get()); //this should set env return value, which we grab and return
+        //Return node sets return value to calling function env.
+        //which we grab using get_return() below
+        interp->evaluate(m_body.get());
 
         return interp->m_environment->get_return();
     }

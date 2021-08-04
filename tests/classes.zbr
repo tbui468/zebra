@@ -1,10 +1,8 @@
-import io
-
 //BASIC CLASS 
 {
     Dog :: class {
         name: string = "Mittens"
-        age: int = 3
+        age: string = "3"
 
         speak :: () -> string {
             -> name 

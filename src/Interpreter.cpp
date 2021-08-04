@@ -1,11 +1,21 @@
 #include "Interpreter.hpp"
 #include "Object.hpp"
+#include "Library.hpp"
 
 namespace zebra {
 
     Interpreter::Interpreter() {
         m_global = std::make_shared<Environment>();
         m_environment = std::make_shared<Environment>(m_global, false);
+
+        std::shared_ptr<Object> print = std::make_shared<Print>();
+        std::shared_ptr<Object> input = std::make_shared<Input>();
+        std::shared_ptr<Object> clock_fun = std::make_shared<Clock>();
+
+        m_environment->define_global(Token(TokenType::FUN_TYPE, "print"), print);    
+        m_environment->define_global(Token(TokenType::FUN_TYPE, "input"), input);    
+        m_environment->define_global(Token(TokenType::FUN_TYPE, "clock"), clock_fun);    
+
     }
 
     Interpreter::~Interpreter() {}
@@ -32,18 +42,6 @@ namespace zebra {
 
     std::shared_ptr<Object> Interpreter::evaluate(Expr* expr) {
         return expr->accept(*this);
-    }
-
-    /*
-     * Misc.
-     */
-
-    std::shared_ptr<Object> Interpreter::visit(Import* expr) {
-        for (std::pair<std::string, std::shared_ptr<Object>> p: expr->m_functions) {
-            m_environment->define_global(Token(TokenType::FUN_TYPE, p.first, 1), p.second);    
-        }
-
-        return std::shared_ptr<Nil>();
     }
 
     /*
@@ -255,8 +253,6 @@ namespace zebra {
 
             m_environment = closure;
 
-            expr->m_return = return_value;
-
             return return_value;
         }
         
@@ -279,8 +275,6 @@ namespace zebra {
         std::shared_ptr<Object> return_value = fun->call(arguments, this);
 
         m_environment = closure;
-
-        expr->m_return = return_value;
 
         return return_value;
     } 

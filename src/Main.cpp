@@ -16,13 +16,9 @@
 /*
  * HIGH PRIORITY
  */
-//CallMethod?  Is it necessary, or can we just use env token like in get/set variables
-//
-//Can Return expression integration be simplified?
-//
-//Rewrite class.zbr tests to only print strings for now (until casting functions are implemented)
-//
-//what if user tries to overwrite class methods?  Shouldn't allow this
+//All native functions (or all functions?) should have get_signature() to make type checking easier
+//  Could wrap all native functions into a map with name/Object - how about signature?
+//  in Typer, put all signatures into environment
 //
 //REPL needs to be possible for a scripting language
 //  make all native funtions load - get rid of (or disable) imports for now
@@ -139,9 +135,9 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            zebra::AstPrinter printer;        
-            printer.print(ast);
-
+//            zebra::AstPrinter printer;        
+//            printer.print(ast);
+/*
             zebra::Typer typer;
             zebra::ResultCode type_result = typer.type(ast);
 
@@ -151,7 +147,7 @@ int main(int argc, char** argv) {
                     error.print();
                 }
                 return 1;
-            }
+            }*/
 
             zebra::Interpreter interp;
             zebra::ResultCode run_result = interp.run(ast);

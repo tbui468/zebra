@@ -37,8 +37,6 @@ namespace zebra {
             void add_error(Token token, const std::string& message);
             std::shared_ptr<Object> evaluate(Expr* expr);
 
-            std::shared_ptr<Object> visit(Import* expr);
-
             std::shared_ptr<Object> visit(Unary* expr);
             std::shared_ptr<Object> visit(Binary* expr);
             std::shared_ptr<Object> visit(Group* expr);

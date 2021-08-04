@@ -21,12 +21,6 @@ namespace zebra {
                 return expr->accept(*this); 
             }
 
-            /*
-             * Misc.
-             */
-            std::string visit(Import* expr) override {
-                return "Import";
-            }
 
             /*
              * Basic

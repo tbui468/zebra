@@ -18,9 +18,7 @@ set(Headers
     Object.hpp
     Environment.hpp
     ResultCode.hpp
-    #libraries
-    ZbrIo.hpp
-    ZbrTime.hpp
+    Library.hpp
     )
 
 add_executable(

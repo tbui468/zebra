@@ -1,5 +1,3 @@
-import io
-
 //variable scope
 a: int = 1
 {

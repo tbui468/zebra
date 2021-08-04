@@ -16,7 +16,6 @@ namespace zebra {
      * Forward declare expressions for interfaces
      * This is also a summary of the order
      */
-    struct Import;
 
     struct Unary;
     struct Binary;
@@ -39,8 +38,6 @@ namespace zebra {
     struct DeclClass;
 
     struct ExprStringVisitor {
-        virtual std::string visit(Import* expr) = 0;
-
         virtual std::string visit(Unary* expr) = 0;
         virtual std::string visit(Binary* expr) = 0;
         virtual std::string visit(Group* expr) = 0;
@@ -63,8 +60,6 @@ namespace zebra {
     };
 
     struct ExprObjectVisitor {
-        virtual std::shared_ptr<Object> visit(Import* expr) = 0;
-
         virtual std::shared_ptr<Object> visit(Unary* expr) = 0;
         virtual std::shared_ptr<Object> visit(Binary* expr) = 0;
         virtual std::shared_ptr<Object> visit(Group* expr) = 0;
@@ -87,8 +82,6 @@ namespace zebra {
     };
 
     struct DataTypeVisitor {
-        virtual DataType visit(Import* expr) = 0;
-
         virtual DataType visit(Unary* expr) = 0;
         virtual DataType visit(Binary* expr) = 0;
         virtual DataType visit(Group* expr) = 0;
@@ -121,22 +114,6 @@ namespace zebra {
             virtual DataType accept(DataTypeVisitor& visitor) = 0;
     };
 
-
-    /*
-     * Misc.
-     */
-    struct Import: public Expr {
-        public:
-            Import(Token name, std::unordered_map<std::string, std::shared_ptr<Object>> functions):
-                m_name(name), m_functions(functions) {}
-            ~Import() {}
-            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
-            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(DataTypeVisitor& visitor) { return visitor.visit(this); }
-        public:
-            Token m_name;
-            std::unordered_map<std::string, std::shared_ptr<Object>> m_functions;
-    };
 
     /*
      * Basic
@@ -274,7 +251,6 @@ namespace zebra {
             Token m_name;
             Token m_env;
             std::vector<std::shared_ptr<Expr>> m_arguments;
-            std::shared_ptr<Object> m_return {nullptr};
     };
 
     struct Return: public Expr {

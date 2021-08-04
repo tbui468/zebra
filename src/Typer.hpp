@@ -194,18 +194,6 @@ namespace zebra {
                 m_errors.push_back(TypeError(token, message));
             }
 
-
-            /*
-             * Misc.
-             */
-            DataType visit(Import* expr) {
-                for (std::pair<std::string, std::shared_ptr<Object>> p: expr->m_functions) {
-                    m_fun_sig.back()[p.first] = dynamic_cast<Callable*>(p.second.get())->m_signature;
-                }
-                return DataType(TokenType::NIL_TYPE);
-            }
-
-
             /*
              * Basic
              */

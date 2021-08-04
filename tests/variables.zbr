@@ -1,5 +1,3 @@
-import io
-
 //booleans
 {
     a: bool = true
