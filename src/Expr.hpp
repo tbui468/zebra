@@ -263,7 +263,7 @@ namespace zebra {
     struct DeclFun: public Expr {
         public:
             DeclFun(Token name, std::vector<std::shared_ptr<Expr>> parameters, TokenType type, std::shared_ptr<Expr> body): 
-                m_name(name), m_parameters(parameters), m_return_type(type), m_body(body), m_arity(parameters.size()) {}
+                m_name(name), m_parameters(parameters), m_return_type(type), m_body(body) {}
             ~DeclFun() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
@@ -273,13 +273,12 @@ namespace zebra {
             std::vector<std::shared_ptr<Expr>> m_parameters;
             TokenType m_return_type;
             std::shared_ptr<Expr> m_body;
-            int m_arity;
     };
 
     struct CallFun: public Expr {
         public:
             CallFun(Token name, std::vector<std::shared_ptr<Expr>> arguments): 
-                m_name(name), m_arguments(arguments), m_arity(arguments.size()) {}
+                m_name(name), m_arguments(arguments) {}
             ~CallFun() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
@@ -287,7 +286,6 @@ namespace zebra {
         public:
             Token m_name;
             std::vector<std::shared_ptr<Expr>> m_arguments;
-            int m_arity;
             std::shared_ptr<Object> m_return {nullptr};
     };
 
@@ -427,7 +425,7 @@ namespace zebra {
     struct CallMethod: public Expr {
         public:
             CallMethod(Token name, Token method, std::vector<std::shared_ptr<Expr>> arguments): 
-                m_name(name), m_method(method), m_arguments(arguments), m_arity(arguments.size()) {}
+                m_name(name), m_method(method), m_arguments(arguments) {}
             ~CallMethod() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
@@ -436,7 +434,6 @@ namespace zebra {
             Token m_name;
             Token m_method;
             std::vector<std::shared_ptr<Expr>> m_arguments;
-            int m_arity;
             std::shared_ptr<Object> m_return {nullptr};
 
     };

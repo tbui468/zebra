@@ -246,6 +246,7 @@ namespace zebra {
                     std::vector<std::shared_ptr<Expr>> arguments;
                     while (!match(TokenType::RIGHT_PAREN)) {
                         arguments.push_back(expression());
+                        match(TokenType::COMMA);
                     }
                     return std::make_shared<CallMethod>(name, method, arguments);
                 }else if(peek_three(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER)) {

@@ -8,12 +8,6 @@
 #include "Interpreter.hpp"
 
 //TITLE: Zebra scripting language - 
-    //types must match, brackets, semicolons and parentheses are required.  No ambiguity, no shades of gray.  Keeping it black and white.
-    //conditions must evaluate to a boolean.  
-    //if(4 < 5) OK!  if("dog") X
-    //if(true) { print "dog"; } OK if(true) print "dog"; X
-    //no nulls or nils or nullptrs, all variables must be defined at declaration time
-    //types must match, but casting functions are avaiable for use
 /*
  * HIGH PRIORITY
  */
@@ -28,6 +22,9 @@
 //InstClass shouldn't really need its own node - it's just a DeclVar with a value being the result of a constructor (function) call
 //
 //Class dot notation should be able to use GetVar, SetVar and CallFun - rather than having three separate nodes for classes
+//
+//Native functions should just be declared in interpreter for now - get rid of import
+//  can move out later when it gets too big or when we need actual imports
 //
 //cast functions - need this for print() function to work
 //
@@ -45,11 +42,26 @@
 //c: int = int(b)
 //
 //Data structures
-//  Array, List, Map - need to integrate types (including inheritance and polymorphism)
+//  List, Map - need to integrate types (including inheritance and polymorphism)
 //  takes single argument, the data type
 //  l: List = List(int)
 //  l := List(Animal)
-//  a: Array = Array(int)
+//
+//foreach /in
+//  foreach i: int in my_list {
+//      print(i)
+//  }
+//
+//ranges
+//  foreach i: int in 1..10 { //for [1, 10] (inclusive)
+//      print(i)
+//  }
+//
+//Multiple return values - will be used for Map
+//
+//foreach k: string, v: float in my_map {
+//  print(k + " " + string(v))
+//}
 //
 //Write a simple tic tac toe or connect 4 program to test usability of zebra (a few 100 lines)
 //
@@ -57,10 +69,22 @@
 //
 //Write tests for error codes - feed in source file and check what kinds of errors come out
 //
+//When mostly done with Crafting Interpreters, add a compiler between Typer and Interpreter to generate bytecode.  Make Interpreter read in bytecode instead of AST
+//  source code -> Lexer -> Parser -> Typer -> Compiler -> Interpreter
+//
 /*
  * LOW PRIORITY
  */
 //
+//
+//Typer could do two passes through AST - first pass to define classes and functions (anything with :: notation)
+//  motivation: don't want to have to forward declare classes and functions if a project is composed of two or more source files
+//      import modules
+//  and then second pass does the type checking.  This would let up declare classes anywhere.
+//  This will be necessary if we want to support multiple files / import files/modules
+//  Would need to do a pass on all files in project.  Could call it 'Infer' to infer classes and functions declarations
+//  How does Java do thi?
+//  source code -> Lexer -> Parser -> Inferer -> Typer -> Compiler -> Interpreter
 //
 //Don't like the confusing way 'returns' are dealt with in Interpreter / Environment / FunDef / Callables
 //

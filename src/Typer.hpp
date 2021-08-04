@@ -371,10 +371,15 @@ namespace zebra {
             }
 
             DataType visit(CallFun* expr) {
+                if (!is_declared_fun(expr->m_name.m_lexeme)) {
+                    add_error(expr->m_name, "Function '" + expr->m_name.to_string() + " not declared.");
+                    return DataType(TokenType::ERROR);
+                }
+
                 std::vector<DataType> sig = find_fun_sig(expr->m_name.m_lexeme);
 
                 //function signature includes return type, so it's one size larger than arity
-                if (sig.size() - 1 != expr->m_arity) {
+                if (sig.size() - 1 != expr->m_arguments.size()) {
                     add_error(expr->m_name, "Number of arguments do no match " + 
                                             expr->m_name.to_string() + " declaration.");
                     return DataType(TokenType::ERROR);
@@ -464,15 +469,13 @@ namespace zebra {
              * Classes
              */
             DataType visit(DeclClass* expr) {
-
                 /*
-                 * Checking class definition
+                 * Checking class definition for type errors
                  */
-                //TODO: DO NOT RETURN ERRORS UNTIL AFTER ALL PUSHED SCOPES ARE POPPED
 
                 bool had_error = false;
                 
-                push_scope();
+                push_scope(); //class scope
 
                 //declare all fields and check types
                 for (std::shared_ptr<Expr> e: expr->m_fields) {
@@ -483,12 +486,11 @@ namespace zebra {
                 
                 for (std::shared_ptr<Expr> m: expr->m_methods) {
                     DeclFun* method = dynamic_cast<DeclFun*>(m.get());
-                    push_scope();
+                    push_scope(); //class method scope
 
                     for(std::shared_ptr<Expr> param: method->m_parameters) {
-                        DataType dt = evaluate(param.get());
                         DeclVar* decl_var = dynamic_cast<DeclVar*>(param.get());
-                        m_var_sig.back()[decl_var->m_name.m_lexeme] = dt;
+                        m_var_sig.back()[decl_var->m_name.m_lexeme] = DataType(decl_var->m_type.m_type);
                     }
 
                     std::vector<DataType> returns;
@@ -501,7 +503,7 @@ namespace zebra {
                         }
                     }
 
-                    pop_scope();
+                    pop_scope(); //class method scope
 
                     //check return types here
                     if (returns.empty() && method->m_return_type != TokenType::NIL_TYPE) {
@@ -520,14 +522,14 @@ namespace zebra {
                     }
                 }
 
-                pop_scope();
+                pop_scope(); //class scope
 
                 if (had_error) {
                     return DataType(TokenType::ERROR);
                 }
 
                 /*
-                 * Putting data into m_class_sig for type checking class instantiation
+                 * Putting class signature into m_class_sig for type checking class instantiations
                  */
 
                 //put fields in field_sig
@@ -569,6 +571,7 @@ namespace zebra {
             }
 
             DataType visit(InstClass* expr) {
+                //class declared?
                 if (!is_declared_class(expr->m_class.m_lexeme)) {
                     add_error(expr->m_name, expr->m_class.m_lexeme + " is not declared.");
                     return DataType(TokenType::ERROR);
@@ -580,6 +583,7 @@ namespace zebra {
             }
 
             DataType visit(GetField* expr) {
+                //is instance declared?
                 if (!is_declared_var(expr->m_name.m_lexeme)) {
                     add_error(expr->m_name, expr->m_name.m_lexeme + " is not declared.");
                     return DataType(TokenType::ERROR);
@@ -587,6 +591,7 @@ namespace zebra {
 
                 DataType dt = find_var_sig(expr->m_name.m_lexeme);
 
+                //is class declared?
                 if (!is_declared_class(dt.m_lexeme)) {
                     add_error(expr->m_name, dt.m_lexeme + " is not declared class.");
                     return DataType(TokenType::ERROR);
@@ -594,6 +599,7 @@ namespace zebra {
 
                 ClassSig class_sig = find_class_sig(dt.m_lexeme);
 
+                //is m_field declared in class?
                 if (class_sig.m_field_sig.count(expr->m_field.m_lexeme) == 0) {
                     add_error(expr->m_name, expr->m_field.m_lexeme + " is not a field in " + dt.m_lexeme + ".");
                     return DataType(TokenType::ERROR);
@@ -603,25 +609,81 @@ namespace zebra {
             }
 
             DataType visit(SetField* expr) {
-                /*
-                //check if field is declared
-                //check the type of field == type of value
-                //if so, return that value
-                TokenType field_type = get_field_type_from_instance(stmt->m_instance, stmt->m_field);
-                TokenType value_t = evaluate(stmt->m_value.get());
+                //is instance declared?
+                if (!is_declared_var(expr->m_name.m_lexeme)) {
+                    add_error(expr->m_name, expr->m_name.m_lexeme + " is not declared.");
+                    return DataType(TokenType::ERROR);
+                }
 
-                if (field_type != value_t) {
-                    throw TypeError(stmt->m_instance, stmt->m_field.to_string() + " type does not match assignment type.");
-                }*/
-                return DataType(TokenType::ERROR);
+                DataType dt = find_var_sig(expr->m_name.m_lexeme);
+
+                //is class declared?
+                if (!is_declared_class(dt.m_lexeme)) {
+                    add_error(expr->m_name, dt.m_lexeme + " is not declared class.");
+                    return DataType(TokenType::ERROR);
+                }
+
+                ClassSig class_sig = find_class_sig(dt.m_lexeme);
+
+                //is m_field declared in class?
+                if (class_sig.m_field_sig.count(expr->m_field.m_lexeme) == 0) {
+                    add_error(expr->m_name, expr->m_field.m_lexeme + " is not a field in " + dt.m_lexeme + ".");
+                    return DataType(TokenType::ERROR);
+                }
+
+                DataType field_dt = class_sig.m_field_sig[expr->m_field.m_lexeme];
+                DataType value_dt = evaluate(expr->m_value.get());
+
+                if (!DataType::equal(field_dt, value_dt)) {
+                    add_error(expr->m_name, "'" + expr->m_field.m_lexeme + "' requires a value of type " + Token::to_string(field_dt.m_type) + ".");
+                    return DataType(TokenType::ERROR);
+                }
+
+                return field_dt;
             }
 
             DataType visit(CallMethod* expr) {
-                //check that argument count / type is equal to function signature
-                //return the return type of the signature
-                return DataType(TokenType::ERROR);
-            }
+                //is instance declared?
+                if (!is_declared_var(expr->m_name.m_lexeme)) {
+                    add_error(expr->m_name, "'" + expr->m_name.m_lexeme + "' is not declared.");
+                    return DataType(TokenType::ERROR);
+                }
 
+                DataType dt = find_var_sig(expr->m_name.m_lexeme);
+
+                //is class declared?
+                if (!is_declared_class(dt.m_lexeme)) {
+                    add_error(expr->m_name, "'" + dt.m_lexeme + "' is not declared class.");
+                    return DataType(TokenType::ERROR);
+                }
+
+                ClassSig class_sig = find_class_sig(dt.m_lexeme);
+
+                //is method declared?
+                if (class_sig.m_method_sig.count(expr->m_method.m_lexeme) == 0) {
+                    add_error(expr->m_name, "'" + expr->m_method.m_lexeme + "' is not a method in '" + dt.m_lexeme + "'.");
+                    return DataType(TokenType::ERROR);
+                }
+
+                std::vector<DataType> method_sig = class_sig.m_method_sig[expr->m_method.m_lexeme];
+
+                if (method_sig.size() - 1 != expr->m_arguments.size()) {
+                    add_error(expr->m_name, "'" + expr->m_method.m_lexeme + "' takes " + std::to_string(method_sig.size() - 1) + " argument(s).");
+                    return DataType(TokenType::ERROR);
+                }
+
+                for (int i = 0; i < expr->m_arguments.size(); i++) {
+                    DataType arg_dt = evaluate(expr->m_arguments.at(i).get());
+                    DataType param_dt = method_sig.at(i);
+
+                    if (!DataType::equal(arg_dt, param_dt)) {
+                        add_error(expr->m_name, "Argument at position " + std::to_string(i) + " must be of type " + Token::to_string(param_dt.m_type) + ".");
+                        return DataType(TokenType::ERROR);
+                    }
+                }
+
+                return DataType(method_sig.at(method_sig.size() -1));
+            }
 
     };
 }
