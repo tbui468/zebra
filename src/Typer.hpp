@@ -503,6 +503,56 @@ namespace zebra {
             }
 
             DataType visit(CallFun* expr) {
+                /*
+                 * Instance Method Call
+                 */
+
+                if (expr->m_env.m_type != TokenType::NIL) {
+                    //is instance declared?
+                    if (!is_declared_var(expr->m_env.m_lexeme)) {
+                        add_error(expr->m_env, "'" + expr->m_env.m_lexeme + "' is not declared.");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    DataType dt = find_var_sig(expr->m_env.m_lexeme);
+
+                    //is class declared?
+                    if (!is_declared_class(dt.m_lexeme)) {
+                        add_error(expr->m_env, "'" + dt.m_lexeme + "' is not declared class.");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    ClassSig class_sig = find_class_sig(dt.m_lexeme);
+
+                    //is method declared? - need to check up inheritance hierarchy
+                    if (!is_declared_method(dt.m_lexeme, expr->m_name.m_lexeme)) {
+                        add_error(expr->m_name, "'" + expr->m_name.m_lexeme + "' is not a method in '" + dt.m_lexeme + "'.");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    std::vector<DataType> method_sig = get_method_sig(dt.m_lexeme, expr->m_name.m_lexeme);
+
+                    if (method_sig.size() - 1 != expr->m_arguments.size()) {
+                        add_error(expr->m_name, "'" + expr->m_name.m_lexeme + "' takes " + std::to_string(method_sig.size() - 1) + " argument(s).");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    for (int i = 0; i < expr->m_arguments.size(); i++) {
+                        DataType arg_dt = evaluate(expr->m_arguments.at(i).get());
+                        DataType param_dt = method_sig.at(i);
+
+                        if (!DataType::equal(arg_dt, param_dt)) {
+                            add_error(expr->m_name, "Argument at position " + std::to_string(i) + " must be of type " + Token::to_string(param_dt.m_type) + ".");
+                            return DataType(TokenType::ERROR);
+                        }
+                    }
+
+                    return DataType(method_sig.at(method_sig.size() -1));
+                }
+
+                /*
+                 * Regular Function Call / Class Instantiation
+                 */
                 if (!is_declared_fun(expr->m_name.m_lexeme)) {
                     add_error(expr->m_name, "Function '" + expr->m_name.to_string() + " not declared.");
                     return DataType(TokenType::ERROR);
@@ -708,49 +758,6 @@ namespace zebra {
                 m_fun_sig.back()[expr->m_name.m_lexeme] = types;
 
                 return DataType(TokenType::NIL_TYPE);
-            }
-
-            DataType visit(CallMethod* expr) {
-                //is instance declared?
-                if (!is_declared_var(expr->m_name.m_lexeme)) {
-                    add_error(expr->m_name, "'" + expr->m_name.m_lexeme + "' is not declared.");
-                    return DataType(TokenType::ERROR);
-                }
-
-                DataType dt = find_var_sig(expr->m_name.m_lexeme);
-
-                //is class declared?
-                if (!is_declared_class(dt.m_lexeme)) {
-                    add_error(expr->m_name, "'" + dt.m_lexeme + "' is not declared class.");
-                    return DataType(TokenType::ERROR);
-                }
-
-                ClassSig class_sig = find_class_sig(dt.m_lexeme);
-
-                //is method declared? - need to check up inheritance hierarchy
-                if (!is_declared_method(dt.m_lexeme, expr->m_method.m_lexeme)) {
-                    add_error(expr->m_name, "'" + expr->m_method.m_lexeme + "' is not a method in '" + dt.m_lexeme + "'.");
-                    return DataType(TokenType::ERROR);
-                }
-
-                std::vector<DataType> method_sig = get_method_sig(dt.m_lexeme, expr->m_method.m_lexeme);
-
-                if (method_sig.size() - 1 != expr->m_arguments.size()) {
-                    add_error(expr->m_name, "'" + expr->m_method.m_lexeme + "' takes " + std::to_string(method_sig.size() - 1) + " argument(s).");
-                    return DataType(TokenType::ERROR);
-                }
-
-                for (int i = 0; i < expr->m_arguments.size(); i++) {
-                    DataType arg_dt = evaluate(expr->m_arguments.at(i).get());
-                    DataType param_dt = method_sig.at(i);
-
-                    if (!DataType::equal(arg_dt, param_dt)) {
-                        add_error(expr->m_name, "Argument at position " + std::to_string(i) + " must be of type " + Token::to_string(param_dt.m_type) + ".");
-                        return DataType(TokenType::ERROR);
-                    }
-                }
-
-                return DataType(method_sig.at(method_sig.size() -1));
             }
 
     };

@@ -16,12 +16,11 @@
 /*
  * HIGH PRIORITY
  */
-//variable lookups could happen in env.  
-//  so if Parser sees dot notation, set m_env to token (TokenType::IDENTIFER, m_lexeme = "instance  name"),
-//  otherwise set to NIL token
+//CallMethod?  Is it necessary, or can we just use env token like in get/set variables
 //
-//  In interpreter, look up variables / set variables using m_env. token
+//Can Return expression integration be simplified?
 //
+//Rewrite class.zbr tests to only print strings for now (until casting functions are implemented)
 //
 //what if user tries to overwrite class methods?  Shouldn't allow this
 //

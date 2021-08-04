@@ -233,6 +233,36 @@ namespace zebra {
 
 
     std::shared_ptr<Object> Interpreter::visit(CallFun* expr) {
+        /*
+         * Instance method
+         */
+        if (expr->m_env.m_type != TokenType::NIL) {
+            ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_env).get());
+            Callable* method = dynamic_cast<Callable*>(inst->m_environment->get(expr->m_name).get());
+
+            //evaluate call arguments
+            std::vector<std::shared_ptr<Object>> arguments;
+            for (std::shared_ptr<Expr> e: expr->m_arguments) {
+                arguments.push_back(evaluate(e.get()));
+            }
+
+            //create new env pointing at instance env. with is_func set to true
+            std::shared_ptr<Environment> method_env = std::make_shared<Environment>(inst->m_environment, true);
+            std::shared_ptr<Environment> closure = m_environment;
+            m_environment = method_env;
+
+            std::shared_ptr<Object> return_value = method->call(arguments, this);
+
+            m_environment = closure;
+
+            expr->m_return = return_value;
+
+            return return_value;
+        }
+        
+        /*
+         * Regular Function
+         */
         std::shared_ptr<Object> obj = m_environment->get(expr->m_name);
         Callable* fun = dynamic_cast<Callable*>(obj.get());
 
@@ -350,31 +380,5 @@ namespace zebra {
         return class_def;
     }
    
-
-    std::shared_ptr<Object> Interpreter::visit(CallMethod* expr) {
-        ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
-        Callable* method = dynamic_cast<Callable*>(inst->m_environment->get(expr->m_method).get());
-
-        //evaluate call arguments
-        std::vector<std::shared_ptr<Object>> arguments;
-        for (std::shared_ptr<Expr> e: expr->m_arguments) {
-            arguments.push_back(evaluate(e.get()));
-        }
-
-        //create new env pointing at instance env. with is_func set to true
-        std::shared_ptr<Environment> method_env = std::make_shared<Environment>(inst->m_environment, true);
-        std::shared_ptr<Environment> closure = m_environment;
-        m_environment = method_env;
-
-        std::shared_ptr<Object> return_value = method->call(arguments, this);
-
-        m_environment = closure;
-
-        expr->m_return = return_value;
-
-        return return_value;
-    }
-
-
 
 }

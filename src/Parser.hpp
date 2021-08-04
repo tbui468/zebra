@@ -223,17 +223,17 @@ namespace zebra {
                     return std::make_shared<Literal>(previous());
                 }else if(peek_four(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER, TokenType::LEFT_PAREN)) {
                     match(TokenType::IDENTIFIER);
-                    Token name = previous();
+                    Token env = previous();
                     match(TokenType::DOT);
                     match(TokenType::IDENTIFIER);
-                    Token method = previous();
+                    Token fun = previous();
                     match(TokenType::LEFT_PAREN);
                     std::vector<std::shared_ptr<Expr>> arguments;
                     while (!match(TokenType::RIGHT_PAREN)) {
                         arguments.push_back(expression());
                         match(TokenType::COMMA);
                     }
-                    return std::make_shared<CallMethod>(name, method, arguments);
+                    return std::make_shared<CallFun>(fun, env, arguments);
                 }else if(peek_three(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER)) {
                     match(TokenType::IDENTIFIER);
                     Token env = previous();
@@ -253,7 +253,7 @@ namespace zebra {
                         match(TokenType::COMMA);
                     }
 
-                    return std::make_shared<CallFun>(identifier, arguments);
+                    return std::make_shared<CallFun>(identifier, Token(TokenType::NIL), arguments);
                 }else if(match(TokenType::LEFT_PAREN)) {
                     Token t = previous();
                     std::shared_ptr<Expr> expr = expression();

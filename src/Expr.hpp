@@ -37,7 +37,6 @@ namespace zebra {
     struct While;
 
     struct DeclClass;
-    struct CallMethod;
 
     struct ExprStringVisitor {
         virtual std::string visit(Import* expr) = 0;
@@ -61,7 +60,6 @@ namespace zebra {
         virtual std::string visit(While* expr) = 0;
 
         virtual std::string visit(DeclClass* expr) = 0;
-        virtual std::string visit(CallMethod* expr) = 0;
     };
 
     struct ExprObjectVisitor {
@@ -86,7 +84,6 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(While* expr) = 0;
 
         virtual std::shared_ptr<Object> visit(DeclClass* expr) = 0;
-        virtual std::shared_ptr<Object> visit(CallMethod* expr) = 0;
     };
 
     struct DataTypeVisitor {
@@ -111,7 +108,6 @@ namespace zebra {
         virtual DataType visit(While* expr) = 0;
 
         virtual DataType visit(DeclClass* expr) = 0;
-        virtual DataType visit(CallMethod* expr) = 0;
     };
 
     /*
@@ -268,14 +264,15 @@ namespace zebra {
 
     struct CallFun: public Expr {
         public:
-            CallFun(Token name, std::vector<std::shared_ptr<Expr>> arguments): 
-                m_name(name), m_arguments(arguments) {}
+            CallFun(Token name, Token env, std::vector<std::shared_ptr<Expr>> arguments): 
+                m_name(name), m_env(env), m_arguments(arguments) {}
             ~CallFun() {}
             std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
             std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
             DataType accept(DataTypeVisitor& visitor) { return visitor.visit(this); }
         public:
             Token m_name;
+            Token m_env;
             std::vector<std::shared_ptr<Expr>> m_arguments;
             std::shared_ptr<Object> m_return {nullptr};
     };
@@ -371,22 +368,6 @@ namespace zebra {
             Token m_base;
             std::vector<std::shared_ptr<Expr>> m_fields;
             std::vector<std::shared_ptr<Expr>> m_methods;
-    };
-
-    struct CallMethod: public Expr {
-        public:
-            CallMethod(Token name, Token method, std::vector<std::shared_ptr<Expr>> arguments): 
-                m_name(name), m_method(method), m_arguments(arguments) {}
-            ~CallMethod() {}
-            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
-            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(DataTypeVisitor& visitor) { return visitor.visit(this); }
-        public:
-            Token m_name;
-            Token m_method;
-            std::vector<std::shared_ptr<Expr>> m_arguments;
-            std::shared_ptr<Object> m_return {nullptr};
-
     };
 
 }

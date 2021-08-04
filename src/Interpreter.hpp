@@ -58,9 +58,6 @@ namespace zebra {
             std::shared_ptr<Object> visit(While* expr);
 
             std::shared_ptr<Object> visit(DeclClass* expr);
-//            std::shared_ptr<Object> visit(GetField* expr);
-//            std::shared_ptr<Object> visit(SetField* expr);
-            std::shared_ptr<Object> visit(CallMethod* expr);
     };
 
 }
