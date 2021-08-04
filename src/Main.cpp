@@ -9,22 +9,29 @@
 
 //TITLE: Zebra scripting language - 
 /*
+ * Study
+ */
+//Read PyPY docs to see how they implemented it at a high level - skim what seems interesting for now
+//
+/*
  * HIGH PRIORITY
  */
-//Typer - this will be a big project.  Will require restructing of Parser, Interpreter and Environments
-//
-//  Get typer working with classes
-//      SetField needs to check field type
-//      CallMethod needs to check signature (same as CallFun)
-//      write tests for all
-//
 //
 //InstClass shouldn't really need its own node - it's just a DeclVar with a value being the result of a constructor (function) call
 //
 //Class dot notation should be able to use GetVar, SetVar and CallFun - rather than having three separate nodes for classes
+//  what if user tries to overwrite class methods?  Shouldn't allow this
 //
-//Native functions should just be declared in interpreter for now - get rid of import
-//  can move out later when it gets too big or when we need actual imports
+//REPL needs to be possible for a scripting language
+//  make all native funtions load - get rid of (or disable) imports for now
+//  global variables can be overwritten - I don't like this idea.  Maybe have a keyword (like clear()) to clear environment variables
+//  check that it works - print out result of expressions to check basic usability
+//  check advanced usability by typing in long scripts (from test files) to see if it works
+//
+//File manipulation and IO - load all the functions globally for now (can split them to libraries later)
+//  read_line / print
+//  open_file / close_file
+//  read_line / write_line
 //
 //cast functions - need this for print() function to work
 //
@@ -130,8 +137,8 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            zebra::AstPrinter printer;        
-            printer.print(ast);
+//            zebra::AstPrinter printer;        
+//            printer.print(ast);
 
             
             zebra::Typer typer;

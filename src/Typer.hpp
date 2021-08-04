@@ -30,6 +30,7 @@ namespace zebra {
     class Typer: public DataTypeVisitor {
         private:
             struct ClassSig {
+                std::string m_base_name = "";
                 std::unordered_map<std::string, DataType> m_field_sig;
                 std::unordered_map<std::string, std::vector<DataType>> m_method_sig;
             };
@@ -83,6 +84,60 @@ namespace zebra {
                 } 
             }
 
+            bool is_declared_field(const std::string& class_name, const std::string& field) {
+                ClassSig class_sig = find_class_sig(class_name);
+                for (std::pair<std::string, DataType> p: class_sig.m_field_sig) {
+                    if (p.first == field) 
+                        return true;
+                }
+
+                if (class_sig.m_base_name != "") {
+                    return is_declared_field(class_sig.m_base_name, field);
+                }
+
+                return false;
+            }
+
+            DataType get_field_sig(const std::string& class_name, const std::string& field) {
+                ClassSig class_sig = find_class_sig(class_name);
+                for (std::pair<std::string, DataType> p: class_sig.m_field_sig) {
+                    if (p.first == field) 
+                        return p.second;
+                }
+
+                if (class_sig.m_base_name != "") {
+                    return get_field_sig(class_sig.m_base_name, field);
+                }
+
+            }
+
+            bool is_declared_method(const std::string& class_name, const std::string& method) {
+                ClassSig class_sig = find_class_sig(class_name);
+                for (std::pair<std::string, std::vector<DataType>> p: class_sig.m_method_sig) {
+                    if (p.first == method) 
+                        return true;
+                }
+
+                if (class_sig.m_base_name != "") {
+                    return is_declared_method(class_sig.m_base_name, method);
+                }
+
+                return false;
+            }
+
+            std::vector<DataType> get_method_sig(const std::string& class_name, const std::string& method) {
+                ClassSig class_sig = find_class_sig(class_name); 
+
+                for (std::pair<std::string, std::vector<DataType>> p: class_sig.m_method_sig) {
+                    if (p.first == method) 
+                        return p.second;
+                }
+
+                if (class_sig.m_base_name != "") {
+                    return get_method_sig(class_sig.m_base_name, method);
+                }
+            }
+
             bool is_declared_var(const std::string& lexeme) {
                 for (int i = m_var_sig.size() - 1; i >= 0; i--) {
                     if (m_var_sig.at(i).count(lexeme) > 0) 
@@ -114,6 +169,7 @@ namespace zebra {
 
                 return false;
             }
+
 
             ResultCode type(const std::vector<std::shared_ptr<Expr>>& ast) {
                 for(std::shared_ptr<Expr> expr: ast) {
@@ -565,7 +621,7 @@ namespace zebra {
                     method_sig[lexeme] = m_sig;
                 }
 
-                m_class_sig.back()[expr->m_name.m_lexeme] = {field_sig, method_sig};
+                m_class_sig.back()[expr->m_name.m_lexeme] = {expr->m_base.m_lexeme, field_sig, method_sig};
 
                 return DataType(TokenType::NIL_TYPE);
             }
@@ -599,13 +655,13 @@ namespace zebra {
 
                 ClassSig class_sig = find_class_sig(dt.m_lexeme);
 
-                //is m_field declared in class?
-                if (class_sig.m_field_sig.count(expr->m_field.m_lexeme) == 0) {
+                //is field declared? - need to check up inheritance hierarchy
+                if (!is_declared_field(dt.m_lexeme, expr->m_field.m_lexeme)) {
                     add_error(expr->m_name, expr->m_field.m_lexeme + " is not a field in " + dt.m_lexeme + ".");
                     return DataType(TokenType::ERROR);
                 }
 
-                return class_sig.m_field_sig[expr->m_field.m_lexeme];
+                return get_field_sig(dt.m_lexeme, expr->m_field.m_lexeme);
             }
 
             DataType visit(SetField* expr) {
@@ -625,13 +681,13 @@ namespace zebra {
 
                 ClassSig class_sig = find_class_sig(dt.m_lexeme);
 
-                //is m_field declared in class?
-                if (class_sig.m_field_sig.count(expr->m_field.m_lexeme) == 0) {
+                //is field declared? - need to check up inheritance hierarchy
+                if (!is_declared_field(dt.m_lexeme, expr->m_field.m_lexeme)) {
                     add_error(expr->m_name, expr->m_field.m_lexeme + " is not a field in " + dt.m_lexeme + ".");
                     return DataType(TokenType::ERROR);
                 }
 
-                DataType field_dt = class_sig.m_field_sig[expr->m_field.m_lexeme];
+                DataType field_dt = get_field_sig(dt.m_lexeme, expr->m_field.m_lexeme);
                 DataType value_dt = evaluate(expr->m_value.get());
 
                 if (!DataType::equal(field_dt, value_dt)) {
@@ -659,13 +715,13 @@ namespace zebra {
 
                 ClassSig class_sig = find_class_sig(dt.m_lexeme);
 
-                //is method declared?
-                if (class_sig.m_method_sig.count(expr->m_method.m_lexeme) == 0) {
+                //is method declared? - need to check up inheritance hierarchy
+                if (!is_declared_method(dt.m_lexeme, expr->m_method.m_lexeme)) {
                     add_error(expr->m_name, "'" + expr->m_method.m_lexeme + "' is not a method in '" + dt.m_lexeme + "'.");
                     return DataType(TokenType::ERROR);
                 }
 
-                std::vector<DataType> method_sig = class_sig.m_method_sig[expr->m_method.m_lexeme];
+                std::vector<DataType> method_sig = get_method_sig(dt.m_lexeme, expr->m_method.m_lexeme);
 
                 if (method_sig.size() - 1 != expr->m_arguments.size()) {
                     add_error(expr->m_name, "'" + expr->m_method.m_lexeme + "' takes " + std::to_string(method_sig.size() - 1) + " argument(s).");
