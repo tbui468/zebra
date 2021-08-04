@@ -205,10 +205,21 @@ namespace zebra {
     }
 
     std::shared_ptr<Object> Interpreter::visit(GetVar* expr) {
+        if (expr->m_env.m_type != TokenType::NIL) {
+            ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_env).get()); 
+            return inst->m_environment->get(expr->m_name);
+        }
+
         return m_environment->get(expr->m_name);
     }
 
     std::shared_ptr<Object> Interpreter::visit(SetVar* expr) {
+        if (expr->m_env.m_type != TokenType::NIL) {
+            ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_env).get());
+            std::shared_ptr<Object> value = evaluate(expr->m_value.get());
+            inst->m_environment->assign(expr->m_name, value);
+            return value;
+        }
         std::shared_ptr<Object> value = evaluate(expr->m_value.get());
         m_environment->assign(expr->m_name, value);
         return value;
@@ -339,18 +350,6 @@ namespace zebra {
         return class_def;
     }
    
-
-    std::shared_ptr<Object> Interpreter::visit(GetField* expr) {
-        ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
-        return inst->m_environment->get(expr->m_field);
-    }
-
-    std::shared_ptr<Object> Interpreter::visit(SetField* expr) {
-        ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
-        std::shared_ptr<Object> value = evaluate(expr->m_value.get());
-        inst->m_environment->assign(expr->m_field, value);
-        return value;
-    }
 
     std::shared_ptr<Object> Interpreter::visit(CallMethod* expr) {
         ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());

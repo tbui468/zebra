@@ -83,10 +83,11 @@ namespace zebra {
                     Token identifier = previous();
                     match(TokenType::EQUAL);
                     std::shared_ptr<Expr> value = expression();
-                    return std::make_shared<SetVar>(identifier, value);
+                    return std::make_shared<SetVar>(identifier, Token(TokenType::NIL), value);
+                //instance field assignment
                 } else if (peek_four(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER, TokenType::EQUAL)) {
                     match(TokenType::IDENTIFIER);
-                    Token name = previous();
+                    Token env = previous();
                     match(TokenType::DOT);
                     match(TokenType::IDENTIFIER);
                     Token field = previous();
@@ -94,7 +95,7 @@ namespace zebra {
 
                     std::shared_ptr<Expr> value = expression();
 
-                    return std::make_shared<SetField>(name, field, value);
+                    return std::make_shared<SetVar>(field, env, value);
                 } else if (peek_two(TokenType::IDENTIFIER, TokenType::COLON)) { //variable
                     match(TokenType::IDENTIFIER);
                     Token identifier = previous();
@@ -235,12 +236,12 @@ namespace zebra {
                     return std::make_shared<CallMethod>(name, method, arguments);
                 }else if(peek_three(TokenType::IDENTIFIER, TokenType::DOT, TokenType::IDENTIFIER)) {
                     match(TokenType::IDENTIFIER);
-                    Token name = previous();
+                    Token env = previous();
                     match(TokenType::DOT);
                     match(TokenType::IDENTIFIER);
                     Token field = previous();
 
-                    return std::make_shared<GetField>(name, field);
+                    return std::make_shared<GetVar>(field, env);
                 }else if(peek_two(TokenType::IDENTIFIER, TokenType::LEFT_PAREN)) {
                     match(TokenType::IDENTIFIER);
                     Token identifier = previous();
@@ -405,7 +406,7 @@ namespace zebra {
                     }
                     return std::make_shared<Return>(name, value);
                 } else if (match(TokenType::IDENTIFIER)) {
-                    return std::make_shared<GetVar>(previous());
+                    return std::make_shared<GetVar>(previous(), Token(TokenType::NIL));
                 } else if (match(TokenType::IMPORT)) {
                     Token name = previous();
                     match(TokenType::IDENTIFIER);

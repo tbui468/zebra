@@ -16,8 +16,14 @@
 /*
  * HIGH PRIORITY
  */
-//Class dot notation should be able to use GetVar, SetVar and CallFun - rather than having three separate nodes for classes
-//  what if user tries to overwrite class methods?  Shouldn't allow this
+//variable lookups could happen in env.  
+//  so if Parser sees dot notation, set m_env to token (TokenType::IDENTIFER, m_lexeme = "instance  name"),
+//  otherwise set to NIL token
+//
+//  In interpreter, look up variables / set variables using m_env. token
+//
+//
+//what if user tries to overwrite class methods?  Shouldn't allow this
 //
 //REPL needs to be possible for a scripting language
 //  make all native funtions load - get rid of (or disable) imports for now
@@ -137,7 +143,6 @@ int main(int argc, char** argv) {
             zebra::AstPrinter printer;        
             printer.print(ast);
 
-            
             zebra::Typer typer;
             zebra::ResultCode type_result = typer.type(ast);
 

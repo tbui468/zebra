@@ -351,33 +351,107 @@ namespace zebra {
             }
 
             DataType visit(GetVar* expr) {
-                if (!is_declared_var(expr->m_name.m_lexeme)) {
-                    add_error(expr->m_name, "Undefined reference to " + 
-                                            expr->m_name.to_string() + ".");
-                    return DataType(TokenType::ERROR);
-                } else {
-                    return find_var_sig(expr->m_name.m_lexeme);
-                }
-            }
-
-            DataType visit(SetVar* expr) {
-                if (!is_declared_var(expr->m_name.m_lexeme)) {
-                    add_error(expr->m_name, "Undefined reference to " + 
-                                            expr->m_name.to_string() + ".");
-                    return DataType(TokenType::ERROR);
-                } else {
-                    DataType var_type = find_var_sig(expr->m_name.m_lexeme);
-                    DataType val_type = evaluate(expr->m_value.get());
-                    if (!DataType::equal(var_type, val_type)) {
-                        add_error(expr->m_name, "Cannot assign variable of " + 
-                                                Token::to_string(var_type.m_type) + 
-                                                " to expression evaluating to " + 
-                                                Token::to_string(val_type.m_type) + ".");
+                /*
+                 *  instance field
+                 */
+                if (expr->m_env.m_type != TokenType::NIL) {
+                    //is instance declared?
+                    if (!is_declared_var(expr->m_env.m_lexeme)) {
+                        add_error(expr->m_env, expr->m_env.m_lexeme + " is not declared.");
                         return DataType(TokenType::ERROR);
                     }
 
-                    return var_type;
+                    DataType dt = find_var_sig(expr->m_env.m_lexeme);
+
+                    //is class declared?
+                    if (!is_declared_class(dt.m_lexeme)) {
+                        add_error(expr->m_env, dt.m_lexeme + " is not declared class.");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    ClassSig class_sig = find_class_sig(dt.m_lexeme);
+
+                    //is field declared? - need to check up inheritance hierarchy
+                    if (!is_declared_field(dt.m_lexeme, expr->m_name.m_lexeme)) {
+                        add_error(expr->m_name, expr->m_name.m_lexeme + " is not a field in " + dt.m_lexeme + ".");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    return get_field_sig(dt.m_lexeme, expr->m_name.m_lexeme);
                 }
+
+
+                /*
+                 *  standard variable
+                 */
+                if (!is_declared_var(expr->m_name.m_lexeme)) {
+                    add_error(expr->m_name, "Undefined reference to " + 
+                                            expr->m_name.to_string() + ".");
+                    return DataType(TokenType::ERROR);
+                }
+
+                return find_var_sig(expr->m_name.m_lexeme);
+            }
+
+            DataType visit(SetVar* expr) {
+                /*
+                 *  instance field
+                 */
+                if (expr->m_env.m_type != TokenType::NIL) {
+                    //is instance declared?
+                    if (!is_declared_var(expr->m_env.m_lexeme)) {
+                        add_error(expr->m_env, expr->m_env.m_lexeme + " is not declared.");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    DataType dt = find_var_sig(expr->m_env.m_lexeme);
+
+                    //is class declared?
+                    if (!is_declared_class(dt.m_lexeme)) {
+                        add_error(expr->m_env, dt.m_lexeme + " is not declared class.");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    ClassSig class_sig = find_class_sig(dt.m_lexeme);
+
+                    //is field declared? - need to check up inheritance hierarchy
+                    if (!is_declared_field(dt.m_lexeme, expr->m_name.m_lexeme)) {
+                        add_error(expr->m_name, expr->m_name.m_lexeme + " is not a field in " + dt.m_lexeme + ".");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    DataType field_dt = get_field_sig(dt.m_lexeme, expr->m_name.m_lexeme);
+                    DataType value_dt = evaluate(expr->m_value.get());
+
+                    if (!DataType::equal(field_dt, value_dt)) {
+                        add_error(expr->m_name, "'" + expr->m_name.m_lexeme + "' requires a value of type " + Token::to_string(field_dt.m_type) + ".");
+                        return DataType(TokenType::ERROR);
+                    }
+
+                    return field_dt;
+                }
+
+                /*
+                 *  standard variable
+                 */
+
+                if (!is_declared_var(expr->m_name.m_lexeme)) {
+                    add_error(expr->m_name, "Undefined reference to " + 
+                                            expr->m_name.to_string() + ".");
+                    return DataType(TokenType::ERROR);
+                }
+
+                DataType var_type = find_var_sig(expr->m_name.m_lexeme);
+                DataType val_type = evaluate(expr->m_value.get());
+                if (!DataType::equal(var_type, val_type)) {
+                    add_error(expr->m_name, "Cannot assign variable of " + 
+                                            Token::to_string(var_type.m_type) + 
+                                            " to expression evaluating to " + 
+                                            Token::to_string(val_type.m_type) + ".");
+                    return DataType(TokenType::ERROR);
+                }
+
+                return var_type;
             }
 
             DataType visit(DeclFun* expr) {
@@ -634,66 +708,6 @@ namespace zebra {
                 m_fun_sig.back()[expr->m_name.m_lexeme] = types;
 
                 return DataType(TokenType::NIL_TYPE);
-            }
-
-            DataType visit(GetField* expr) {
-                //is instance declared?
-                if (!is_declared_var(expr->m_name.m_lexeme)) {
-                    add_error(expr->m_name, expr->m_name.m_lexeme + " is not declared.");
-                    return DataType(TokenType::ERROR);
-                }
-
-                DataType dt = find_var_sig(expr->m_name.m_lexeme);
-
-                //is class declared?
-                if (!is_declared_class(dt.m_lexeme)) {
-                    add_error(expr->m_name, dt.m_lexeme + " is not declared class.");
-                    return DataType(TokenType::ERROR);
-                }
-
-                ClassSig class_sig = find_class_sig(dt.m_lexeme);
-
-                //is field declared? - need to check up inheritance hierarchy
-                if (!is_declared_field(dt.m_lexeme, expr->m_field.m_lexeme)) {
-                    add_error(expr->m_name, expr->m_field.m_lexeme + " is not a field in " + dt.m_lexeme + ".");
-                    return DataType(TokenType::ERROR);
-                }
-
-                return get_field_sig(dt.m_lexeme, expr->m_field.m_lexeme);
-            }
-
-            DataType visit(SetField* expr) {
-                //is instance declared?
-                if (!is_declared_var(expr->m_name.m_lexeme)) {
-                    add_error(expr->m_name, expr->m_name.m_lexeme + " is not declared.");
-                    return DataType(TokenType::ERROR);
-                }
-
-                DataType dt = find_var_sig(expr->m_name.m_lexeme);
-
-                //is class declared?
-                if (!is_declared_class(dt.m_lexeme)) {
-                    add_error(expr->m_name, dt.m_lexeme + " is not declared class.");
-                    return DataType(TokenType::ERROR);
-                }
-
-                ClassSig class_sig = find_class_sig(dt.m_lexeme);
-
-                //is field declared? - need to check up inheritance hierarchy
-                if (!is_declared_field(dt.m_lexeme, expr->m_field.m_lexeme)) {
-                    add_error(expr->m_name, expr->m_field.m_lexeme + " is not a field in " + dt.m_lexeme + ".");
-                    return DataType(TokenType::ERROR);
-                }
-
-                DataType field_dt = get_field_sig(dt.m_lexeme, expr->m_field.m_lexeme);
-                DataType value_dt = evaluate(expr->m_value.get());
-
-                if (!DataType::equal(field_dt, value_dt)) {
-                    add_error(expr->m_name, "'" + expr->m_field.m_lexeme + "' requires a value of type " + Token::to_string(field_dt.m_type) + ".");
-                    return DataType(TokenType::ERROR);
-                }
-
-                return field_dt;
             }
 
             DataType visit(CallMethod* expr) {

@@ -100,12 +100,6 @@ namespace zebra {
             std::string visit(DeclClass* expr) override {
                 return "ClassDecl";
             }
-            std::string visit(GetField* expr) override {
-                return "GetField";
-            }
-            std::string visit(SetField* expr) override {
-                return "SetField";
-            }
             std::string visit(CallMethod* expr) override {
                 return "MethodCall";
             }
