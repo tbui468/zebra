@@ -68,6 +68,15 @@ namespace zebra {
     std::shared_ptr<Object> ClassDef::clone() {
         return std::make_shared<ClassDef>(*this);
     }
+    std::shared_ptr<Object> ClassDef::call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) {
+            if (m_base) {
+                std::shared_ptr<ClassDef> base = std::dynamic_pointer_cast<ClassDef>(m_base);
+                std::shared_ptr<ClassInst> base_instance = std::make_shared<ClassInst>(interp->m_global, base);
+                return std::make_shared<ClassInst>(base_instance->m_environment, shared_from_this());
+            } else {
+                return std::make_shared<ClassInst>(interp->m_global, shared_from_this());
+            }
+    }
             
     ClassInst::ClassInst(std::shared_ptr<Environment> global_env, std::shared_ptr<ClassDef> def): m_class(def) {
         m_environment = std::make_shared<Environment>(global_env, false);

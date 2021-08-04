@@ -95,22 +95,6 @@ namespace zebra {
                     std::shared_ptr<Expr> value = expression();
 
                     return std::make_shared<SetField>(name, field, value);
-                } else if (peek_three(TokenType::IDENTIFIER, TokenType::COLON, TokenType::IDENTIFIER)) { //class instatiation
-                    match(TokenType::IDENTIFIER);
-                    Token name = previous();
-                    match(TokenType::COLON);
-                    match(TokenType::IDENTIFIER); //this is base type TODO: will require this when implementing polymorphism
-                    consume(TokenType::EQUAL, "Class must be instantiated.");
-                    match(TokenType::IDENTIFIER); //this is derived type - don't need this yet
-                    Token class_decl = previous();
-                    consume(TokenType::LEFT_PAREN, "Expect '(' after class name.");
-
-                    std::vector<std::shared_ptr<Expr>> arguments;
-                    while (!match(TokenType::RIGHT_PAREN)) {
-                        arguments.push_back(expression()); 
-                    }
-                    
-                    return std::make_shared<InstClass>(name, class_decl, arguments);
                 } else if (peek_two(TokenType::IDENTIFIER, TokenType::COLON)) { //variable
                     match(TokenType::IDENTIFIER);
                     Token identifier = previous();
@@ -121,13 +105,13 @@ namespace zebra {
                     match(TokenType::INT_TYPE);
                     match(TokenType::FLOAT_TYPE);
                     match(TokenType::STRING_TYPE);
-                    match(TokenType::FUN_TYPE);
+                    match(TokenType::IDENTIFIER);
                     Token type = previous();
 
                     if (type.m_type == TokenType::COLON) {
                         add_error(type, "Invalid data type.");
                     }
-                    
+
                     //check for possible assignment
                     std::shared_ptr<Expr> value = nullptr;
                     if(match(TokenType::EQUAL)) {
@@ -342,6 +326,7 @@ namespace zebra {
                         match(TokenType::FLOAT_TYPE);
                         match(TokenType::STRING_TYPE);
                         match(TokenType::FUN_TYPE);
+                        match(TokenType::IDENTIFIER);
                         Token type = previous();
 
                         if (type.m_type == TokenType::COLON) {
@@ -358,6 +343,7 @@ namespace zebra {
                     match(TokenType::FLOAT_TYPE);
                     match(TokenType::STRING_TYPE);
                     match(TokenType::FUN_TYPE);
+                    match(TokenType::IDENTIFIER);
                     if (previous().m_type == TokenType::RIGHT_ARROW) {
                         m_return_type = TokenType::NIL_TYPE;
                     } else {

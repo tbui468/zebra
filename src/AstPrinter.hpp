@@ -54,7 +54,7 @@ namespace zebra {
                 return "( " + expr->m_name.to_string() + " )";
             }
             std::string visit(DeclVar* expr) override {
-                return "DeclVar";
+                return "( DeclVar " + expr->m_value->accept(*this) + " )";
             }
             std::string visit(SetVar* expr) override {
                 return "SetVar";
@@ -99,9 +99,6 @@ namespace zebra {
              */
             std::string visit(DeclClass* expr) override {
                 return "ClassDecl";
-            }
-            std::string visit(InstClass* expr) override {
-                return "InstClass";
             }
             std::string visit(GetField* expr) override {
                 return "GetField";

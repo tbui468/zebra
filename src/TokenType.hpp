@@ -25,7 +25,6 @@ namespace zebra {
         //types
         INT_TYPE, FLOAT_TYPE, STRING_TYPE,
         BOOL_TYPE, FUN_TYPE, NIL_TYPE, CLASS_TYPE,
-        CUSTOM_TYPE,
         /*
         ELIF, //new stuff
         BREAK,

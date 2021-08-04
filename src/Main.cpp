@@ -16,8 +16,7 @@
 /*
  * HIGH PRIORITY
  */
-//
-//InstClass shouldn't really need its own node - it's just a DeclVar with a value being the result of a constructor (function) call
+//Typer doesn't recognizes class instantations as valid function calls
 //
 //Class dot notation should be able to use GetVar, SetVar and CallFun - rather than having three separate nodes for classes
 //  what if user tries to overwrite class methods?  Shouldn't allow this
@@ -137,8 +136,8 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-//            zebra::AstPrinter printer;        
-//            printer.print(ast);
+            zebra::AstPrinter printer;        
+            printer.print(ast);
 
             
             zebra::Typer typer;

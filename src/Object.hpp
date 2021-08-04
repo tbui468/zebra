@@ -82,7 +82,7 @@ namespace zebra {
             virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override;
     };
 
-    class ClassDef: public Object {
+    class ClassDef: public Callable, public std::enable_shared_from_this<ClassDef> {
         public:
             std::shared_ptr<Object> m_base;
             std::vector<std::pair<Token, std::shared_ptr<Object>>> m_fields;
@@ -93,6 +93,7 @@ namespace zebra {
                      std::vector<std::pair<Token, std::shared_ptr<Object>>> methods);
             ClassDef(const ClassDef& obj);
             virtual std::shared_ptr<Object> clone() override;
+            virtual std::shared_ptr<Object> call(std::vector<std::shared_ptr<Object>> arguments, Interpreter* interp) override;
     };
 
     class ClassInst: public Object {

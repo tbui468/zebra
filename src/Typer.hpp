@@ -212,7 +212,7 @@ namespace zebra {
             DataType visit(Unary* expr) {
                 DataType right_type = evaluate(expr->m_right.get());
 
-                if (right_type.m_type == TokenType::CUSTOM_TYPE) {
+                if (right_type.m_type == TokenType::IDENTIFIER) {
                     add_error(expr->m_op, expr->m_op.to_string() + " operator does not work on " +
                                           right_type.m_lexeme + " data types.");
                     return DataType(TokenType::ERROR);
@@ -239,8 +239,8 @@ namespace zebra {
                 DataType left = evaluate(expr->m_left.get());
                 DataType right = evaluate(expr->m_right.get());
 
-                if (left.m_type == TokenType::CUSTOM_TYPE ||
-                    right.m_type == TokenType::CUSTOM_TYPE) {
+                if (left.m_type == TokenType::IDENTIFIER ||
+                    right.m_type == TokenType::IDENTIFIER) {
                     add_error(expr->m_op, "Cannot use " + expr->m_op.to_string() +
                                           " operator with a " + left.m_lexeme + 
                                           " and a " + right.m_lexeme + ".");
@@ -249,7 +249,7 @@ namespace zebra {
 
                 if (left.m_type == right.m_type && 
                     left.m_type != TokenType::BOOL_TYPE &&
-                    left.m_type != TokenType::CUSTOM_TYPE) return left;
+                    left.m_type != TokenType::IDENTIFIER) return left;
 
                 add_error(expr->m_op, "Cannot use " + expr->m_op.to_string() + 
                                       " operator with a " + Token::to_string(left.m_type) + 
@@ -284,8 +284,8 @@ namespace zebra {
                 DataType left = evaluate(expr->m_left.get());
                 DataType right = evaluate(expr->m_right.get());
 
-                if (left.m_type == TokenType::CUSTOM_TYPE ||
-                    right.m_type == TokenType::CUSTOM_TYPE) {
+                if (left.m_type == TokenType::IDENTIFIER ||
+                    right.m_type == TokenType::IDENTIFIER) {
                     add_error(expr->m_op, "Cannot use " + expr->m_op.to_string() +
                                           " operator with a " + left.m_lexeme + 
                                           " and a " + right.m_lexeme + ".");
@@ -624,18 +624,6 @@ namespace zebra {
                 m_class_sig.back()[expr->m_name.m_lexeme] = {expr->m_base.m_lexeme, field_sig, method_sig};
 
                 return DataType(TokenType::NIL_TYPE);
-            }
-
-            DataType visit(InstClass* expr) {
-                //class declared?
-                if (!is_declared_class(expr->m_class.m_lexeme)) {
-                    add_error(expr->m_name, expr->m_class.m_lexeme + " is not declared.");
-                    return DataType(TokenType::ERROR);
-                }
-
-                m_var_sig.back()[expr->m_name.m_lexeme] = DataType(TokenType::CUSTOM_TYPE, expr->m_class.m_lexeme);
-
-                return DataType(TokenType::CUSTOM_TYPE, expr->m_class.m_lexeme);
             }
 
             DataType visit(GetField* expr) {

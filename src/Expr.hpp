@@ -64,7 +64,6 @@ namespace zebra {
         virtual std::string visit(While* expr) = 0;
 
         virtual std::string visit(DeclClass* expr) = 0;
-        virtual std::string visit(InstClass* expr) = 0;
         virtual std::string visit(GetField* expr) = 0;
         virtual std::string visit(SetField* expr) = 0;
         virtual std::string visit(CallMethod* expr) = 0;
@@ -92,7 +91,6 @@ namespace zebra {
         virtual std::shared_ptr<Object> visit(While* expr) = 0;
 
         virtual std::shared_ptr<Object> visit(DeclClass* expr) = 0;
-        virtual std::shared_ptr<Object> visit(InstClass* expr) = 0;
         virtual std::shared_ptr<Object> visit(GetField* expr) = 0;
         virtual std::shared_ptr<Object> visit(SetField* expr) = 0;
         virtual std::shared_ptr<Object> visit(CallMethod* expr) = 0;
@@ -120,7 +118,6 @@ namespace zebra {
         virtual DataType visit(While* expr) = 0;
 
         virtual DataType visit(DeclClass* expr) = 0;
-        virtual DataType visit(InstClass* expr) = 0;
         virtual DataType visit(GetField* expr) = 0;
         virtual DataType visit(SetField* expr) = 0;
         virtual DataType visit(CallMethod* expr) = 0;
@@ -380,20 +377,6 @@ namespace zebra {
             Token m_base;
             std::vector<std::shared_ptr<Expr>> m_fields;
             std::vector<std::shared_ptr<Expr>> m_methods;
-    };
-
-    struct InstClass: public Expr {
-        public:
-            InstClass(Token name, Token class_decl, std::vector<std::shared_ptr<Expr>> arguments):
-                m_name(name), m_class(class_decl), m_arguments(arguments) {}
-            ~InstClass() {}
-            std::string accept(ExprStringVisitor& visitor) { return visitor.visit(this); }
-            std::shared_ptr<Object> accept(ExprObjectVisitor& visitor) { return visitor.visit(this); }
-            DataType accept(DataTypeVisitor& visitor) { return visitor.visit(this); }
-        public:
-            Token m_name;
-            Token m_class;
-            std::vector<std::shared_ptr<Expr>> m_arguments;
     };
 
     struct GetField: public Expr {

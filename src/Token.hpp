@@ -67,7 +67,6 @@ namespace zebra {
                     case TokenType::FUN_TYPE: return "FUN_TYPE"; //is this used? Using function signatures (parameter/return types)
                     case TokenType::NIL_TYPE: return "NIL_TYPE";
                     case TokenType::CLASS_TYPE: return "CLASS_TYPE";
-                    case TokenType::CUSTOM_TYPE: return "CUSTOM_TYPE"; //used for class instances
                     //other
                     case TokenType::SLASH_SLASH: return "SLASH_SLASH";
                     case TokenType::ERROR: return "ERROR";

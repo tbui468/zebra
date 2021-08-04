@@ -220,6 +220,7 @@ namespace zebra {
         return fun;
     }
 
+
     std::shared_ptr<Object> Interpreter::visit(CallFun* expr) {
         std::shared_ptr<Object> obj = m_environment->get(expr->m_name);
         Callable* fun = dynamic_cast<Callable*>(obj.get());
@@ -337,23 +338,7 @@ namespace zebra {
 
         return class_def;
     }
-    
-    std::shared_ptr<Object> Interpreter::visit(InstClass* expr) {
-        std::shared_ptr<ClassDef> def = std::dynamic_pointer_cast<ClassDef>(m_environment->get(expr->m_class));
-
-        if (def->m_base) {
-            std::shared_ptr<ClassDef> base = std::dynamic_pointer_cast<ClassDef>(def->m_base);
-            std::shared_ptr<ClassInst> base_instance = std::make_shared<ClassInst>(m_global, base);
-            std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(base_instance->m_environment, def);
-            m_environment->define(expr->m_name, class_instance);
-            return class_instance;
-        } else {
-            std::shared_ptr<Object> class_instance = std::make_shared<ClassInst>(m_global, def);
-            m_environment->define(expr->m_name, class_instance);
-            return class_instance;
-        }
-
-    }
+   
 
     std::shared_ptr<Object> Interpreter::visit(GetField* expr) {
         ClassInst* inst = dynamic_cast<ClassInst*>(m_environment->get(expr->m_name).get());
